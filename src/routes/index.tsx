@@ -145,9 +145,9 @@ function Index() {
       </section>
 
 
-      {/* REGISTRATION */}
+      {/* REGISTRATION CTA */}
       <section id="inscricao" className="py-20">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2 md:items-center">
           <div className="text-center md:text-left">
             <span className="text-xs tracking-[0.35em] text-gold">INSCRIÇÃO</span>
             <h2 className="mt-3 font-display text-4xl text-primary md:text-5xl">
@@ -171,93 +171,19 @@ function Index() {
                 </li>
               ))}
             </ul>
-            <div className="mt-10 rounded-lg border border-border bg-card p-6 text-left">
-              <p className="text-xs tracking-widest text-muted-foreground">LOCAL</p>
-              <p className="mt-1 text-xl text-primary">
-                <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
-                <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Av. Bartolomeu Bueno Qd. 15 Lt. 26
-                <br />
-                Jd. Mont Serrat — Aparecida de Goiânia / GO
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
-                <a
-                  href="https://www.google.com/maps/dir/?api=1&destination=-16.7603239,-49.2704948"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-2 text-xs font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
-                >
-                  GOOGLE MAPS
-                </a>
-                <a
-                  href="https://waze.com/ul?ll=-16.7603239,-49.2704948&navigate=yes"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-2 text-xs font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
-                >
-                  WAZE
-                </a>
-                <a
-                  href="https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=-16.7603239&dropoff[longitude]=-49.2704948"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-2 text-xs font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
-                >
-                  UBER
-                </a>
-              </div>
+            <div className="mt-8 flex justify-center md:justify-start">
+              <Link
+                to="/painel"
+                className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
+              >
+                ACESSAR PAINEL DO INSCRITO
+              </Link>
             </div>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSent(true);
-            }}
-            className="rounded-xl border border-border bg-card p-8 shadow-lg"
-          >
-            <h3 className="font-display text-2xl text-primary text-center md:text-left">Faça sua inscrição</h3>
-            <p className="mt-1 text-sm text-muted-foreground text-center md:text-left">
-              Preencha os dados abaixo e finalize o pagamento.
-            </p>
-            <div className="mt-6 space-y-4">
-              <Field
-                label="Nome completo"
-                value={form.nome}
-                onChange={(v) => setForm({ ...form, nome: v })}
-              />
-              <Field
-                label="E-mail"
-                type="email"
-                value={form.email}
-                onChange={(v) => setForm({ ...form, email: v })}
-              />
-              <Field
-                label="Telefone / WhatsApp"
-                value={form.telefone}
-                onChange={(v) => setForm({ ...form, telefone: v })}
-              />
-            </div>
-            <div className="mt-6 flex flex-col items-center justify-center gap-4 border-t border-border pt-6 md:flex-row md:justify-between">
-              <div className="text-center md:text-left">
-                <p className="text-xs tracking-widest text-muted-foreground">TOTAL</p>
-                <p className="font-display text-3xl text-primary">R$ 50,00</p>
-              </div>
-              <button
-                type="submit"
-                className="rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
-              >
-                CONFIRMAR INSCRIÇÃO
-              </button>
-            </div>
-            {sent && (
-              <p className="mt-4 rounded-md border border-gold/40 bg-gold/10 p-3 text-sm text-primary text-center md:text-left">
-                Recebemos sua inscrição! Em breve enviaremos os detalhes de pagamento por e-mail.
-              </p>
-            )}
-          </form>
+          <div className="mx-auto w-full max-w-md md:mx-0">
+            <LocalCard />
+          </div>
         </div>
       </section>
 
@@ -275,29 +201,3 @@ function Index() {
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="text-xs tracking-widest text-muted-foreground">
-        {label.toUpperCase()}
-      </span>
-      <input
-        required
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30"
-      />
-    </label>
-  );
-}
