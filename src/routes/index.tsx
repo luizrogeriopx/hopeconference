@@ -125,7 +125,7 @@ function Index() {
                     <img
                       src={photo}
                       alt={name}
-                      className="h-14 w-14 rounded-full border border-gold/60 object-cover"
+                      className="h-14 w-14 rounded-full border border-gold/60 object-cover object-top"
                     />
                   ) : (
                     <div className="h-14 w-14 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
