@@ -24,14 +24,19 @@ export const Route = createFileRoute("/")({
 });
 
 import ronnyMarcos from "@/assets/speaker-ronny-marcos.jpg";
+import romeuIvo from "@/assets/speaker-romeu-ivo.png";
+import jocymarFonseca from "@/assets/speaker-jocymar-fonseca.png";
+import hamiltonCesar from "@/assets/speaker-hamilton-cesar.png";
+import wellingtonRocha from "@/assets/speaker-wellington-rocha.png";
+import jehanPorto from "@/assets/speaker-jehan-porto.png";
 
 const speakers: { name: string; photo?: string }[] = [
   { name: "Pr. Ronny Marcos", photo: ronnyMarcos },
-  { name: "Pr. Romeu Ivo" },
-  { name: "Pr. Jocymar Fonseca" },
-  { name: "Pr. Hamilton Cesar" },
-  { name: "Pr. Wellington Rocha" },
-  { name: "Pr. Jehan Porto" },
+  { name: "Pr. Romeu Ivo", photo: romeuIvo },
+  { name: "Pr. Jocymar Fonseca", photo: jocymarFonseca },
+  { name: "Pr. Hamilton Cesar", photo: hamiltonCesar },
+  { name: "Pr. Wellington Rocha", photo: wellingtonRocha },
+  { name: "Pr. Jehan Porto", photo: jehanPorto },
 ];
 
 function Index() {
