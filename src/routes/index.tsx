@@ -239,7 +239,7 @@ function Index() {
 
       <footer className="border-t border-border bg-primary py-10 text-primary-foreground">
         <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="font-display text-2xl">Hope Conference 2026</p>
+          <p className="font-display text-2xl uppercase">Hope Conference 2026</p>
           <p className="mt-1 text-xs tracking-[0.3em] text-primary-foreground/70">
             <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
             <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>{" "}
