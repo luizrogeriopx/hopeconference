@@ -30,13 +30,13 @@ import hamiltonCesar from "@/assets/speaker-hamilton-cesar.png";
 import wellingtonRocha from "@/assets/speaker-wellington-rocha.png";
 import jehanPorto from "@/assets/speaker-jehan-porto.png";
 
-const speakers: { name: string; photo?: string; position?: string }[] = [
+const speakers: { name: string; photo?: string; position?: string; size?: string }[] = [
   { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "center top" },
   { name: "Pr. Romeu Ivo", photo: wellingtonRocha, position: "center top" },
-  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "center top" },
+  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "center top", size: "h-16 w-16" },
   { name: "Pr. Hamilton Cesar", photo: jehanPorto, position: "center top" },
-  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "30% 35%" },
-  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "center top" },
+  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "30% 35%", size: "h-16 w-16" },
+  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "center top", size: "h-16 w-16" },
 ];
 
 function Index() {
