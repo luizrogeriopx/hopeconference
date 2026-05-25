@@ -9,18 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SuperRouteImport } from './routes/super'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as GateRouteImport } from './routes/gate'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SuperRoute = SuperRouteImport.update({
+  id: '/super',
+  path: '/super',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GateRoute = GateRouteImport.update({
+  id: '/gate',
+  path: '/gate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,36 +49,55 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
+  '/super': typeof SuperRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
+  '/super': typeof SuperRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
+  '/super': typeof SuperRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/painel'
+  fullPaths: '/' | '/admin' | '/auth' | '/gate' | '/painel' | '/super'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/painel'
-  id: '__root__' | '/' | '/auth' | '/painel'
+  to: '/' | '/admin' | '/auth' | '/gate' | '/painel' | '/super'
+  id: '__root__' | '/' | '/admin' | '/auth' | '/gate' | '/painel' | '/super'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  GateRoute: typeof GateRoute
   PainelRoute: typeof PainelRoute
+  SuperRoute: typeof SuperRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/super': {
+      id: '/super'
+      path: '/super'
+      fullPath: '/super'
+      preLoaderRoute: typeof SuperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/painel': {
       id: '/painel'
       path: '/painel'
@@ -68,11 +105,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gate': {
+      id: '/gate'
+      path: '/gate'
+      fullPath: '/gate'
+      preLoaderRoute: typeof GateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,8 +138,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  GateRoute: GateRoute,
   PainelRoute: PainelRoute,
+  SuperRoute: SuperRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
