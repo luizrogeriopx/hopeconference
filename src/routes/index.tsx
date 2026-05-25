@@ -150,7 +150,7 @@ function Index() {
       {/* REGISTRATION */}
       <section id="inscricao" className="py-20">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2">
-          <div>
+          <div className="text-center md:text-left">
             <span className="text-xs tracking-[0.35em] text-gold">INSCRIÇÃO</span>
             <h2 className="mt-3 font-display text-4xl text-primary md:text-5xl">
               Garanta sua vaga
@@ -160,20 +160,20 @@ function Index() {
               <span className="font-semibold text-primary">R$ 50,00</span> para
               os três dias de conferência.
             </p>
-            <ul className="mt-8 space-y-3 text-sm">
+            <ul className="mt-8 mx-auto max-w-sm space-y-3 text-sm md:mx-1 md:max-w-none">
               {[
                 "Acesso a todas as ministrações",
                 "Material exclusivo do evento",
                 "Credencial oficial Hope Conference",
                 "Coffee break nos intervalos",
               ].map((b) => (
-                <li key={b} className="flex items-start gap-3">
-                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-gold" />
-                  <span className="text-foreground/80">{b}</span>
+                <li key={b} className="flex items-start gap-3 justify-center md:justify-start">
+                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                  <span className="text-foreground/80 text-left">{b}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-10 rounded-lg border border-border bg-card p-6">
+            <div className="mt-10 rounded-lg border border-border bg-card p-6 text-left">
               <p className="text-xs tracking-widest text-muted-foreground">LOCAL</p>
               <p className="mt-1 text-xl text-primary">
                 <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
@@ -184,7 +184,7 @@ function Index() {
                 <br />
                 Jd. Mont Serrat — Aparecida de Goiânia / GO
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
                 <a
                   href="https://www.google.com/maps/dir/?api=1&destination=-16.7603239,-49.2704948"
                   target="_blank"
