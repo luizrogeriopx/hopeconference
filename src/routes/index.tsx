@@ -62,7 +62,7 @@ function Index() {
           className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/85 to-background"
         />
         <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-2 md:gap-10 md:py-24">
-          <div className="order-2 flex flex-col justify-center md:order-1">
+          <div className="order-2 flex flex-col items-center justify-center text-center md:order-1 md:items-start md:text-left">
             <h1 className="font-display font-medium leading-[1.05] text-primary">
               <span className="block text-6xl sm:text-7xl md:text-9xl tracking-[0.05em]">HOPE</span>
               <span className="block text-xl sm:text-2xl md:text-[2.6rem] tracking-[0.2em] text-primary mt-2">
@@ -76,7 +76,7 @@ function Index() {
               Três dias de palavra, adoração e comunhão. Uma conferência para
               renovar a esperança e fortalecer a fé.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <a
                 href="#inscricao"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
@@ -84,7 +84,7 @@ function Index() {
                 INSCREVA-SE — R$ 50,00
               </a>
             </div>
-            <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6">
+            <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6 md:justify-start">
               <div>
                 <dt className="text-xs tracking-widest text-muted-foreground">DATA</dt>
                 <dd className="mt-1 font-display text-lg sm:text-xl text-primary">3 a 5 de Julho</dd>
@@ -150,7 +150,7 @@ function Index() {
       {/* REGISTRATION */}
       <section id="inscricao" className="py-20">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2">
-          <div>
+          <div className="text-center md:text-left">
             <span className="text-xs tracking-[0.35em] text-gold">INSCRIÇÃO</span>
             <h2 className="mt-3 font-display text-4xl text-primary md:text-5xl">
               Garanta sua vaga
@@ -160,20 +160,20 @@ function Index() {
               <span className="font-semibold text-primary">R$ 50,00</span> para
               os três dias de conferência.
             </p>
-            <ul className="mt-8 space-y-3 text-sm">
+            <ul className="mt-8 mx-auto max-w-sm space-y-3 text-sm md:mx-1 md:max-w-none">
               {[
                 "Acesso a todas as ministrações",
                 "Material exclusivo do evento",
                 "Credencial oficial Hope Conference",
                 "Coffee break nos intervalos",
               ].map((b) => (
-                <li key={b} className="flex items-start gap-3">
-                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-gold" />
-                  <span className="text-foreground/80">{b}</span>
+                <li key={b} className="flex items-start gap-3 justify-center md:justify-start">
+                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
+                  <span className="text-foreground/80 text-left">{b}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-10 rounded-lg border border-border bg-card p-6">
+            <div className="mt-10 rounded-lg border border-border bg-card p-6 text-left">
               <p className="text-xs tracking-widest text-muted-foreground">LOCAL</p>
               <p className="mt-1 text-xl text-primary">
                 <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
@@ -184,7 +184,7 @@ function Index() {
                 <br />
                 Jd. Mont Serrat — Aparecida de Goiânia / GO
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
                 <a
                   href="https://www.google.com/maps/dir/?api=1&destination=-16.7603239,-49.2704948"
                   target="_blank"
@@ -220,8 +220,8 @@ function Index() {
             }}
             className="rounded-xl border border-border bg-card p-8 shadow-lg"
           >
-            <h3 className="font-display text-2xl text-primary">Faça sua inscrição</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h3 className="font-display text-2xl text-primary text-center md:text-left">Faça sua inscrição</h3>
+            <p className="mt-1 text-sm text-muted-foreground text-center md:text-left">
               Preencha os dados abaixo e finalize o pagamento.
             </p>
             <div className="mt-6 space-y-4">
@@ -242,8 +242,8 @@ function Index() {
                 onChange={(v) => setForm({ ...form, telefone: v })}
               />
             </div>
-            <div className="mt-6 flex items-center justify-between border-t border-border pt-6">
-              <div>
+            <div className="mt-6 flex flex-col items-center justify-center gap-4 border-t border-border pt-6 md:flex-row md:justify-between">
+              <div className="text-center md:text-left">
                 <p className="text-xs tracking-widest text-muted-foreground">TOTAL</p>
                 <p className="font-display text-3xl text-primary">R$ 50,00</p>
               </div>
@@ -255,7 +255,7 @@ function Index() {
               </button>
             </div>
             {sent && (
-              <p className="mt-4 rounded-md border border-gold/40 bg-gold/10 p-3 text-sm text-primary">
+              <p className="mt-4 rounded-md border border-gold/40 bg-gold/10 p-3 text-sm text-primary text-center md:text-left">
                 Recebemos sua inscrição! Em breve enviaremos os detalhes de pagamento por e-mail.
               </p>
             )}
