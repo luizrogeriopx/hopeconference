@@ -133,35 +133,6 @@ function Index() {
         </div>
       </section>
 
-      {/* PROGRAM */}
-      <section id="programacao" className="border-b border-border bg-secondary/40 py-20">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="mb-12 text-center">
-            <span className="text-xs tracking-[0.35em] text-gold">PROGRAMAÇÃO</span>
-            <h2 className="mt-3 font-display text-4xl text-primary md:text-5xl">
-              Três dias inesquecíveis
-            </h2>
-          </div>
-          <div className="space-y-6">
-            {[
-              { day: "Sexta · 03/07", title: "Noite de Abertura", time: "19h30 — 22h00" },
-              { day: "Sábado · 04/07", title: "Manhã, Tarde e Noite de Ministrações", time: "09h00 — 22h00" },
-              { day: "Domingo · 05/07", title: "Celebração de Encerramento", time: "09h00 — 12h00" },
-            ].map((s) => (
-              <div
-                key={s.day}
-                className="flex flex-col gap-2 rounded-lg border border-border bg-card p-6 md:flex-row md:items-center md:justify-between"
-              >
-                <div>
-                  <p className="text-xs tracking-widest text-gold">{s.day.toUpperCase()}</p>
-                  <p className="mt-1 font-display text-2xl text-primary">{s.title}</p>
-                </div>
-                <p className="text-sm text-muted-foreground">{s.time}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* REGISTRATION */}
       <section id="inscricao" className="py-20">
