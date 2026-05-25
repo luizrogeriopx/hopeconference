@@ -76,12 +76,6 @@ function Index() {
               >
                 INSCREVA-SE — R$ 50,00
               </a>
-              <a
-                href="#programacao"
-                className="inline-flex items-center justify-center rounded-md border border-primary/30 px-6 py-3 text-sm font-medium tracking-wider text-primary transition hover:bg-primary/5"
-              >
-                VER PROGRAMAÇÃO
-              </a>
             </div>
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6">
               <div>
