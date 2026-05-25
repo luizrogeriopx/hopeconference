@@ -220,8 +220,8 @@ function Index() {
             }}
             className="rounded-xl border border-border bg-card p-8 shadow-lg"
           >
-            <h3 className="font-display text-2xl text-primary">Faça sua inscrição</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h3 className="font-display text-2xl text-primary text-center md:text-left">Faça sua inscrição</h3>
+            <p className="mt-1 text-sm text-muted-foreground text-center md:text-left">
               Preencha os dados abaixo e finalize o pagamento.
             </p>
             <div className="mt-6 space-y-4">
