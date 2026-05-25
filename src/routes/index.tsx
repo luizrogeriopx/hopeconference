@@ -91,7 +91,7 @@ function Index() {
               </div>
               <div>
                 <dt className="text-xs tracking-widest text-muted-foreground">LOCAL</dt>
-                <dd className="mt-1 text-lg sm:text-xl text-primary">
+                <dd className="mt-1 text-lg sm:text-xl leading-tight text-primary">
                   <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
                   <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>
                 </dd>
