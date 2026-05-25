@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import hero from "@/assets/hope-speakers.png";
 import stainedGlass from "@/assets/stained-glass-bg.jpg";
+import { LocalCard } from "@/components/LocalCard";
+
 
 
 export const Route = createFileRoute("/")({
@@ -40,9 +41,6 @@ const speakers: { name: string; photo?: string; position?: string; zoom?: number
 ];
 
 function Index() {
-  const [form, setForm] = useState({ nome: "", email: "", telefone: "" });
-  const [sent, setSent] = useState(false);
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* HERO with poster */}
@@ -77,12 +75,12 @@ function Index() {
               renovar a esperança e fortalecer a fé.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-              <a
-                href="#inscricao"
+              <Link
+                to="/painel"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
               >
-                INSCREVA-SE — R$ 50,00
-              </a>
+                PAINEL DO INSCRITO
+              </Link>
             </div>
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6 md:justify-start">
               <div>
