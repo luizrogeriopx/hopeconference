@@ -23,13 +23,15 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const speakers = [
-  "Pr. Ronny Marcos",
-  "Pr. Romeu Ivo",
-  "Pr. Jocymar Fonseca",
-  "Pr. Hamilton Cesar",
-  "Pr. Wellington Rocha",
-  "Pr. Jehan Porto",
+import ronnyMarcos from "@/assets/speaker-ronny-marcos.jpg";
+
+const speakers: { name: string; photo?: string }[] = [
+  { name: "Pr. Ronny Marcos", photo: ronnyMarcos },
+  { name: "Pr. Romeu Ivo" },
+  { name: "Pr. Jocymar Fonseca" },
+  { name: "Pr. Hamilton Cesar" },
+  { name: "Pr. Wellington Rocha" },
+  { name: "Pr. Jehan Porto" },
 ];
 
 function Index() {
@@ -108,13 +110,21 @@ function Index() {
             </h2>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {speakers.map((name) => (
+            {speakers.map(({ name, photo }) => (
               <li
                 key={name}
                 className="group rounded-lg border border-border bg-card p-6 transition hover:border-gold hover:shadow-md"
               >
                 <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt={name}
+                      className="h-14 w-14 rounded-full border border-gold/60 object-cover"
+                    />
+                  ) : (
+                    <div className="h-14 w-14 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
+                  )}
                   <div>
                     <p className="text-xs tracking-widest text-muted-foreground">PRELETOR</p>
                     <p className="font-display text-xl text-primary">{name}</p>
