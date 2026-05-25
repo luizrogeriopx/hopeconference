@@ -30,13 +30,13 @@ import hamiltonCesar from "@/assets/speaker-hamilton-cesar.png";
 import wellingtonRocha from "@/assets/speaker-wellington-rocha.png";
 import jehanPorto from "@/assets/speaker-jehan-porto.png";
 
-const speakers: { name: string; photo?: string; position?: string; size?: string }[] = [
-  { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "center top" },
-  { name: "Pr. Romeu Ivo", photo: wellingtonRocha, position: "center top" },
-  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "center top", size: "h-16 w-16" },
-  { name: "Pr. Hamilton Cesar", photo: jehanPorto, position: "center top" },
-  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "30% 35%", size: "h-16 w-16" },
-  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "center top", size: "h-16 w-16" },
+const speakers: { name: string; photo?: string; position?: string; zoom?: number }[] = [
+  { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "50% 25%", zoom: 1.4 },
+  { name: "Pr. Romeu Ivo", photo: wellingtonRocha, position: "50% 30%", zoom: 1.4 },
+  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "50% 30%", zoom: 1.5 },
+  { name: "Pr. Hamilton Cesar", photo: jehanPorto, position: "50% 30%", zoom: 1.4 },
+  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "35% 35%", zoom: 1.6 },
+  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "50% 30%", zoom: 1.5 },
 ];
 
 function Index() {
@@ -115,21 +115,23 @@ function Index() {
             </h2>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {speakers.map(({ name, photo, position, size }) => (
+            {speakers.map(({ name, photo, position, zoom }) => (
               <li
                 key={name}
                 className="group rounded-lg border border-border bg-card p-6 transition hover:border-gold hover:shadow-md"
               >
                 <div className="flex items-center gap-4">
                   {photo ? (
-                    <img
-                      src={photo}
-                      alt={name}
-                      className={`${size ?? "h-14 w-14"} rounded-full border border-gold/60 object-cover`}
-                      style={{ objectPosition: position ?? "center top" }}
-                    />
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-gold/60">
+                      <img
+                        src={photo}
+                        alt={name}
+                        className="h-full w-full object-cover"
+                        style={{ objectPosition: position ?? "center top", transform: `scale(${zoom ?? 1})`, transformOrigin: position ?? "center top" }}
+                      />
+                    </div>
                   ) : (
-                    <div className={`${size ?? "h-14 w-14"} rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20`} />
+                    <div className="h-16 w-16 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
                   )}
                   <div>
                     <p className="text-xs tracking-widest text-muted-foreground">PRELETOR</p>
