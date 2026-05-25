@@ -75,11 +75,6 @@ function PainelInscrito() {
     await carregar();
   }
 
-  async function cancelar(id: string) {
-    if (!confirm("Cancelar esta inscrição?")) return;
-    const { error } = await supabase.from("inscricoes").update({ status: "cancelado" }).eq("id", id);
-    if (!error) await carregar();
-  }
 
   if (loading || !user) {
     return <main className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Carregando…</main>;
@@ -158,7 +153,7 @@ function PainelInscrito() {
             ) : (
               <ul className="mt-4 grid gap-4 sm:grid-cols-2">
                 {inscricoes.map((i) => (
-                  <InscricaoCard key={i.id} inscricao={i} onCancelar={() => cancelar(i.id)} />
+                  <InscricaoCard key={i.id} inscricao={i} />
                 ))}
               </ul>
             )}
@@ -173,7 +168,7 @@ function PainelInscrito() {
   );
 }
 
-function InscricaoCard({ inscricao, onCancelar }: { inscricao: Inscricao; onCancelar: () => void }) {
+function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dataUrl, setDataUrl] = useState<string>("");
 
@@ -211,12 +206,6 @@ function InscricaoCard({ inscricao, onCancelar }: { inscricao: Inscricao; onCanc
             className="flex-1 rounded-md bg-primary px-3 py-2 text-center text-xs font-medium tracking-widest text-primary-foreground hover:bg-primary/90">
             BAIXAR QR
           </a>
-        )}
-        {inscricao.status === "pago" && (
-          <button onClick={onCancelar}
-            className="rounded-md border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground hover:bg-muted">
-            CANCELAR
-          </button>
         )}
       </div>
     </li>
