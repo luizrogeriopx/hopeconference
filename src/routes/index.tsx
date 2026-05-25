@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import hero from "@/assets/hope-hero.png";
+import hero from "@/assets/hope-speakers.png";
 import stainedGlass from "@/assets/stained-glass-bg.jpg";
 
 
