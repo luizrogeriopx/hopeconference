@@ -79,7 +79,7 @@ function Index() {
                 to="/painel"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
               >
-                PAINEL DO INSCRITO
+                INSCRIÇÕES — R$50,00
               </Link>
             </div>
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6 md:justify-start">
@@ -176,7 +176,7 @@ function Index() {
                 to="/painel"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
               >
-                ACESSAR PAINEL DO INSCRITO
+                INSCRIÇÕES — R$50,00
               </Link>
             </div>
           </div>
