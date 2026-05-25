@@ -102,8 +102,9 @@ function AuthPage() {
         </form>
 
         <button
+          type="button"
           onClick={() => { setErro(null); setMsg(null); setMode(mode === "login" ? "signup" : "login"); }}
-          className="mt-6 w-full text-center text-sm text-muted-foreground hover:text-primary"
+          className="mt-6 w-full rounded-md border border-primary px-6 py-3 text-center text-sm font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
         >
           {mode === "login" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
         </button>
