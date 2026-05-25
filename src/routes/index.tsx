@@ -243,7 +243,7 @@ function Index() {
           <p className="mt-1 text-xs tracking-[0.3em] text-primary-foreground/70">
             <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
             <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>{" "}
-            · APARECIDA DE GOIÂNIA — GO
+            · A ANO DA PROMESSA
           </p>
         </div>
       </footer>
