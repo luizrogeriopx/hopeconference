@@ -83,7 +83,7 @@ function Index() {
           <div className="order-1 relative flex items-start justify-center md:order-2 md:items-center -mt-4 md:mt-0">
             <img
               src={hero}
-              alt="Hope Conference 2026"
+              alt="Hope Conference 2026 — preletores"
               className="relative w-full max-w-md md:max-w-2xl md:scale-110"
             />
           </div>
