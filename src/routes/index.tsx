@@ -54,18 +54,18 @@ function Index() {
           aria-hidden
           className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/85 to-background"
         />
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-2 md:py-24">
-          <div className="flex flex-col justify-center">
+        <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-2 md:gap-10 md:py-24">
+          <div className="order-2 flex flex-col justify-center md:order-1">
             <h1 className="font-display font-medium leading-[1.05] text-primary">
-              <span className="block text-7xl md:text-8xl tracking-tight">HOPE</span>
-              <span className="block text-3xl md:text-4xl tracking-[0.2em] text-primary mt-2">
+              <span className="block text-5xl sm:text-6xl md:text-8xl tracking-tight">HOPE</span>
+              <span className="block text-xl sm:text-2xl md:text-4xl tracking-[0.2em] text-primary mt-2">
                 CONFERENCE
               </span>
-              <span className="block text-2xl tracking-[0.4em] text-muted-foreground mt-3">
+              <span className="block text-lg sm:text-xl md:text-2xl tracking-[0.4em] text-muted-foreground mt-3">
                 2 0 2 6
               </span>
             </h1>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-6 max-w-md text-base sm:text-lg leading-relaxed text-muted-foreground">
               Três dias de palavra, adoração e comunhão. Uma conferência para
               renovar a esperança e fortalecer a fé.
             </p>
@@ -80,27 +80,19 @@ function Index() {
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6">
               <div>
                 <dt className="text-xs tracking-widest text-muted-foreground">DATA</dt>
-                <dd className="mt-1 font-display text-xl text-primary">3–5 de Julho</dd>
+                <dd className="mt-1 font-display text-lg sm:text-xl text-primary">3–5 de Julho</dd>
               </div>
               <div>
                 <dt className="text-xs tracking-widest text-muted-foreground">LOCAL</dt>
-                <dd className="mt-1 font-display text-xl text-primary">Igreja Esperança</dd>
+                <dd className="mt-1 font-display text-lg sm:text-xl text-primary">Igreja Esperança</dd>
               </div>
             </dl>
           </div>
-          <div className="relative flex items-center justify-center">
-            <div className="absolute -inset-6 rounded-full bg-gradient-radial from-gold/20 via-transparent to-transparent blur-3xl" />
+          <div className="order-1 relative flex items-start justify-center md:order-2 md:items-center -mt-4 md:mt-0">
             <img
               src={hero}
               alt="Hope Conference 2026 — preletores"
-              className="relative w-full max-w-2xl scale-[1.65] md:scale-[2.1]"
-              style={{
-                filter: "drop-shadow(0 0 30px rgba(255,255,255,0.55))",
-                WebkitMaskImage:
-                  "linear-gradient(to bottom, black 70%, transparent 100%)",
-                maskImage:
-                  "linear-gradient(to bottom, black 70%, transparent 100%)",
-              }}
+              className="relative w-full max-w-md md:max-w-2xl md:scale-110"
             />
           </div>
         </div>
