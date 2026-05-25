@@ -32,10 +32,10 @@ import jehanPorto from "@/assets/speaker-jehan-porto.png";
 
 const speakers: { name: string; photo?: string }[] = [
   { name: "Pr. Ronny Marcos", photo: ronnyMarcos },
-  { name: "Pr. Romeu Ivo", photo: romeuIvo },
-  { name: "Pr. Jocymar Fonseca", photo: jocymarFonseca },
-  { name: "Pr. Hamilton Cesar", photo: hamiltonCesar },
-  { name: "Pr. Wellington Rocha", photo: wellingtonRocha },
+  { name: "Pr. Romeu Ivo", photo: wellingtonRocha },
+  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar },
+  { name: "Pr. Hamilton Cesar", photo: jocymarFonseca },
+  { name: "Pr. Wellington Rocha", photo: romeuIvo },
   { name: "Pr. Jehan Porto", photo: jehanPorto },
 ];
 
