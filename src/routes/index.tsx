@@ -225,7 +225,9 @@ function Index() {
         <div className="mx-auto max-w-6xl px-6 text-center">
           <p className="font-display text-2xl">Hope Conference 2026</p>
           <p className="mt-1 text-xs tracking-[0.3em] text-primary-foreground/70">
-            IGREJA ESPERANÇA · APARECIDA DE GOIÂNIA — GO
+            <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
+            <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>{" "}
+            · APARECIDA DE GOIÂNIA — GO
           </p>
         </div>
       </footer>
