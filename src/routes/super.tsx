@@ -54,8 +54,11 @@ function SuperPage() {
     try { setUsuarios(await listar()); } catch { /* noop */ }
   }
 
-  async function reverter(id: string) {
-    if (!confirm("Reverter validação? O QR voltará a funcionar.")) return;
+  async function reverter(id: string, origem: "validado" | "cancelado") {
+    const msg = origem === "validado"
+      ? "Reverter validação? O QR voltará a funcionar."
+      : "Reativar inscrição cancelada? Voltará para o status PAGO e o QR funcionará.";
+    if (!confirm(msg)) return;
     const { error } = await supabase.from("inscricoes").update({ status: "pago" }).eq("id", id);
     if (error) alert(error.message);
     else await carregar();
@@ -70,6 +73,7 @@ function SuperPage() {
   }, [inscricoes]);
 
   const validadasList = inscricoes.filter((i) => i.status === "validado");
+  const canceladasList = inscricoes.filter((i) => i.status === "cancelado");
   const filtradas = inscricoes.filter((i) =>
     !busca ||
     i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
@@ -153,7 +157,7 @@ function SuperPage() {
                     <td className="p-3 text-muted-foreground">{i.email}</td>
                     <td className="p-3 text-muted-foreground">{i.validado_em ? new Date(i.validado_em).toLocaleString("pt-BR") : "—"}</td>
                     <td className="p-3 text-right">
-                      <button onClick={() => reverter(i.id)} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
+                      <button onClick={() => reverter(i.id, "validado")} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
                         REVERTER
                       </button>
                     </td>
@@ -164,6 +168,36 @@ function SuperPage() {
             </table>
           </div>
         </section>
+
+        <section className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <h2 className="font-display text-xl text-primary">Inscrições canceladas</h2>
+            <span className="text-xs text-muted-foreground">{canceladasList.length} total</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
+                <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Inscrito em</th><th className="p-3 text-right">Ação</th></tr>
+              </thead>
+              <tbody>
+                {canceladasList.map((i) => (
+                  <tr key={i.id} className="border-t border-border">
+                    <td className="p-3 text-primary">{i.nome_participante}</td>
+                    <td className="p-3 text-muted-foreground">{i.email}</td>
+                    <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleString("pt-BR")}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => reverter(i.id, "cancelado")} className="rounded-md border border-gold bg-gold/10 px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-gold/20">
+                        REATIVAR
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {canceladasList.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição cancelada.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
 
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
 
