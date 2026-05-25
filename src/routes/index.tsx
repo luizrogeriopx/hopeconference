@@ -23,6 +23,21 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+import ronnyMarcos from "@/assets/speaker-ronny-marcos.jpg";
+import romeuIvo from "@/assets/speaker-romeu-ivo.png";
+import jocymarFonseca from "@/assets/speaker-jocymar-fonseca.png";
+import hamiltonCesar from "@/assets/speaker-hamilton-cesar.png";
+import wellingtonRocha from "@/assets/speaker-wellington-rocha.png";
+import jehanPorto from "@/assets/speaker-jehan-porto.png";
+
+const speakers: { name: string; photo?: string; position?: string; zoom?: number }[] = [
+  { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "50% 25%", zoom: 1.4 },
+  { name: "Pr. Romeu Ivo", photo: wellingtonRocha, position: "50% 30%", zoom: 1.4 },
+  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "50% 30%", zoom: 1.5 },
+  { name: "Pr. Hamilton Cesar", photo: jehanPorto, position: "center top", zoom: 1 },
+  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "50% 52%", zoom: 1.8 },
+  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "50% 30%", zoom: 1.5 },
+];
 
 function Index() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "" });
@@ -90,6 +105,44 @@ function Index() {
         </div>
       </section>
 
+      {/* SPEAKERS */}
+      <section className="border-b border-border py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-12 text-center">
+            <span className="text-xs tracking-[0.35em] text-gold">PRELETORES</span>
+            <h2 className="mt-3 font-display text-4xl text-primary md:text-5xl">
+              Vozes que inspiram esperança
+            </h2>
+          </div>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {speakers.map(({ name, photo, position, zoom }) => (
+              <li
+                key={name}
+                className="group rounded-lg border border-border bg-card p-6 transition hover:border-gold hover:shadow-md"
+              >
+                <div className="flex items-center gap-4">
+                  {photo ? (
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-gold/60 bg-black">
+                      <img
+                        src={photo}
+                        alt={name}
+                        className="h-full w-full object-cover"
+                        style={{ objectPosition: position ?? "center top", transform: `scale(${zoom ?? 1})`, transformOrigin: position ?? "center top" }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-16 w-16 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
+                  )}
+                  <div>
+                    <p className="font-display text-xl text-primary">{name}</p>
+                    <p className="text-xs tracking-widest text-muted-foreground">PALAVRA</p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
 
       {/* REGISTRATION */}
