@@ -89,11 +89,11 @@ function Index() {
             </dl>
           </div>
           <div className="relative flex items-center justify-center">
-            <div className="absolute inset-1 rounded-full bg-gradient-radial from-gold/20 via-transparent to-transparent blur-3xl" />
+            <div className="absolute -inset-6 rounded-full bg-gradient-radial from-gold/20 via-transparent to-transparent blur-3xl" />
             <img
               src={hero}
               alt="Hope Conference 2026 — preletores"
-              className="relative w-full max-w-xl scale-[1.35] md:scale-[1.55] drop-shadow-2xl"
+              className="relative w-full max-w-2xl scale-[1.65] md:scale-[2.1] drop-shadow-2xl"
             />
           </div>
         </div>
