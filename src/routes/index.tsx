@@ -243,7 +243,7 @@ function Index() {
           <p className="mt-1 text-xs tracking-[0.3em] text-primary-foreground/70">
             <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
             <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>{" "}
-            · A ANO DA PROMESSA
+            · O ANO DA PROMESSA
           </p>
         </div>
       </footer>
