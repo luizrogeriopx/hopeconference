@@ -93,8 +93,9 @@ function Index() {
             <img
               src={hero}
               alt="Hope Conference 2026 — preletores"
-              className="relative w-full max-w-2xl scale-[1.65] md:scale-[2.1] drop-shadow-2xl"
+              className="relative w-full max-w-2xl scale-[1.65] md:scale-[2.1]"
               style={{
+                filter: "drop-shadow(0 0 30px rgba(255,255,255,0.55))",
                 WebkitMaskImage:
                   "linear-gradient(to bottom, black 70%, transparent 100%)",
                 maskImage:
