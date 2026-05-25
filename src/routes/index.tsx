@@ -134,7 +134,7 @@ function Index() {
                     <div className="h-16 w-16 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
                   )}
                   <div>
-                    <p className="text-xs tracking-widest text-muted-foreground">PRELETOR</p>
+                    <p className="text-xs tracking-widest text-muted-foreground">PALAVRA</p>
                     <p className="font-display text-xl text-primary">{name}</p>
                   </div>
                 </div>
