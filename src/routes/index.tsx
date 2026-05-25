@@ -23,21 +23,6 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-import ronnyMarcos from "@/assets/speaker-ronny-marcos.jpg";
-import romeuIvo from "@/assets/speaker-romeu-ivo.png";
-import jocymarFonseca from "@/assets/speaker-jocymar-fonseca.png";
-import hamiltonCesar from "@/assets/speaker-hamilton-cesar.png";
-import wellingtonRocha from "@/assets/speaker-wellington-rocha.png";
-import jehanPorto from "@/assets/speaker-jehan-porto.png";
-
-const speakers: { name: string; photo?: string; position?: string; zoom?: number }[] = [
-  { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "50% 25%", zoom: 1.4 },
-  { name: "Pr. Romeu Ivo", photo: wellingtonRocha, position: "50% 30%", zoom: 1.4 },
-  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "50% 30%", zoom: 1.5 },
-  { name: "Pr. Hamilton Cesar", photo: jehanPorto, position: "center top", zoom: 1 },
-  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "50% 52%", zoom: 1.8 },
-  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "50% 30%", zoom: 1.5 },
-];
 
 function Index() {
   const [form, setForm] = useState({ nome: "", email: "", telefone: "" });
