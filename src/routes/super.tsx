@@ -169,6 +169,36 @@ function SuperPage() {
           </div>
         </section>
 
+        <section className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <h2 className="font-display text-xl text-primary">Inscrições canceladas</h2>
+            <span className="text-xs text-muted-foreground">{canceladasList.length} total</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
+                <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Inscrito em</th><th className="p-3 text-right">Ação</th></tr>
+              </thead>
+              <tbody>
+                {canceladasList.map((i) => (
+                  <tr key={i.id} className="border-t border-border">
+                    <td className="p-3 text-primary">{i.nome_participante}</td>
+                    <td className="p-3 text-muted-foreground">{i.email}</td>
+                    <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleString("pt-BR")}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => reverter(i.id, "cancelado")} className="rounded-md border border-gold bg-gold/10 px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-gold/20">
+                        REATIVAR
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {canceladasList.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição cancelada.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
 
         <GestaoUsuarios
