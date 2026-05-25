@@ -30,13 +30,13 @@ import hamiltonCesar from "@/assets/speaker-hamilton-cesar.png";
 import wellingtonRocha from "@/assets/speaker-wellington-rocha.png";
 import jehanPorto from "@/assets/speaker-jehan-porto.png";
 
-const speakers: { name: string; photo?: string; position?: string }[] = [
+const speakers: { name: string; photo?: string; position?: string; size?: string }[] = [
   { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "center top" },
   { name: "Pr. Romeu Ivo", photo: wellingtonRocha, position: "center top" },
-  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "center top" },
+  { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar, position: "center top", size: "h-16 w-16" },
   { name: "Pr. Hamilton Cesar", photo: jehanPorto, position: "center top" },
-  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "30% 35%" },
-  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "center top" },
+  { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "30% 35%", size: "h-16 w-16" },
+  { name: "Pr. Jehan Porto", photo: romeuIvo, position: "center top", size: "h-16 w-16" },
 ];
 
 function Index() {
@@ -115,7 +115,7 @@ function Index() {
             </h2>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {speakers.map(({ name, photo, position }) => (
+            {speakers.map(({ name, photo, position, size }) => (
               <li
                 key={name}
                 className="group rounded-lg border border-border bg-card p-6 transition hover:border-gold hover:shadow-md"
@@ -125,11 +125,11 @@ function Index() {
                     <img
                       src={photo}
                       alt={name}
-                      className="h-14 w-14 rounded-full border border-gold/60 object-cover"
+                      className={`${size ?? "h-14 w-14"} rounded-full border border-gold/60 object-cover`}
                       style={{ objectPosition: position ?? "center top" }}
                     />
                   ) : (
-                    <div className="h-14 w-14 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
+                    <div className={`${size ?? "h-14 w-14"} rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20`} />
                   )}
                   <div>
                     <p className="text-xs tracking-widest text-muted-foreground">PRELETOR</p>
