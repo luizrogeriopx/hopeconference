@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import hero from "@/assets/hope-hero.png";
+import stainedGlass from "@/assets/stained-glass-bg.jpg";
+
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -40,22 +42,25 @@ function Index() {
       <section className="relative overflow-hidden border-b border-border">
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.08]"
+          className="absolute inset-0 opacity-[0.12]"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, var(--color-primary) 1px, transparent 0)",
-            backgroundSize: "22px 22px",
+            backgroundImage: `url(${stainedGlass})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/85 to-background"
         />
         <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-2 md:py-24">
           <div className="flex flex-col justify-center">
-            <span className="text-xs tracking-[0.35em] text-muted-foreground">
-              IGREJA ESPERANÇA APRESENTA
-            </span>
-            <h1 className="mt-4 font-display text-6xl font-medium leading-[1.05] text-primary md:text-7xl">
-              Hope
-              <br />
-              <span className="text-gold">Conference</span>
+            <h1 className="font-display font-medium leading-[1.05] text-primary">
+              <span className="block text-7xl md:text-8xl tracking-tight">HOPE</span>
+              <span className="block text-3xl md:text-4xl tracking-[0.2em] text-primary mt-2">
+                CONFERENCE
+              </span>
               <span className="block text-2xl tracking-[0.4em] text-muted-foreground mt-3">
                 2 0 2 6
               </span>
@@ -70,12 +75,6 @@ function Index() {
                 className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
               >
                 INSCREVA-SE — R$ 50,00
-              </a>
-              <a
-                href="#programacao"
-                className="inline-flex items-center justify-center rounded-md border border-primary/30 px-6 py-3 text-sm font-medium tracking-wider text-primary transition hover:bg-primary/5"
-              >
-                VER PROGRAMAÇÃO
               </a>
             </div>
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6">
@@ -128,35 +127,6 @@ function Index() {
         </div>
       </section>
 
-      {/* PROGRAM */}
-      <section id="programacao" className="border-b border-border bg-secondary/40 py-20">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="mb-12 text-center">
-            <span className="text-xs tracking-[0.35em] text-gold">PROGRAMAÇÃO</span>
-            <h2 className="mt-3 font-display text-4xl text-primary md:text-5xl">
-              Três dias inesquecíveis
-            </h2>
-          </div>
-          <div className="space-y-6">
-            {[
-              { day: "Sexta · 03/07", title: "Noite de Abertura", time: "19h30 — 22h00" },
-              { day: "Sábado · 04/07", title: "Manhã, Tarde e Noite de Ministrações", time: "09h00 — 22h00" },
-              { day: "Domingo · 05/07", title: "Celebração de Encerramento", time: "09h00 — 12h00" },
-            ].map((s) => (
-              <div
-                key={s.day}
-                className="flex flex-col gap-2 rounded-lg border border-border bg-card p-6 md:flex-row md:items-center md:justify-between"
-              >
-                <div>
-                  <p className="text-xs tracking-widest text-gold">{s.day.toUpperCase()}</p>
-                  <p className="mt-1 font-display text-2xl text-primary">{s.title}</p>
-                </div>
-                <p className="text-sm text-muted-foreground">{s.time}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* REGISTRATION */}
       <section id="inscricao" className="py-20">
