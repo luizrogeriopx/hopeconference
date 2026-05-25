@@ -122,7 +122,7 @@ function Index() {
               >
                 <div className="flex items-center gap-4">
                   {photo ? (
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-gold/60">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-gold/60 bg-black">
                       <img
                         src={photo}
                         alt={name}
