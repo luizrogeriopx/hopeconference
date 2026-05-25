@@ -266,11 +266,11 @@ function Index() {
       <footer className="border-t border-border bg-primary py-10 text-primary-foreground">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <p className="font-display text-2xl uppercase">Hope Conference 2026</p>
-          <p className="mt-1 text-xs tracking-[0.3em] text-primary-foreground/70">
+          <p className="mt-1 text-sm tracking-[0.3em]">
             <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
-            <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>{" "}
-            · O ANO DA PROMESSA
+            <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>
           </p>
+          <p className="mt-0.5 text-xs tracking-[1em] text-primary-foreground/70">O ANO DA PROMESSA</p>
         </div>
       </footer>
     </main>
