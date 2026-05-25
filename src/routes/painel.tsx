@@ -197,11 +197,18 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
           {inscricao.status}
         </span>
       </div>
-      <div className="mt-4 flex justify-center rounded-lg bg-background p-3 border border-border">
-        <canvas ref={canvasRef} className={inscricao.status === "cancelado" ? "opacity-30" : ""} />
+      <div className="relative mt-4 flex justify-center rounded-lg bg-background p-3 border border-border">
+        <canvas ref={canvasRef} className={inscricao.status === "cancelado" ? "opacity-30" : inscricao.status === "validado" ? "opacity-0" : ""} />
+        {inscricao.status === "validado" && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black">
+            <span className="font-display text-3xl font-bold tracking-widest text-white rotate-[-12deg]">
+              USADO
+            </span>
+          </div>
+        )}
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        {dataUrl && inscricao.status !== "cancelado" && (
+        {dataUrl && inscricao.status !== "cancelado" && inscricao.status !== "validado" && (
           <a href={dataUrl} download={`ingresso-${inscricao.nome_participante.replace(/\s+/g, "-")}.png`}
             className="flex-1 rounded-md bg-primary px-3 py-2 text-center text-xs font-medium tracking-widest text-primary-foreground hover:bg-primary/90">
             BAIXAR QR
