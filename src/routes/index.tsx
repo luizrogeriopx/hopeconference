@@ -242,8 +242,8 @@ function Index() {
                 onChange={(v) => setForm({ ...form, telefone: v })}
               />
             </div>
-            <div className="mt-6 flex items-center justify-between border-t border-border pt-6">
-              <div>
+            <div className="mt-6 flex flex-col items-center justify-center gap-4 border-t border-border pt-6 md:flex-row md:justify-between">
+              <div className="text-center md:text-left">
                 <p className="text-xs tracking-widest text-muted-foreground">TOTAL</p>
                 <p className="font-display text-3xl text-primary">R$ 50,00</p>
               </div>
