@@ -94,6 +94,12 @@ function Index() {
               src={hero}
               alt="Hope Conference 2026 — preletores"
               className="relative w-full max-w-2xl scale-[1.65] md:scale-[2.1] drop-shadow-2xl"
+              style={{
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, black 70%, transparent 100%)",
+                maskImage:
+                  "linear-gradient(to bottom, black 70%, transparent 100%)",
+              }}
             />
           </div>
         </div>
