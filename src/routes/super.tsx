@@ -156,7 +156,7 @@ function SuperPage() {
                     <td className="p-3 text-muted-foreground">{i.email}</td>
                     <td className="p-3 text-muted-foreground">{i.validado_em ? new Date(i.validado_em).toLocaleString("pt-BR") : "—"}</td>
                     <td className="p-3 text-right">
-                      <button onClick={() => reverter(i.id)} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
+                      <button onClick={() => reverter(i.id, "validado")} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
                         REVERTER
                       </button>
                     </td>
