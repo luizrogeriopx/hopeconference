@@ -115,7 +115,7 @@ function Index() {
             </h2>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {speakers.map(({ name, photo, position }) => (
+            {speakers.map(({ name, photo, position, size }) => (
               <li
                 key={name}
                 className="group rounded-lg border border-border bg-card p-6 transition hover:border-gold hover:shadow-md"
@@ -125,11 +125,11 @@ function Index() {
                     <img
                       src={photo}
                       alt={name}
-                      className="h-14 w-14 rounded-full border border-gold/60 object-cover"
+                      className={`${size ?? "h-14 w-14"} rounded-full border border-gold/60 object-cover`}
                       style={{ objectPosition: position ?? "center top" }}
                     />
                   ) : (
-                    <div className="h-14 w-14 rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20" />
+                    <div className={`${size ?? "h-14 w-14"} rounded-full border border-gold/60 bg-gradient-to-br from-primary/10 to-gold/20`} />
                   )}
                   <div>
                     <p className="text-xs tracking-widest text-muted-foreground">PRELETOR</p>
