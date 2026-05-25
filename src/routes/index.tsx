@@ -255,7 +255,7 @@ function Index() {
               </button>
             </div>
             {sent && (
-              <p className="mt-4 rounded-md border border-gold/40 bg-gold/10 p-3 text-sm text-primary">
+              <p className="mt-4 rounded-md border border-gold/40 bg-gold/10 p-3 text-sm text-primary text-center md:text-left">
                 Recebemos sua inscrição! Em breve enviaremos os detalhes de pagamento por e-mail.
               </p>
             )}
