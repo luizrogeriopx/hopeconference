@@ -109,8 +109,7 @@ function Index() {
       <section className="border-b border-border py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-12 text-center">
-            <span className="text-xs tracking-[0.35em] text-gold">PRELETORES</span>
-            <h2 className="mt-3 font-display text-4xl text-primary md:text-5xl">
+            <h2 className="font-display text-4xl text-primary md:text-5xl">
               Vozes que inspiram esperança
             </h2>
           </div>
