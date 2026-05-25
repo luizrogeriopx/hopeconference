@@ -62,7 +62,7 @@ function Index() {
           className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/85 to-background"
         />
         <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-2 md:gap-10 md:py-24">
-          <div className="order-2 flex flex-col justify-center md:order-1">
+          <div className="order-2 flex flex-col items-center justify-center text-center md:order-1 md:items-start md:text-left">
             <h1 className="font-display font-medium leading-[1.05] text-primary">
               <span className="block text-6xl sm:text-7xl md:text-9xl tracking-[0.05em]">HOPE</span>
               <span className="block text-xl sm:text-2xl md:text-[2.6rem] tracking-[0.2em] text-primary mt-2">
@@ -76,7 +76,7 @@ function Index() {
               Três dias de palavra, adoração e comunhão. Uma conferência para
               renovar a esperança e fortalecer a fé.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
               <a
                 href="#inscricao"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
@@ -84,7 +84,7 @@ function Index() {
                 INSCREVA-SE — R$ 50,00
               </a>
             </div>
-            <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6">
+            <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6 md:justify-start">
               <div>
                 <dt className="text-xs tracking-widest text-muted-foreground">DATA</dt>
                 <dd className="mt-1 font-display text-lg sm:text-xl text-primary">3 a 5 de Julho</dd>
