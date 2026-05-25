@@ -73,6 +73,7 @@ function SuperPage() {
   }, [inscricoes]);
 
   const validadasList = inscricoes.filter((i) => i.status === "validado");
+  const canceladasList = inscricoes.filter((i) => i.status === "cancelado");
   const filtradas = inscricoes.filter((i) =>
     !busca ||
     i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
