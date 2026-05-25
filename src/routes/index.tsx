@@ -35,8 +35,8 @@ const speakers: { name: string; photo?: string }[] = [
   { name: "Pr. Romeu Ivo", photo: wellingtonRocha },
   { name: "Pr. Jocymar Fonseca", photo: hamiltonCesar },
   { name: "Pr. Hamilton Cesar", photo: jehanPorto },
-  { name: "Pr. Wellington Rocha", photo: romeuIvo },
-  { name: "Pr. Jehan Porto", photo: jocymarFonseca },
+  { name: "Pr. Wellington Rocha", photo: jocymarFonseca },
+  { name: "Pr. Jehan Porto", photo: romeuIvo },
 ];
 
 function Index() {
