@@ -35,6 +35,29 @@ function PainelInscrito() {
   useEffect(() => {
     if (!user) return;
     void carregar();
+    const channel = supabase
+      .channel(`inscricoes-user-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "inscricoes", filter: `comprador_user_id=eq.${user.id}` },
+        (payload) => {
+          const novo = payload.new as Inscricao | null;
+          const antigo = payload.old as { id?: string } | null;
+          setInscricoes((prev) => {
+            if (payload.eventType === "DELETE" && antigo?.id) {
+              return prev.filter((i) => i.id !== antigo.id);
+            }
+            if (!novo) return prev;
+            const exists = prev.some((i) => i.id === novo.id);
+            if (exists) return prev.map((i) => (i.id === novo.id ? { ...i, ...novo } : i));
+            return [novo, ...prev];
+          });
+        }
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [user]);
 
   async function carregar() {
