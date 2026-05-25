@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import hero from "@/assets/hope-hero.png";
+import stainedGlass from "@/assets/stained-glass-bg.jpg";
+
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -40,22 +42,25 @@ function Index() {
       <section className="relative overflow-hidden border-b border-border">
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.08]"
+          className="absolute inset-0 opacity-[0.12]"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, var(--color-primary) 1px, transparent 0)",
-            backgroundSize: "22px 22px",
+            backgroundImage: `url(${stainedGlass})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/85 to-background"
         />
         <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-2 md:py-24">
           <div className="flex flex-col justify-center">
-            <span className="text-xs tracking-[0.35em] text-muted-foreground">
-              IGREJA ESPERANÇA APRESENTA
-            </span>
-            <h1 className="mt-4 font-display text-6xl font-medium leading-[1.05] text-primary md:text-7xl">
-              Hope
-              <br />
-              <span className="text-gold">Conference</span>
+            <h1 className="font-display font-medium leading-[1.05] text-primary">
+              <span className="block text-7xl md:text-8xl tracking-tight">HOPE</span>
+              <span className="block text-3xl md:text-4xl tracking-[0.2em] text-primary mt-2">
+                CONFERENCE
+              </span>
               <span className="block text-2xl tracking-[0.4em] text-muted-foreground mt-3">
                 2 0 2 6
               </span>
