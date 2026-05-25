@@ -64,8 +64,8 @@ function Index() {
         <div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 md:grid-cols-2 md:gap-10 md:py-24">
           <div className="order-2 flex flex-col justify-center md:order-1">
             <h1 className="font-display font-medium leading-[1.05] text-primary">
-              <span className="block text-5xl sm:text-6xl md:text-8xl tracking-tight">HOPE</span>
-              <span className="block text-xl sm:text-2xl md:text-4xl tracking-[0.2em] text-primary mt-2">
+              <span className="block text-6xl sm:text-7xl md:text-9xl tracking-[0.05em]">HOPE</span>
+              <span className="block text-xl sm:text-2xl md:text-[2.6rem] tracking-[0.2em] text-primary mt-2">
                 CONFERENCE
               </span>
               <span className="block text-lg sm:text-xl md:text-2xl tracking-[0.4em] text-muted-foreground mt-3">
@@ -87,11 +87,14 @@ function Index() {
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6">
               <div>
                 <dt className="text-xs tracking-widest text-muted-foreground">DATA</dt>
-                <dd className="mt-1 font-display text-lg sm:text-xl text-primary">3–5 de Julho</dd>
+                <dd className="mt-1 font-display text-lg sm:text-xl text-primary">3 a 5 de Julho</dd>
               </div>
               <div>
                 <dt className="text-xs tracking-widest text-muted-foreground">LOCAL</dt>
-                <dd className="mt-1 font-display text-lg sm:text-xl text-primary">Igreja Esperança</dd>
+                <dd className="mt-1 text-lg sm:text-xl text-primary">
+                  <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
+                  <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>
+                </dd>
               </div>
             </dl>
           </div>
@@ -155,7 +158,7 @@ function Index() {
             <p className="mt-4 text-muted-foreground">
               Vagas limitadas. Investimento único de{" "}
               <span className="font-semibold text-primary">R$ 50,00</span> para
-              os três dias de conferência, incluindo material do participante.
+              os três dias de conferência.
             </p>
             <ul className="mt-8 space-y-3 text-sm">
               {[
@@ -172,7 +175,10 @@ function Index() {
             </ul>
             <div className="mt-10 rounded-lg border border-border bg-card p-6">
               <p className="text-xs tracking-widest text-muted-foreground">LOCAL</p>
-              <p className="mt-1 font-display text-xl text-primary">Igreja Esperança</p>
+              <p className="mt-1 text-xl text-primary">
+                <span style={{ fontFamily: '"Nexa Book", sans-serif' }}>IGREJA</span>{" "}
+                <span style={{ fontFamily: '"Nexa Heavy", sans-serif' }}>ESPERANÇA</span>
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Av. Bartolomeu Bueno Qd. 15 Lt. 26
                 <br />
