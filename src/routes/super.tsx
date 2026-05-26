@@ -39,6 +39,8 @@ function SuperPage() {
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
   const [copiado, setCopiado] = useState<string | null>(null);
+  const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
+  const [salvandoFlag, setSalvandoFlag] = useState(false);
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
   const remover = useServerFn(removerUsuarioPainel);
@@ -51,7 +53,25 @@ function SuperPage() {
       .select("id, nome_participante, email, status, valor, criado_em, validado_em")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
+    const { data: cfg } = await supabase
+      .from("app_settings")
+      .select("inscricoes_abertas")
+      .eq("id", true)
+      .maybeSingle();
+    if (cfg) setInscricoesAbertas(cfg.inscricoes_abertas);
     try { setUsuarios(await listar()); } catch { /* noop */ }
+  }
+
+  async function toggleInscricoes() {
+    const novo = !inscricoesAbertas;
+    setSalvandoFlag(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ inscricoes_abertas: novo, atualizado_em: new Date().toISOString() })
+      .eq("id", true);
+    setSalvandoFlag(false);
+    if (error) alert(error.message);
+    else setInscricoesAbertas(novo);
   }
 
   async function reverter(id: string, origem: "validado" | "cancelado") {
@@ -106,6 +126,30 @@ function SuperPage() {
 
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Cards stats={stats} />
+
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-xl text-primary">Inscrições</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {inscricoesAbertas
+                  ? "O botão de inscrição na home está ATIVO e clicável."
+                  : "O botão de inscrição na home aparece, mas está DESABILITADO."}
+              </p>
+            </div>
+            <button
+              onClick={toggleInscricoes}
+              disabled={salvandoFlag}
+              className={`rounded-md border px-4 py-2 text-xs tracking-widest ${
+                inscricoesAbertas
+                  ? "border-destructive/40 text-destructive hover:bg-destructive/10"
+                  : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
+              }`}
+            >
+              {salvandoFlag ? "SALVANDO…" : inscricoesAbertas ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
+            </button>
+          </div>
+        </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">

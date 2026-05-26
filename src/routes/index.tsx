@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import hero from "@/assets/hope-speakers.png";
 import stainedGlass from "@/assets/stained-glass-bg.jpg";
 import { LocalCard } from "@/components/LocalCard";
+import { supabase } from "@/integrations/supabase/client";
 
 
 
@@ -41,6 +43,36 @@ const speakers: { name: string; photo?: string; position?: string; zoom?: number
 ];
 
 function Index() {
+  const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
+  useEffect(() => {
+    supabase
+      .from("app_settings")
+      .select("inscricoes_abertas")
+      .eq("id", true)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setInscricoesAbertas(data.inscricoes_abertas);
+      });
+    const ch = supabase
+      .channel("app_settings")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "app_settings" },
+        (payload) => {
+          const row = payload.new as { inscricoes_abertas?: boolean };
+          if (typeof row.inscricoes_abertas === "boolean") {
+            setInscricoesAbertas(row.inscricoes_abertas);
+          }
+        }
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(ch); };
+  }, []);
+
+  const ctaClasses = inscricoesAbertas
+    ? "inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
+    : "inline-flex items-center justify-center rounded-md bg-muted px-6 py-3 text-sm font-medium tracking-wider text-muted-foreground cursor-not-allowed opacity-60";
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* HERO with poster */}
@@ -75,12 +107,11 @@ function Index() {
               renovar a esperança e fortalecer a fé.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-              <Link
-                to="/painel"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
-              >
-                INSCRIÇÕES — R$50,00
-              </Link>
+              {inscricoesAbertas ? (
+                <Link to="/painel" className={ctaClasses}>INSCRIÇÕES — R$50,00</Link>
+              ) : (
+                <button type="button" disabled className={ctaClasses}>INSCRIÇÕES — R$50,00</button>
+              )}
             </div>
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6 md:justify-start">
               <div>
@@ -172,12 +203,11 @@ function Index() {
               ))}
             </ul>
             <div className="mt-8 flex justify-center md:justify-start">
-              <Link
-                to="/painel"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
-              >
-                INSCRIÇÕES — R$50,00
-              </Link>
+              {inscricoesAbertas ? (
+                <Link to="/painel" className={ctaClasses}>INSCRIÇÕES — R$50,00</Link>
+              ) : (
+                <button type="button" disabled className={ctaClasses}>INSCRIÇÕES — R$50,00</button>
+              )}
             </div>
           </div>
 

@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          atualizado_em: string
+          id: boolean
+          inscricoes_abertas: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          id?: boolean
+          inscricoes_abertas?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          id?: boolean
+          inscricoes_abertas?: boolean
+        }
+        Relationships: []
+      }
       inscricoes: {
         Row: {
           comprador_user_id: string
