@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import hero from "@/assets/hope-speakers.png";
 import stainedGlass from "@/assets/stained-glass-bg.jpg";
 import { LocalCard } from "@/components/LocalCard";
+import { supabase } from "@/integrations/supabase/client";
 
 
 
