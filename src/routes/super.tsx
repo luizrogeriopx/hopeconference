@@ -39,6 +39,8 @@ function SuperPage() {
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
   const [copiado, setCopiado] = useState<string | null>(null);
+  const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
+  const [salvandoFlag, setSalvandoFlag] = useState(false);
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
   const remover = useServerFn(removerUsuarioPainel);
@@ -51,7 +53,25 @@ function SuperPage() {
       .select("id, nome_participante, email, status, valor, criado_em, validado_em")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
+    const { data: cfg } = await supabase
+      .from("app_settings")
+      .select("inscricoes_abertas")
+      .eq("id", true)
+      .maybeSingle();
+    if (cfg) setInscricoesAbertas(cfg.inscricoes_abertas);
     try { setUsuarios(await listar()); } catch { /* noop */ }
+  }
+
+  async function toggleInscricoes() {
+    const novo = !inscricoesAbertas;
+    setSalvandoFlag(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ inscricoes_abertas: novo, atualizado_em: new Date().toISOString() })
+      .eq("id", true);
+    setSalvandoFlag(false);
+    if (error) alert(error.message);
+    else setInscricoesAbertas(novo);
   }
 
   async function reverter(id: string, origem: "validado" | "cancelado") {
