@@ -107,12 +107,11 @@ function Index() {
               renovar a esperança e fortalecer a fé.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-              <Link
-                to="/painel"
-                className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
-              >
-                INSCRIÇÕES — R$50,00
-              </Link>
+              {inscricoesAbertas ? (
+                <Link to="/painel" className={ctaClasses}>INSCRIÇÕES — R$50,00</Link>
+              ) : (
+                <button type="button" disabled className={ctaClasses}>INSCRIÇÕES — R$50,00</button>
+              )}
             </div>
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6 md:justify-start">
               <div>
