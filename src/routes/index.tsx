@@ -205,9 +205,9 @@ function Index() {
             </ul>
             <div className="mt-8 flex justify-center md:justify-start">
               {inscricoesAbertas ? (
-                <Link to="/painel" className={ctaClasses}>INSCRIÇÕES — R$50,00</Link>
+                <Link to="/painel" className={ctaClasses + ctaDisabled}>INSCRIÇÕES — R$50,00</Link>
               ) : (
-                <button type="button" disabled className={ctaClasses}>INSCRIÇÕES — R$50,00</button>
+                <button type="button" disabled className={ctaClasses + ctaDisabled}>INSCRIÇÕES — R$50,00</button>
               )}
             </div>
           </div>
