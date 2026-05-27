@@ -69,9 +69,10 @@ function Index() {
     return () => { void supabase.removeChannel(ch); };
   }, []);
 
-  const ctaClasses = inscricoesAbertas
-    ? "inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90"
-    : "inline-flex items-center justify-center rounded-md bg-muted px-6 py-3 text-sm font-medium tracking-wider text-muted-foreground cursor-not-allowed opacity-60";
+  const ctaClasses =
+    "inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90";
+  const ctaDisabled = inscricoesAbertas ? "" : " cursor-not-allowed pointer-events-none";
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -108,9 +109,9 @@ function Index() {
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
               {inscricoesAbertas ? (
-                <Link to="/painel" className={ctaClasses}>INSCRIÇÕES — R$50,00</Link>
+                <Link to="/painel" className={ctaClasses + ctaDisabled}>INSCRIÇÕES — R$50,00</Link>
               ) : (
-                <button type="button" disabled className={ctaClasses}>INSCRIÇÕES — R$50,00</button>
+                <button type="button" disabled className={ctaClasses + ctaDisabled}>INSCRIÇÕES — R$50,00</button>
               )}
             </div>
             <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-border pt-6 md:justify-start">
@@ -204,9 +205,9 @@ function Index() {
             </ul>
             <div className="mt-8 flex justify-center md:justify-start">
               {inscricoesAbertas ? (
-                <Link to="/painel" className={ctaClasses}>INSCRIÇÕES — R$50,00</Link>
+                <Link to="/painel" className={ctaClasses + ctaDisabled}>INSCRIÇÕES — R$50,00</Link>
               ) : (
-                <button type="button" disabled className={ctaClasses}>INSCRIÇÕES — R$50,00</button>
+                <button type="button" disabled className={ctaClasses + ctaDisabled}>INSCRIÇÕES — R$50,00</button>
               )}
             </div>
           </div>
