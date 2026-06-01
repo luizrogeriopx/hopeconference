@@ -84,6 +84,13 @@ function SuperPage() {
     else await carregar();
   }
 
+  async function excluirInscricao(id: string) {
+    if (!confirm("Tem certeza que deseja excluir permanentemente esta inscrição? Esta ação não pode ser desfeita e removerá todos os pagamentos vinculados.")) return;
+    const { error } = await supabase.from("inscricoes").delete().eq("id", id);
+    if (error) alert(error.message);
+    else await carregar();
+  }
+
   const stats = useMemo(() => {
     const pagas = inscricoes.filter((i) => i.status === "pago" || i.status === "validado");
     const validadas = inscricoes.filter((i) => i.status === "validado");
@@ -243,7 +250,12 @@ function SuperPage() {
         </section>
 
 
-        <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
+        <ListaInscricoes
+          inscricoes={filtradas}
+          busca={busca}
+          setBusca={setBusca}
+          onExcluir={excluirInscricao}
+        />
 
         <GestaoUsuarios
           usuarios={usuarios}

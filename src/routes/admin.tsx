@@ -117,7 +117,17 @@ export function Cards({ stats }: { stats: { total: number; pagas: number; valida
   );
 }
 
-export function ListaInscricoes({ inscricoes, busca, setBusca }: { inscricoes: Inscricao[]; busca: string; setBusca: (s: string) => void }) {
+export function ListaInscricoes({
+  inscricoes,
+  busca,
+  setBusca,
+  onExcluir,
+}: {
+  inscricoes: Inscricao[];
+  busca: string;
+  setBusca: (s: string) => void;
+  onExcluir?: (id: string) => void;
+}) {
   return (
     <section className="rounded-xl border border-border bg-card shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
@@ -127,7 +137,14 @@ export function ListaInscricoes({ inscricoes, busca, setBusca }: { inscricoes: I
       <div className="overflow-x-auto">
         <table className="w-full min-w-[600px] text-sm">
           <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
-            <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Status</th><th className="p-3">Valor</th><th className="p-3">Data</th></tr>
+            <tr>
+              <th className="p-3">Nome</th>
+              <th className="p-3">E-mail</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Valor</th>
+              <th className="p-3">Data</th>
+              {onExcluir && <th className="p-3 text-right">Ação</th>}
+            </tr>
           </thead>
           <tbody>
             {inscricoes.map((i) => (
@@ -137,10 +154,20 @@ export function ListaInscricoes({ inscricoes, busca, setBusca }: { inscricoes: I
                 <td className="p-3"><span className="rounded-md border border-border bg-background px-2 py-1 text-[10px] tracking-widest uppercase">{i.status}</span></td>
                 <td className="p-3 text-muted-foreground">R$ {Number(i.valor).toFixed(2)}</td>
                 <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleDateString("pt-BR")}</td>
+                {onExcluir && (
+                  <td className="p-3 text-right">
+                    <button
+                      onClick={() => onExcluir(i.id)}
+                      className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10"
+                    >
+                      EXCLUIR
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
             {inscricoes.length === 0 && (
-              <tr><td colSpan={5} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
+              <tr><td colSpan={onExcluir ? 6 : 5} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
             )}
           </tbody>
         </table>
