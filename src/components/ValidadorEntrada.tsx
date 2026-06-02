@@ -248,12 +248,6 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
     return <p className="text-center text-sm text-muted-foreground py-4">Carregando configuração de portaria…</p>;
   }
 
-  const cor =
-    resultado?.tipo === "ok" ? "border-gold bg-gold/10 text-primary" :
-    resultado?.tipo === "pendente" ? "border-border bg-card text-primary" :
-    resultado?.tipo === "ja" ? "border-destructive/40 bg-destructive/10 text-destructive" :
-    resultado ? "border-destructive/40 bg-destructive/10 text-destructive" : "";
-
   const insc = resultado && "insc" in resultado ? resultado.insc : undefined;
 
   return (
@@ -267,62 +261,127 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
       </div>
 
       <QrScanner onResult={handle} paused={paused} />
-      {resultado && (
-        <div className={`rounded-xl border p-5 ${cor}`}>
-          <p className="text-xs tracking-widest uppercase opacity-85 font-semibold">
-            {resultado.tipo === "ok" ? "✓ ENTRADA AUTORIZADA" :
-             resultado.tipo === "pendente" ? "⟳ CONFIRMAR ENTRADA" :
-             resultado.tipo === "ja" ? "⚠ JÁ VALIDADO" : "✕ RECUSADO"}
-          </p>
 
-          {insc ? (
-            <div className="mt-2 space-y-1">
-              <p className="font-display text-2xl">{insc.nome_participante}</p>
-              {insc.labs && (
-                <p className="text-sm font-semibold text-gold">
-                  Categoria: {insc.labs.nome} ({insc.labs.local})
-                </p>
-              )}
-              {insc.email && <p className="text-sm opacity-80">{insc.email}</p>}
-              {insc.telefone && <p className="text-sm opacity-80">{insc.telefone}</p>}
-              <p className="text-xs opacity-75">
-                Status Geral: <span className="uppercase font-semibold">{insc.status}</span> · R$ {Number(insc.valor).toFixed(2)}
-              </p>
-              {insc.validado_em && (
-                <p className="text-xs opacity-75">Entrada Geral: {new Date(insc.validado_em).toLocaleString("pt-BR")}</p>
-              )}
-              {insc.lab_validado_em && (
-                <p className="text-xs opacity-75">Entrada na LAB: {new Date(insc.lab_validado_em).toLocaleString("pt-BR")}</p>
-              )}
-              {resultado.tipo === "ja" && resultado.msg && (
-                <p className="mt-2 text-xs font-semibold text-destructive">{resultado.msg}</p>
-              )}
-              {resultado.tipo === "ok" && !controller?.labId && insc.lab_qr_token && (
-                <div className="mt-3 p-3 rounded-md bg-gold/10 border border-gold/30 text-xs text-primary font-medium">
-                  🎟️ **Gere o QR Code da LAB** no painel do participante para a entrada específica.
+      {resultado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className={`w-full max-w-md rounded-2xl border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-left ${
+            resultado.tipo === "ok" ? "border-gold/30" :
+            resultado.tipo === "pendente" ? "border-border" :
+            "border-destructive/30"
+          }`}>
+            <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+              <h3 className={`text-sm font-bold tracking-widest uppercase ${
+                resultado.tipo === "ok" ? "text-gold" :
+                resultado.tipo === "pendente" ? "text-primary" :
+                "text-destructive"
+              }`}>
+                {resultado.tipo === "ok" ? "✓ Entrada Autorizada" :
+                 resultado.tipo === "pendente" ? "⟳ Confirmar Entrada" :
+                 resultado.tipo === "ja" ? "⚠ Já Validado" : "✕ Recusado"}
+              </h3>
+              <button 
+                onClick={reset}
+                className="text-muted-foreground hover:text-foreground text-lg transition-colors p-1"
+                aria-label="Fechar"
+              >
+                ✕
+              </button>
+            </div>
+
+            {insc ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">PARTICIPANTE</label>
+                  <p className="font-display text-2xl text-primary font-bold">{insc.nome_participante}</p>
                 </div>
+
+                {insc.labs && (
+                  <div>
+                    <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CATEGORIA / LAB</label>
+                    <p className="text-sm font-semibold text-gold">
+                      {insc.labs.nome} ({insc.labs.local})
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {insc.email && (
+                    <div>
+                      <label className="tracking-widest uppercase font-semibold text-muted-foreground block text-[9px]">E-MAIL</label>
+                      <span className="text-primary truncate block">{insc.email}</span>
+                    </div>
+                  )}
+                  {insc.telefone && (
+                    <div>
+                      <label className="tracking-widest uppercase font-semibold text-muted-foreground block text-[9px]">TELEFONE</label>
+                      <span className="text-primary block">{insc.telefone}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-border pt-3 space-y-1 text-xs">
+                  <p className="opacity-80">
+                    Status Inscrição: <span className="uppercase font-semibold text-primary">{insc.status}</span>
+                  </p>
+                  <p className="opacity-80">
+                    Valor: <span className="font-semibold text-primary">R$ {Number(insc.valor).toFixed(2)}</span>
+                  </p>
+                  {insc.validado_em && (
+                    <p className="opacity-80">
+                      Entrada Geral: <span className="font-semibold text-primary">{new Date(insc.validado_em).toLocaleString("pt-BR")}</span>
+                    </p>
+                  )}
+                  {insc.lab_validado_em && (
+                    <p className="opacity-80">
+                      Entrada LAB: <span className="font-semibold text-primary">{new Date(insc.lab_validado_em).toLocaleString("pt-BR")}</span>
+                    </p>
+                  )}
+                </div>
+
+                {resultado.tipo === "ja" && resultado.msg && (
+                  <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs font-semibold text-destructive">
+                    {resultado.msg}
+                  </div>
+                )}
+
+                {resultado.tipo === "ok" && !controller?.labId && insc.lab_qr_token && (
+                  <div className="p-3 rounded-md bg-gold/10 border border-gold/30 text-xs text-primary font-medium">
+                    🎟️ **Gere o QR Code da LAB** no painel do participante para a entrada específica.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-4 text-center">
+                <p className="text-sm font-semibold text-destructive">{resultado.tipo === "erro" ? resultado.msg : ""}</p>
+              </div>
+            )}
+
+            <div className="mt-6 flex gap-3 border-t border-border pt-4">
+              {resultado.tipo === "pendente" ? (
+                <>
+                  <button
+                    onClick={confirmar}
+                    disabled={processando}
+                    className="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition"
+                  >
+                    {processando ? "CONFIRMANDO…" : "CONFIRMAR"}
+                  </button>
+                  <button
+                    onClick={reset}
+                    className="flex-1 rounded-md border border-border px-4 py-2.5 text-sm font-semibold tracking-widest text-primary hover:bg-muted transition"
+                  >
+                    VOLTAR
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={reset}
+                  className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 transition"
+                >
+                  FECHAR / LER PRÓXIMO
+                </button>
               )}
             </div>
-          ) : (
-            <p className="mt-1 text-sm font-medium">{resultado.tipo === "erro" ? resultado.msg : ""}</p>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {resultado.tipo === "pendente" && (
-              <button
-                onClick={confirmar}
-                disabled={processando}
-                className="rounded-md bg-primary px-4 py-2 text-sm tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-              >
-                {processando ? "CONFIRMANDO…" : "CONFIRMAR ENTRADA"}
-              </button>
-            )}
-            <button
-              onClick={reset}
-              className="rounded-md border border-current px-3 py-2 text-xs tracking-widest hover:opacity-85"
-            >
-              {resultado.tipo === "pendente" ? "CANCELAR" : "LER PRÓXIMO"}
-            </button>
           </div>
         </div>
       )}
