@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { LocalCard } from "@/components/LocalCard";
+import { criarInscricoesPainel } from "@/lib/inscriptions.functions";
 
 export const Route = createFileRoute("/painel")({
   component: PainelInscrito,
@@ -17,6 +19,23 @@ type Inscricao = {
   qr_token: string;
   valor: number;
   criado_em: string;
+  labs?: { nome: string; local: string } | null;
+};
+
+type Lab = {
+  id: string;
+  nome: string;
+  limite_vagas: number;
+  local: string;
+  ativo: boolean;
+  requer_cpf: boolean;
+  eh_geral: boolean;
+};
+
+type ParticipanteForm = {
+  nome: string;
+  labId: string;
+  cpf: string;
 };
 
 function PainelInscrito() {
@@ -24,9 +43,16 @@ function PainelInscrito() {
   const { user, roles, loading, signOut } = useAuth();
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [nomes, setNomes] = useState<string[]>([""]);
+  const [labs, setLabs] = useState<Lab[]>([]);
+  const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
+  const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
+  const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
+    { nome: "", labId: "", cpf: "" }
+  ]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  const inscreverFn = useServerFn(criarInscricoesPainel);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -35,23 +61,17 @@ function PainelInscrito() {
   useEffect(() => {
     if (!user) return;
     void carregar();
+    void carregarLabs();
+    void carregarVagas();
+
     const channel = supabase
       .channel(`inscricoes-user-${user.id}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "inscricoes", filter: `comprador_user_id=eq.${user.id}` },
         (payload) => {
-          const novo = payload.new as Inscricao | null;
-          const antigo = payload.old as { id?: string } | null;
-          setInscricoes((prev) => {
-            if (payload.eventType === "DELETE" && antigo?.id) {
-              return prev.filter((i) => i.id !== antigo.id);
-            }
-            if (!novo) return prev;
-            const exists = prev.some((i) => i.id === novo.id);
-            if (exists) return prev.map((i) => (i.id === novo.id ? { ...i, ...novo } : i));
-            return [novo, ...prev];
-          });
+          void carregar();
+          void carregarVagas();
         }
       )
       .subscribe();
@@ -60,42 +80,82 @@ function PainelInscrito() {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (labs.length > 0) {
+      const generalLab = labs.find((l) => l.eh_geral);
+      if (generalLab) {
+        setParticipantes((prev) =>
+          prev.map((p) => (p.labId ? p : { ...p, labId: generalLab.id }))
+        );
+      }
+    }
+  }, [labs]);
+
+  async function carregarLabs() {
+    const { data } = await supabase
+      .from("labs")
+      .select("*")
+      .order("eh_geral", { ascending: true })
+      .order("nome", { ascending: true });
+    if (data) setLabs(data as Lab[]);
+  }
+
+  async function carregarVagas() {
+    const { data: countsData } = await supabase
+      .from("inscricoes")
+      .select("lab_id")
+      .neq("status", "cancelado");
+
+    const counts: Record<string, number> = {};
+    let total = 0;
+    (countsData ?? []).forEach((row) => {
+      total++;
+      if (row.lab_id) {
+        counts[row.lab_id] = (counts[row.lab_id] || 0) + 1;
+      }
+    });
+    setVagasOcupadas(counts);
+    setTotalGeralOcupado(total);
+  }
+
   async function carregar() {
     setCarregando(true);
     const { data, error } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, status, qr_token, valor, criado_em")
+      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, labs(nome, local)")
       .eq("comprador_user_id", user!.id)
       .order("criado_em", { ascending: false });
-    if (!error && data) setInscricoes(data as Inscricao[]);
+    if (!error && data) setInscricoes(data as any[]);
     setCarregando(false);
   }
 
   async function inscrever(e: React.FormEvent) {
     e.preventDefault();
     setErro(null);
-    const validos = nomes.map((n) => n.trim()).filter(Boolean);
-    if (validos.length === 0) { setErro("Informe ao menos um nome."); return; }
-    setEnviando(true);
-    const rows = validos.map((nome) => ({
-      comprador_user_id: user!.id,
-      nome_participante: nome,
-      email: user!.email,
-      valor: 50,
-      status: "pago" as const,
-    }));
-    const { data: novas, error } = await supabase.from("inscricoes").insert(rows).select("id, valor");
-    if (error) { setErro(error.message); setEnviando(false); return; }
-    if (novas) {
-      await supabase.from("pagamentos").insert(
-        novas.map((n: { id: string; valor: number }) => ({
-          inscricao_id: n.id, status: "pago", metodo: "mock", valor: n.valor,
-        }))
-      );
+    const validos = participantes.filter((p) => p.nome.trim());
+    if (validos.length === 0) {
+      setErro("Informe ao menos um participante.");
+      return;
     }
-    setNomes([""]);
-    setEnviando(false);
-    await carregar();
+    setEnviando(true);
+    try {
+      const payload = {
+        participantes: validos.map((p) => ({
+          nome: p.nome.trim(),
+          labId: p.labId,
+          cpf: p.cpf ? p.cpf.trim() : undefined,
+        })),
+      };
+      await inscreverFn({ data: payload });
+      const generalLab = labs.find((l) => l.eh_geral);
+      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "" }]);
+      await carregar();
+      await carregarVagas();
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Erro ao realizar inscrição.");
+    } finally {
+      setEnviando(false);
+    }
   }
 
 
@@ -131,40 +191,99 @@ function PainelInscrito() {
           <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <h2 className="font-display text-2xl text-primary">Nova inscrição</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              R$ 50,00 por participante. Informe o nome de cada pessoa — você receberá um QR Code para cada inscrição.
+              R$ 50,00 por participante. Selecione a categoria (LAB) correspondente para cada pessoa.
             </p>
-            <form onSubmit={inscrever} className="mt-4 space-y-3">
-              {nomes.map((n, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    value={n}
-                    onChange={(e) => setNomes(nomes.map((x, j) => (j === i ? e.target.value : x)))}
-                    placeholder={`Nome do participante ${i + 1}`}
-                    className="flex-1 rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
-                  />
-                  {nomes.length > 1 && (
-                    <button type="button" onClick={() => setNomes(nomes.filter((_, j) => j !== i))}
-                      className="rounded-md border border-border px-3 text-sm text-muted-foreground hover:bg-muted">
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <button type="button" onClick={() => setNomes([...nomes, ""])}
-                  className="text-sm tracking-widest text-primary underline-offset-4 hover:underline">
-                  + ADICIONAR PARTICIPANTE
-                </button>
-                <div className="text-sm text-muted-foreground">
-                  Total: <span className="font-semibold text-primary">R$ {(nomes.filter(n => n.trim()).length * 50).toFixed(2)}</span>
-                </div>
+            {labs.find(l => l.eh_geral) && totalGeralOcupado >= (labs.find(l => l.eh_geral)?.limite_vagas || 0) ? (
+              <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive font-semibold">
+                ⚠️ Inscrições encerradas! O limite máximo de vagas do evento ({labs.find(l => l.eh_geral)?.limite_vagas} vagas) foi atingido.
               </div>
-              {erro && <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}
-              <button type="submit" disabled={enviando}
-                className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
-                {enviando ? "PROCESSANDO..." : "CONFIRMAR INSCRIÇÃO"}
-              </button>
-            </form>
+            ) : (
+              <form onSubmit={inscrever} className="mt-4 space-y-4">
+                {participantes.map((p, i) => {
+                  const selectedLab = labs.find(l => l.id === p.labId);
+                  const showCpf = selectedLab?.requer_cpf;
+
+                  return (
+                    <div key={i} className="space-y-3 rounded-lg border border-border bg-background/50 p-4 relative">
+                      {participantes.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setParticipantes(participantes.filter((_, j) => j !== i))}
+                          className="absolute right-3 top-3 text-xs text-muted-foreground hover:text-destructive"
+                        >
+                          ✕ Remover
+                        </button>
+                      )}
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">NOME DO PARTICIPANTE</label>
+                          <input
+                            value={p.nome}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)))}
+                            placeholder={`Nome completo`}
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CATEGORIA (LAB)</label>
+                          <select
+                            value={p.labId}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, labId: e.target.value, cpf: "" } : x)))}
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          >
+                            <option value="" disabled>Selecione uma categoria</option>
+                            {labs.map((l) => {
+                              const ocupadas = l.eh_geral ? totalGeralOcupado : (vagasOcupadas[l.id] || 0);
+                              const restantes = Math.max(0, l.limite_vagas - ocupadas);
+                              const esgotado = restantes <= 0 || !l.ativo;
+                              return (
+                                <option key={l.id} value={l.id} disabled={esgotado}>
+                                  {l.nome} ({l.local}) — {esgotado ? "ESGOTADO" : `${restantes} vagas restantes`}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </div>
+                      </div>
+                      {showCpf && (
+                        <div className="space-y-1 sm:max-w-xs">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CPF do Pastor</label>
+                          <input
+                            value={p.cpf}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, cpf: e.target.value } : x)))}
+                            placeholder="000.000.000-00"
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const generalLab = labs.find(l => l.eh_geral);
+                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "" }]);
+                    }}
+                    className="text-xs tracking-widest text-primary font-semibold hover:underline"
+                  >
+                    + ADICIONAR PARTICIPANTE
+                  </button>
+                  <div className="text-sm text-muted-foreground">
+                    Total: <span className="font-semibold text-primary">R$ {(participantes.filter(p => p.nome.trim()).length * 50).toFixed(2)}</span>
+                  </div>
+                </div>
+                {erro && <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}
+                <button type="submit" disabled={enviando}
+                  className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
+                  {enviando ? "PROCESSANDO..." : "CONFIRMAR INSCRIÇÃO"}
+                </button>
+              </form>
+            )}
           </section>
 
           <section>
@@ -213,8 +332,13 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
     <li className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs tracking-widest text-muted-foreground">PARTICIPANTE</p>
+          <p className="text-[10px] tracking-widest text-muted-foreground uppercase font-semibold">PARTICIPANTE</p>
           <p className="font-display text-lg text-primary leading-tight">{inscricao.nome_participante}</p>
+          {inscricao.labs && (
+            <p className="text-xs text-gold font-semibold mt-1">
+              {inscricao.labs.nome} ({inscricao.labs.local})
+            </p>
+          )}
         </div>
         <span className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-semibold tracking-widest uppercase ${statusColor[inscricao.status]}`}>
           {inscricao.status}
