@@ -314,26 +314,28 @@ function PainelInscrito() {
 }
 
 function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [dataUrl, setDataUrl] = useState<string>("");
+  const canvasGeralRef = useRef<HTMLCanvasElement>(null);
+  const canvasLabRef = useRef<HTMLCanvasElement>(null);
+  const [dataUrlGeral, setDataUrlGeral] = useState<string>("");
+  const [dataUrlLab, setDataUrlLab] = useState<string>("");
 
   const hasSpecificLab = inscricao.lab_id && !inscricao.labs?.eh_geral;
   const isGeneralValidated = inscricao.status === "validado";
   const isLabValidated = !!inscricao.lab_validado_em;
 
-  const tokenToDisplay = (() => {
-    if (inscricao.status === "cancelado") return "";
-    if (!isGeneralValidated) return inscricao.qr_token;
-    if (hasSpecificLab && !isLabValidated) return inscricao.lab_qr_token || "";
-    return "";
-  })();
+  useEffect(() => {
+    if (!canvasGeralRef.current || !inscricao.qr_token || inscricao.status === "cancelado") return;
+    QRCode.toCanvas(canvasGeralRef.current, inscricao.qr_token, { width: 160, margin: 1 }, () => {
+      setDataUrlGeral(canvasGeralRef.current?.toDataURL("image/png") ?? "");
+    });
+  }, [inscricao.qr_token, inscricao.status]);
 
   useEffect(() => {
-    if (!canvasRef.current || !tokenToDisplay) return;
-    QRCode.toCanvas(canvasRef.current, tokenToDisplay, { width: 220, margin: 1 }, () => {
-      setDataUrl(canvasRef.current?.toDataURL("image/png") ?? "");
+    if (!canvasLabRef.current || !inscricao.lab_qr_token || !isGeneralValidated || !hasSpecificLab) return;
+    QRCode.toCanvas(canvasLabRef.current, inscricao.lab_qr_token, { width: 160, margin: 1 }, () => {
+      setDataUrlLab(canvasLabRef.current?.toDataURL("image/png") ?? "");
     });
-  }, [tokenToDisplay]);
+  }, [inscricao.lab_qr_token, isGeneralValidated, hasSpecificLab]);
 
   const statusColor: Record<string, string> = {
     pago: "bg-gold/20 text-primary border-gold/50",
@@ -341,6 +343,9 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
     cancelado: "bg-destructive/10 text-destructive border-destructive/40",
     pendente: "bg-muted text-muted-foreground border-border",
   };
+
+  const showGeralQr = inscricao.status !== "cancelado";
+  const showLabQr = isGeneralValidated && hasSpecificLab && !!inscricao.lab_qr_token;
 
   return (
     <li className="rounded-xl border border-border bg-card p-5 shadow-sm text-left">
@@ -355,7 +360,7 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
           )}
         </div>
         <span className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-semibold tracking-widest uppercase ${statusColor[inscricao.status]}`}>
-          {isLabValidated ? "LAB VALIDADO" : inscricao.status}
+          {isLabValidated ? "LAB VALIDADO" : (isGeneralValidated && hasSpecificLab ? "GERAL VALIDADO" : inscricao.status)}
         </span>
       </div>
 
@@ -371,7 +376,7 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
         )}
         {isGeneralValidated && hasSpecificLab && !isLabValidated && (
           <p className="text-gold font-medium">
-            ✓ Entrada geral confirmada! Apresente o **novo QR Code** abaixo no local da sua LAB: **{inscricao.labs?.local}**.
+            ✓ Entrada geral confirmada! Apresente o **novo QR Code** ao lado no local da sua LAB: **{inscricao.labs?.local}**.
           </p>
         )}
         {isLabValidated && (
@@ -379,17 +384,47 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
         )}
       </div>
 
-      {tokenToDisplay && (
-        <div className="relative mt-4 flex justify-center rounded-lg bg-background p-3 border border-border">
-          <canvas ref={canvasRef} />
+      {showGeralQr && (
+        <div className="mt-4 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {/* QR Code Geral */}
+          <div className={`relative flex flex-col items-center rounded-lg bg-background p-3 border ${isGeneralValidated ? 'border-primary/40 opacity-70' : 'border-border'}`}>
+            <span className="text-[9px] font-semibold tracking-wider text-muted-foreground uppercase mb-1">Entrada Geral</span>
+            <canvas ref={canvasGeralRef} />
+            {isGeneralValidated && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-[1px] rounded-lg">
+                <span className="text-primary font-bold text-sm">✓ LIDO</span>
+                <span className="text-[10px] text-muted-foreground">Entrada Geral</span>
+              </div>
+            )}
+          </div>
+
+          {/* QR Code LAB */}
+          {showLabQr && (
+            <div className={`relative flex flex-col items-center rounded-lg bg-background p-3 border ${isLabValidated ? 'border-primary/40 opacity-70' : 'border-gold/60 ring-1 ring-gold/20'}`}>
+              <span className="text-[9px] font-semibold tracking-wider text-gold uppercase mb-1">Acesso LAB</span>
+              <canvas ref={canvasLabRef} />
+              {isLabValidated && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-[1px] rounded-lg">
+                  <span className="text-primary font-bold text-sm">✓ LIDO</span>
+                  <span className="text-[10px] text-muted-foreground">{inscricao.labs?.nome}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        {dataUrl && tokenToDisplay && (
-          <a href={dataUrl} download={`ingresso-${inscricao.nome_participante.replace(/\s+/g, "-")}.png`}
+      <div className="mt-3 flex flex-col sm:flex-row gap-2">
+        {dataUrlGeral && !isGeneralValidated && (
+          <a href={dataUrlGeral} download={`ingresso-geral-${inscricao.nome_participante.replace(/\s+/g, "-")}.png`}
             className="flex-1 rounded-md bg-primary px-3 py-2 text-center text-xs font-medium tracking-widest text-primary-foreground hover:bg-primary/90">
-            BAIXAR QR
+            BAIXAR QR GERAL
+          </a>
+        )}
+        {dataUrlLab && showLabQr && !isLabValidated && (
+          <a href={dataUrlLab} download={`ingresso-lab-${inscricao.nome_participante.replace(/\s+/g, "-")}.png`}
+            className="flex-1 rounded-md bg-gold px-3 py-2 text-center text-xs font-medium tracking-widest text-primary hover:bg-gold/90">
+            BAIXAR QR LAB
           </a>
         )}
       </div>
