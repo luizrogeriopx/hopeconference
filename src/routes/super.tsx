@@ -26,7 +26,7 @@ type Inscricao = {
   validado_em: string | null;
   lab_id: string | null;
 };
-type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string };
+type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
 type Lab = {
   id: string;
@@ -536,6 +536,7 @@ function SuperPage() {
         <GestaoUsuarios
           usuarios={usuarios}
           podeCriarAdmin={true}
+          labs={labs}
           onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
           onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" } }); await carregar(); }}
         />

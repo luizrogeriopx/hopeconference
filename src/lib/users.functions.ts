@@ -17,6 +17,7 @@ const createSchema = z.object({
   senha: z.string().min(6).max(72),
   nome: z.string().min(1).max(120),
   role: z.enum(["admin", "gate"]),
+  labId: z.string().uuid().nullable().optional(),
 });
 
 export const criarUsuarioPainel = createServerFn({ method: "POST" })
@@ -48,7 +49,11 @@ export const criarUsuarioPainel = createServerFn({ method: "POST" })
     await ad.from("user_roles").delete().eq("user_id", created.user.id);
     const { error: roleErr } = await ad
       .from("user_roles")
-      .insert({ user_id: created.user.id, role: data.role });
+      .insert({
+        user_id: created.user.id,
+        role: data.role,
+        lab_id: data.role === "gate" ? (data.labId || null) : null,
+      });
     if (roleErr) throw new Error(roleErr.message);
 
     return { ok: true, id: created.user.id };
@@ -70,7 +75,7 @@ export const listarUsuariosPainel = createServerFn({ method: "GET" })
     const ad = admin();
     const { data: rolesData } = await ad
       .from("user_roles")
-      .select("user_id, role, criado_em")
+      .select("user_id, role, criado_em, lab_id, labs(nome, local)")
       .in("role", ["admin", "gate"]);
     const ids = Array.from(new Set((rolesData ?? []).map((r) => r.user_id)));
     const { data: profs } = await ad
@@ -84,6 +89,8 @@ export const listarUsuariosPainel = createServerFn({ method: "GET" })
       criado_em: r.criado_em,
       email: byId.get(r.user_id)?.email ?? "",
       nome: byId.get(r.user_id)?.nome ?? "",
+      lab_id: r.lab_id,
+      lab_nome: (r as any).labs?.nome || "",
     }));
   });
 

@@ -19,7 +19,10 @@ type Inscricao = {
   qr_token: string;
   valor: number;
   criado_em: string;
-  labs?: { nome: string; local: string } | null;
+  lab_id?: string | null;
+  lab_qr_token?: string | null;
+  lab_validado_em?: string | null;
+  labs?: { nome: string; local: string; eh_geral: boolean } | null;
 };
 
 type Lab = {
@@ -122,7 +125,7 @@ function PainelInscrito() {
     setCarregando(true);
     const { data, error } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, labs(nome, local)")
+      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, labs(nome, local, eh_geral)")
       .eq("comprador_user_id", user!.id)
       .order("criado_em", { ascending: false });
     if (!error && data) setInscricoes(data as any[]);
@@ -314,12 +317,23 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dataUrl, setDataUrl] = useState<string>("");
 
+  const hasSpecificLab = inscricao.lab_id && !inscricao.labs?.eh_geral;
+  const isGeneralValidated = inscricao.status === "validado";
+  const isLabValidated = !!inscricao.lab_validado_em;
+
+  const tokenToDisplay = (() => {
+    if (inscricao.status === "cancelado") return "";
+    if (!isGeneralValidated) return inscricao.qr_token;
+    if (hasSpecificLab && !isLabValidated) return inscricao.lab_qr_token || "";
+    return "";
+  })();
+
   useEffect(() => {
-    if (!canvasRef.current) return;
-    QRCode.toCanvas(canvasRef.current, inscricao.qr_token, { width: 220, margin: 1 }, () => {
+    if (!canvasRef.current || !tokenToDisplay) return;
+    QRCode.toCanvas(canvasRef.current, tokenToDisplay, { width: 220, margin: 1 }, () => {
       setDataUrl(canvasRef.current?.toDataURL("image/png") ?? "");
     });
-  }, [inscricao.qr_token]);
+  }, [tokenToDisplay]);
 
   const statusColor: Record<string, string> = {
     pago: "bg-gold/20 text-primary border-gold/50",
@@ -329,33 +343,50 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
   };
 
   return (
-    <li className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <li className="rounded-xl border border-border bg-card p-5 shadow-sm text-left">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[10px] tracking-widest text-muted-foreground uppercase font-semibold">PARTICIPANTE</p>
           <p className="font-display text-lg text-primary leading-tight">{inscricao.nome_participante}</p>
           {inscricao.labs && (
             <p className="text-xs text-gold font-semibold mt-1">
-              {inscricao.labs.nome} ({inscricao.labs.local})
+              Categoria: {inscricao.labs.nome} ({inscricao.labs.local})
             </p>
           )}
         </div>
         <span className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-semibold tracking-widest uppercase ${statusColor[inscricao.status]}`}>
-          {inscricao.status}
+          {isLabValidated ? "LAB VALIDADO" : inscricao.status}
         </span>
       </div>
-      <div className="relative mt-4 flex justify-center rounded-lg bg-background p-3 border border-border">
-        <canvas ref={canvasRef} className={inscricao.status === "cancelado" ? "opacity-30" : inscricao.status === "validado" ? "opacity-0" : ""} />
-        {inscricao.status === "validado" && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black">
-            <span className="font-display text-3xl font-bold tracking-widest text-white rotate-[-12deg]">
-              USADO
-            </span>
-          </div>
+
+      <div className="mt-3 text-xs text-muted-foreground leading-normal">
+        {inscricao.status === "cancelado" && (
+          <p className="text-destructive font-medium">Inscrição cancelada.</p>
+        )}
+        {inscricao.status === "pago" && (
+          <p>Apresente o QR Code abaixo na entrada geral do evento para validar seu ingresso.</p>
+        )}
+        {isGeneralValidated && !hasSpecificLab && (
+          <p className="text-primary font-medium">✓ Entrada geral confirmada! Bom evento.</p>
+        )}
+        {isGeneralValidated && hasSpecificLab && !isLabValidated && (
+          <p className="text-gold font-medium">
+            ✓ Entrada geral confirmada! Apresente o **novo QR Code** abaixo no local da sua LAB: **{inscricao.labs?.local}**.
+          </p>
+        )}
+        {isLabValidated && (
+          <p className="text-primary font-medium">✓ Presença confirmada no evento e na LAB! Bom evento.</p>
         )}
       </div>
+
+      {tokenToDisplay && (
+        <div className="relative mt-4 flex justify-center rounded-lg bg-background p-3 border border-border">
+          <canvas ref={canvasRef} />
+        </div>
+      )}
+
       <div className="mt-3 flex flex-wrap gap-2">
-        {dataUrl && inscricao.status !== "cancelado" && inscricao.status !== "validado" && (
+        {dataUrl && tokenToDisplay && (
           <a href={dataUrl} download={`ingresso-${inscricao.nome_participante.replace(/\s+/g, "-")}.png`}
             className="flex-1 rounded-md bg-primary px-3 py-2 text-center text-xs font-medium tracking-widest text-primary-foreground hover:bg-primary/90">
             BAIXAR QR

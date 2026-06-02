@@ -23,7 +23,7 @@ type Inscricao = {
   criado_em: string;
   validado_em: string | null;
 };
-type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string };
+type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
 function AdminPage() {
   const navigate = useNavigate();
@@ -36,6 +36,7 @@ function AdminPage() {
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
+  const [labs, setLabs] = useState<any[]>([]);
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
   const remover = useServerFn(removerUsuarioPainel);
@@ -48,6 +49,14 @@ function AdminPage() {
       .select("id, nome_participante, email, status, valor, criado_em, validado_em")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
+
+    const { data: labsData } = await supabase
+      .from("labs")
+      .select("id, nome, local, eh_geral")
+      .order("eh_geral", { ascending: true })
+      .order("nome", { ascending: true });
+    if (labsData) setLabs(labsData);
+
     try { setUsuarios(await listar()); } catch { /* noop */ }
   }
 
@@ -89,6 +98,7 @@ function AdminPage() {
         <GestaoUsuarios
           usuarios={usuarios}
           podeCriarAdmin={isSuper}
+          labs={labs}
           onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
           onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" } }); await carregar(); }}
         />
@@ -177,17 +187,29 @@ export function ListaInscricoes({
 }
 
 export function GestaoUsuarios({
-  usuarios, podeCriarAdmin, onCriar, onRemover,
+  usuarios,
+  podeCriarAdmin,
+  labs,
+  onCriar,
+  onRemover,
 }: {
   usuarios: UsuarioPainel[];
   podeCriarAdmin: boolean;
-  onCriar: (p: { email: string; senha: string; nome: string; role: "admin" | "gate" }) => Promise<void>;
+  labs: { id: string; nome: string; local: string; eh_geral: boolean }[];
+  onCriar: (p: {
+    email: string;
+    senha: string;
+    nome: string;
+    role: "admin" | "gate";
+    labId?: string | null;
+  }) => Promise<void>;
   onRemover: (u: UsuarioPainel) => Promise<void>;
 }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [role, setRole] = useState<"admin" | "gate">("gate");
+  const [selectedLabId, setSelectedLabId] = useState<string>("");
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -195,8 +217,14 @@ export function GestaoUsuarios({
     e.preventDefault();
     setErro(null); setEnviando(true);
     try {
-      await onCriar({ email, senha, nome, role });
-      setEmail(""); setSenha(""); setNome("");
+      await onCriar({
+        email,
+        senha,
+        nome,
+        role,
+        labId: role === "gate" ? (selectedLabId || null) : null,
+      });
+      setEmail(""); setSenha(""); setNome(""); setSelectedLabId("");
     } catch (err) {
       setErro(err instanceof Error ? err.message : "Erro");
     } finally { setEnviando(false); }
@@ -204,7 +232,7 @@ export function GestaoUsuarios({
 
   return (
     <section className="grid gap-6 lg:grid-cols-2">
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-5 shadow-sm text-left">
         <h2 className="font-display text-xl text-primary">Cadastrar usuário</h2>
         <form onSubmit={submit} className="mt-4 space-y-3">
           <input required placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
@@ -214,20 +242,40 @@ export function GestaoUsuarios({
             <option value="gate">Controle de Acesso (gate)</option>
             {podeCriarAdmin && <option value="admin">Admin</option>}
           </select>
+          {role === "gate" && (
+            <div className="space-y-1">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">Portaria / Setor</label>
+              <select value={selectedLabId} onChange={(e) => setSelectedLabId(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold">
+                <option value="">Entrada Principal (Geral)</option>
+                {labs.filter(l => !l.eh_geral).map((l) => (
+                  <option key={l.id} value={l.id}>
+                    Portaria LAB: {l.nome} ({l.local})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {erro && <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}
           <button disabled={enviando} className="w-full rounded-md bg-primary px-4 py-2 text-sm tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
             {enviando ? "CRIANDO..." : "CRIAR USUÁRIO"}
           </button>
         </form>
       </div>
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-5 shadow-sm text-left">
         <h2 className="font-display text-xl text-primary">Usuários dos painéis</h2>
         <ul className="mt-3 divide-y divide-border">
           {usuarios.map((u) => (
             <li key={u.user_id + u.role} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="truncate text-sm text-primary">{u.nome || u.email}</p>
-                <p className="truncate text-xs text-muted-foreground">{u.email} · <span className="uppercase">{u.role}</span></p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {u.email} · <span className="uppercase font-semibold">{u.role}</span>
+                  {u.role === "gate" && (
+                    <span className="text-gold font-semibold ml-1">
+                      ({u.lab_nome ? `Portaria LAB: ${u.lab_nome}` : "Portaria Geral"})
+                    </span>
+                  )}
+                </p>
               </div>
               {(podeCriarAdmin || u.role === "gate") && (
                 <button onClick={() => { if (confirm("Remover este usuário?")) void onRemover(u); }} className="rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
