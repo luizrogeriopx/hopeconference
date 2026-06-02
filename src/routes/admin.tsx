@@ -265,11 +265,12 @@ export function GestaoUsuarios({
         <h2 className="font-display text-xl text-primary">Usuários dos painéis</h2>
         <ul className="mt-3 divide-y divide-border">
           {usuarios.map((u) => (
-            <li key={u.user_id + u.role} className="flex items-center justify-between gap-3 py-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm text-primary">{u.nome || u.email}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {u.email} · <span className="uppercase font-semibold">{u.role}</span>
+            <li key={u.user_id + u.role} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 last:pb-0">
+              <div className="min-w-0 space-y-0.5">
+                <p className="text-sm font-semibold text-primary break-all">{u.nome || u.email}</p>
+                <p className="text-xs text-muted-foreground break-all">{u.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  <span className="uppercase font-semibold text-primary">{u.role}</span>
                   {u.role === "gate" && (
                     <span className="text-gold font-semibold ml-1">
                       ({u.lab_nome ? `Portaria LAB: ${u.lab_nome}` : "Portaria Geral"})
@@ -278,7 +279,10 @@ export function GestaoUsuarios({
                 </p>
               </div>
               {(podeCriarAdmin || u.role === "gate") && (
-                <button onClick={() => { if (confirm("Remover este usuário?")) void onRemover(u); }} className="rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
+                <button 
+                  onClick={() => { if (confirm("Remover este usuário?")) void onRemover(u); }} 
+                  className="self-start sm:self-center rounded-md border border-border px-3 py-1.5 text-[10px] tracking-widest text-destructive hover:bg-destructive/10 cursor-pointer"
+                >
                   REMOVER
                 </button>
               )}
