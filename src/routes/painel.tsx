@@ -347,7 +347,7 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
   const showGeralQr = inscricao.status !== "cancelado";
   const showLabQr = isGeneralValidated && hasSpecificLab && !!inscricao.lab_qr_token;
 
-  const baixarPDF = () => {
+  const baixarPDF = async () => {
     const nome = inscricao.nome_participante;
     const hasLab = inscricao.lab_id && !inscricao.labs?.eh_geral;
     const labNome = inscricao.labs?.nome || "";
@@ -355,171 +355,94 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
     const imgGeral = dataUrlGeral;
     const imgLab = showLabQr ? dataUrlLab : "";
 
-    const win = window.open("", "_blank");
-    if (!win) {
-      alert("Por favor, permita pop-ups para este site para baixar o comprovante.");
-      return;
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    // Outer border dashed box
+    doc.setDrawColor(209, 213, 219);
+    doc.setLineDashPattern([3, 3], 0);
+    doc.rect(20, 20, 170, 200);
+
+    // Title
+    doc.setTextColor(181, 146, 71);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("HOPE CONFERENCE 2026", 105, 45, { align: "center" });
+
+    // Subtitle
+    doc.setTextColor(107, 114, 128);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text("Comprovante de Inscrição", 105, 53, { align: "center" });
+
+    // Divider
+    doc.setLineDashPattern([], 0);
+    doc.setDrawColor(243, 244, 246);
+    doc.line(35, 63, 175, 63);
+
+    // Participant Name Section
+    doc.setTextColor(156, 163, 175);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("PARTICIPANTE", 105, 73, { align: "center" });
+
+    doc.setTextColor(17, 24, 37);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(nome, 105, 81, { align: "center" });
+
+    if (hasLab) {
+      doc.setTextColor(156, 163, 175);
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("CATEGORIA / LAB", 105, 93, { align: "center" });
+
+      doc.setTextColor(181, 146, 71);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text(labNome, 105, 100, { align: "center" });
+
+      doc.setTextColor(17, 24, 37);
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text(`Local: ${labLocal}`, 105, 107, { align: "center" });
     }
 
-    win.document.write(`
-      <html>
-      <head>
-        <title>Ingresso - ${nome}</title>
-        <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: #1f2937;
-            background: #ffffff;
-            display: flex;
-            justify-content: center;
-          }
-          .ticket-container {
-            max-width: 500px;
-            width: 100%;
-            border: 2px dashed #d1d5db;
-            padding: 24px;
-            border-radius: 16px;
-            text-align: center;
-            box-sizing: border-box;
-          }
-          .header {
-            font-size: 20px;
-            font-weight: 800;
-            color: #b59247;
-            margin-bottom: 2px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-          }
-          .subheader {
-            font-size: 10px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 24px;
-            font-weight: 600;
-          }
-          .info-section {
-            margin-bottom: 24px;
-            border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 16px;
-            text-align: left;
-          }
-          .info-group {
-            margin-bottom: 12px;
-          }
-          .info-label {
-            font-size: 9px;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-          }
-          .info-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #111827;
-            margin-top: 2px;
-          }
-          .lab-value {
-            color: #b59247;
-          }
-          .qrs-section {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            flex-wrap: wrap;
-            margin-top: 16px;
-          }
-          .qr-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            background: #f9fafb;
-            flex: 1;
-            min-width: 140px;
-          }
-          .qr-card img {
-            width: 140px;
-            height: 140px;
-          }
-          .qr-label {
-            font-size: 10px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            color: #4b5563;
-            letter-spacing: 0.5px;
-          }
-          .footer-msg {
-            font-size: 10px;
-            color: #9ca3af;
-            margin-top: 24px;
-            line-height: 1.5;
-            font-weight: 500;
-          }
-          @media print {
-            body { padding: 0; }
-            .ticket-container { border: 2px dashed #000; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="ticket-container">
-          <div class="header">Hope Conference 2026</div>
-          <div class="subheader">Comprovante de Inscrição</div>
-          
-          <div class="info-section">
-            <div class="info-group">
-              <div class="info-label">Participante</div>
-              <div class="info-value">${nome}</div>
-            </div>
-            
-            ${hasLab ? `
-              <div class="info-group">
-                <div class="info-label">Categoria / LAB</div>
-                <div class="info-value lab-value">${labNome}</div>
-              </div>
-              <div class="info-group">
-                <div class="info-label">Local da LAB</div>
-                <div class="info-value">${labLocal}</div>
-              </div>
-            ` : ""}
-          </div>
-          
-          <div class="qrs-section">
-            <div class="qr-card">
-              <div class="qr-label">Entrada Geral</div>
-              <img src="${imgGeral}" />
-            </div>
-            
-            ${imgLab ? `
-              <div class="qr-card">
-                <div class="qr-label">Acesso LAB</div>
-                <img src="${imgLab}" />
-              </div>
-            ` : ""}
-          </div>
-          
-          <div class="footer-msg">
-            Apresente este comprovante nos pontos de acesso para validar sua entrada.<br>
-            <strong>Hope Conference 2026</strong>
-          </div>
-        </div>
-        <script>
-          window.onload = function() {
-            window.print();
-            setTimeout(function() { window.close(); }, 500);
-          }
-        </script>
-      </body>
-      </html>
-    `);
-    win.document.close();
+    // Divider
+    doc.setDrawColor(243, 244, 246);
+    doc.line(35, 118, 175, 118);
+
+    // QRs layout
+    if (imgLab) {
+      // Both QRs side-by-side
+      doc.setTextColor(107, 114, 128);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("ENTRADA GERAL", 65, 132, { align: "center" });
+      doc.addImage(imgGeral, "PNG", 40, 137, 50, 50);
+
+      doc.text("ACESSO LAB", 145, 132, { align: "center" });
+      doc.addImage(imgLab, "PNG", 120, 137, 50, 50);
+    } else {
+      // Only Geral QR centered
+      doc.setTextColor(107, 114, 128);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("ENTRADA GERAL", 105, 132, { align: "center" });
+      doc.addImage(imgGeral, "PNG", 80, 137, 50, 50);
+    }
+
+    // Footer
+    doc.setTextColor(156, 163, 175);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text("Apresente este comprovante nos pontos de acesso para validar sua entrada.", 105, 205, { align: "center" });
+
+    doc.save(`ingresso-${nome.toLowerCase().replace(/\s+/g, "-")}.pdf`);
   };
 
   return (
