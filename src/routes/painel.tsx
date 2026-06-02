@@ -331,11 +331,11 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
   }, [inscricao.qr_token, inscricao.status]);
 
   useEffect(() => {
-    if (!canvasLabRef.current || !inscricao.lab_qr_token || !isGeneralValidated || !hasSpecificLab) return;
+    if (!canvasLabRef.current || !inscricao.lab_qr_token || !hasSpecificLab) return;
     QRCode.toCanvas(canvasLabRef.current, inscricao.lab_qr_token, { width: 160, margin: 1 }, () => {
       setDataUrlLab(canvasLabRef.current?.toDataURL("image/png") ?? "");
     });
-  }, [inscricao.lab_qr_token, isGeneralValidated, hasSpecificLab]);
+  }, [inscricao.lab_qr_token, hasSpecificLab]);
 
   const statusColor: Record<string, string> = {
     pago: "bg-gold/20 text-primary border-gold/50",
@@ -353,7 +353,7 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
     const labNome = inscricao.labs?.nome || "";
     const labLocal = inscricao.labs?.local || "";
     const imgGeral = dataUrlGeral;
-    const imgLab = showLabQr ? dataUrlLab : "";
+    const imgLab = hasLab && inscricao.lab_qr_token ? dataUrlLab : "";
 
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({
@@ -496,9 +496,12 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
             )}
           </div>
 
-          {/* QR Code LAB */}
-          {showLabQr && (
-            <div className={`relative flex flex-col items-center rounded-lg bg-background p-3 border ${isLabValidated ? 'border-primary/40 opacity-70' : 'border-gold/60 ring-1 ring-gold/20'}`}>
+          {/* QR Code LAB (always mounted if hasSpecificLab + token exists to render canvas, hidden visually until general check-in) */}
+          {hasSpecificLab && inscricao.lab_qr_token && (
+            <div className={`relative flex flex-col items-center rounded-lg bg-background p-3 border ${
+              !showLabQr ? "hidden" :
+              isLabValidated ? 'border-primary/40 opacity-70' : 'border-gold/60 ring-1 ring-gold/20'
+            }`}>
               <span className="text-[9px] font-semibold tracking-wider text-gold uppercase mb-1">Acesso LAB</span>
               <canvas ref={canvasLabRef} />
               {isLabValidated && (

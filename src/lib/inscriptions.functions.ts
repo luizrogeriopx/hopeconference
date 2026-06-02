@@ -174,15 +174,20 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
     const emailToUse = profile?.email || "";
 
     // 8. Create inscriptions and payments
-    const rows = data.participantes.map((p) => ({
-      comprador_user_id: userId,
-      nome_participante: p.nome,
-      email: emailToUse,
-      lab_id: p.labId,
-      cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
-      valor: 50,
-      status: "pago" as const,
-    }));
+    const rows = data.participantes.map((p) => {
+      const lab = labsMap.get(p.labId);
+      const hasSpecificLab = lab && !lab.eh_geral;
+      return {
+        comprador_user_id: userId,
+        nome_participante: p.nome,
+        email: emailToUse,
+        lab_id: p.labId,
+        cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
+        valor: 50,
+        status: "pago" as const,
+        lab_qr_token: hasSpecificLab ? globalThis.crypto.randomUUID() : null,
+      };
+    });
 
     const { data: novas, error: insertErr } = await ad
       .from("inscricoes")

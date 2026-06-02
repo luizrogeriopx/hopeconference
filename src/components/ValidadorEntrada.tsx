@@ -201,18 +201,11 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
         });
       } else {
         // --- Confirmar entrada Principal (Geral) ---
-        const hasSpecificLab = resultado.insc.lab_id && !resultado.insc.labs?.eh_geral;
         const updates: any = {
           status: "validado",
           validado_em: new Date().toISOString(),
           validado_por: userId,
         };
-
-        let newLabQrToken = null;
-        if (hasSpecificLab) {
-          newLabQrToken = window.crypto.randomUUID();
-          updates.lab_qr_token = newLabQrToken;
-        }
 
         const { error: upErr } = await supabase
           .from("inscricoes")
@@ -230,7 +223,6 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
             ...resultado.insc,
             status: "validado",
             validado_em: new Date().toISOString(),
-            lab_qr_token: newLabQrToken,
           },
         });
       }
