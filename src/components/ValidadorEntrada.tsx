@@ -263,8 +263,8 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
       <QrScanner onResult={handle} paused={paused} />
 
       {resultado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className={`w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border bg-card p-5 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-left flex flex-col justify-between ${
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className={`w-full max-w-md my-auto rounded-2xl border bg-card p-5 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-left flex flex-col justify-between ${
             resultado.tipo === "ok" ? "border-gold/30" :
             resultado.tipo === "pendente" ? "border-border" :
             "border-destructive/30"
