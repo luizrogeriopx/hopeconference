@@ -116,10 +116,20 @@ function SuperPage() {
 
   async function reverter(id: string, origem: "validado" | "cancelado") {
     const msg = origem === "validado"
-      ? "Reverter validação? O QR voltará a funcionar."
+      ? "Reverter validação? O QR voltará a funcionar e as validações de LAB associadas serão resetadas."
       : "Reativar inscrição cancelada? Voltará para o status PAGO e o QR funcionará.";
     if (!confirm(msg)) return;
-    const { error } = await supabase.from("inscricoes").update({ status: "pago" }).eq("id", id);
+    const { error } = await supabase
+      .from("inscricoes")
+      .update({ 
+        status: "pago", 
+        validado_em: null, 
+        validado_por: null,
+        lab_qr_token: null,
+        lab_validado_em: null,
+        lab_validado_por: null
+      })
+      .eq("id", id);
     if (error) alert(error.message);
     else await carregar();
   }

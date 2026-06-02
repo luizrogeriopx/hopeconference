@@ -263,8 +263,8 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
       <QrScanner onResult={handle} paused={paused} />
 
       {resultado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className={`w-full max-w-md rounded-2xl border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-left ${
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className={`w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border bg-card p-5 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150 text-left flex flex-col justify-between ${
             resultado.tipo === "ok" ? "border-gold/30" :
             resultado.tipo === "pendente" ? "border-border" :
             "border-destructive/30"
@@ -292,23 +292,23 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
               <div className="space-y-4">
                 <div>
                   <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">PARTICIPANTE</label>
-                  <p className="font-display text-2xl text-primary font-bold">{insc.nome_participante}</p>
+                  <p className="font-display text-2xl text-primary font-bold break-words">{insc.nome_participante}</p>
                 </div>
 
                 {insc.labs && (
                   <div>
                     <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CATEGORIA / LAB</label>
-                    <p className="text-sm font-semibold text-gold">
+                    <p className="text-sm font-semibold text-gold break-words">
                       {insc.labs.nome} ({insc.labs.local})
                     </p>
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {insc.email && (
-                    <div>
+                    <div className="min-w-0">
                       <label className="tracking-widest uppercase font-semibold text-muted-foreground block text-[9px]">E-MAIL</label>
-                      <span className="text-primary truncate block">{insc.email}</span>
+                      <span className="text-primary truncate block" title={insc.email}>{insc.email}</span>
                     </div>
                   )}
                   {insc.telefone && (
@@ -339,36 +339,36 @@ export function ValidadorEntrada({ userId }: { userId: string }) {
                 </div>
 
                 {resultado.tipo === "ja" && resultado.msg && (
-                  <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs font-semibold text-destructive">
+                  <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs font-semibold text-destructive break-words">
                     {resultado.msg}
                   </div>
                 )}
 
                 {resultado.tipo === "ok" && !controller?.labId && insc.lab_qr_token && (
-                  <div className="p-3 rounded-md bg-gold/10 border border-gold/30 text-xs text-primary font-medium">
-                    🎟️ **Gere o QR Code da LAB** no painel do participante para a entrada específica.
+                  <div className="p-3 rounded-md bg-gold/10 border border-gold/30 text-xs text-primary font-medium break-words">
+                    🎟️ **Gere o QR Code da LAB** no painel do participant para a entrada específica.
                   </div>
                 )}
               </div>
             ) : (
               <div className="py-4 text-center">
-                <p className="text-sm font-semibold text-destructive">{resultado.tipo === "erro" ? resultado.msg : ""}</p>
+                <p className="text-sm font-semibold text-destructive break-words">{resultado.tipo === "erro" ? resultado.msg : ""}</p>
               </div>
             )}
 
-            <div className="mt-6 flex gap-3 border-t border-border pt-4">
+            <div className="mt-6 flex flex-col sm:flex-row gap-2 sm:gap-3 border-t border-border pt-4">
               {resultado.tipo === "pendente" ? (
                 <>
                   <button
                     onClick={confirmar}
                     disabled={processando}
-                    className="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition"
+                    className="w-full sm:flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition"
                   >
                     {processando ? "CONFIRMANDO…" : "CONFIRMAR"}
                   </button>
                   <button
                     onClick={reset}
-                    className="flex-1 rounded-md border border-border px-4 py-2.5 text-sm font-semibold tracking-widest text-primary hover:bg-muted transition"
+                    className="w-full sm:flex-1 rounded-md border border-border px-4 py-2.5 text-sm font-semibold tracking-widest text-primary hover:bg-muted transition"
                   >
                     VOLTAR
                   </button>
