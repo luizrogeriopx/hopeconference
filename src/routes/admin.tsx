@@ -73,9 +73,11 @@ function AdminPage() {
     const canceladas = inscricoes.filter((i) => i.status === "cancelado");
     const receita = pagas.reduce((s, i) => s + Number(i.valor), 0);
     
-    const regionalSede = pagas.filter((i) => i.regional === "SEDE").length;
-    const regional2 = pagas.filter((i) => i.regional === "2").length;
-    const regional21 = pagas.filter((i) => i.regional === "21").length;
+    const regionais = [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"];
+    const regionalCounts: Record<string, number> = {};
+    regionais.forEach((r) => {
+      regionalCounts[r] = pagas.filter((i) => i.regional === r).length;
+    });
 
     return { 
       total: inscricoes.length, 
@@ -83,9 +85,7 @@ function AdminPage() {
       validadas: validadas.length, 
       canceladas: canceladas.length, 
       receita,
-      regionalSede,
-      regional2,
-      regional21
+      regionalCounts,
     };
   }, [inscricoes]);
 
@@ -117,13 +117,7 @@ function AdminPage() {
         <Cards stats={stats} />
         <RegionalCards stats={stats} />
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
-        <GestaoUsuarios
-          usuarios={usuarios}
-          podeCriarAdmin={isSuper}
-          labs={labs}
-          onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
-          onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" | "recepcao" } }); await carregar(); }}
-        />
+
       </div>
     </main>
   );
@@ -149,22 +143,22 @@ export function Cards({ stats }: { stats: { total: number; pagas: number; valida
   );
 }
 
-export function RegionalCards({ stats }: { stats: { regionalSede: number; regional2: number; regional21: number } }) {
-  const items = [
-    { label: "Sede (Ativas)", v: stats.regionalSede },
-    { label: "Regional 2 (Ativas)", v: stats.regional2 },
-    { label: "Regional 21 (Ativas)", v: stats.regional21 },
-  ];
+export function RegionalCards({ stats }: { stats: { regionalCounts: Record<string, number> } }) {
+  const regionais = [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"];
   return (
     <div className="space-y-2">
       <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">Inscrições Confirmadas por Regional</h3>
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {items.map((i) => (
-          <div key={i.label} className="rounded-xl border border-border bg-card/60 p-4 shadow-sm flex justify-between items-center">
-            <span className="text-[10px] tracking-widest uppercase text-muted-foreground">{i.label}</span>
-            <span className="font-display text-2xl text-primary font-bold">{i.v}</span>
-          </div>
-        ))}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
+        {regionais.map((r) => {
+          const count = stats.regionalCounts[r] ?? 0;
+          const label = r === "SEDE" ? "Sede" : `Reg. ${r}`;
+          return (
+            <div key={r} className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start">
+              <span className="text-[9px] tracking-wider uppercase text-muted-foreground">{label}</span>
+              <span className="mt-1 font-display text-lg text-primary font-bold">{count}</span>
+            </div>
+          );
+        })}
       </section>
     </div>
   );

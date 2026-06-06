@@ -370,9 +370,11 @@ function SuperPage() {
     const canceladas = inscricoes.filter((i) => i.status === "cancelado");
     const receita = pagas.reduce((s, i) => s + Number(i.valor), 0);
     
-    const regionalSede = pagas.filter((i) => i.regional === "SEDE").length;
-    const regional2 = pagas.filter((i) => i.regional === "2").length;
-    const regional21 = pagas.filter((i) => i.regional === "21").length;
+    const regionais = [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"];
+    const regionalCounts: Record<string, number> = {};
+    regionais.forEach((r) => {
+      regionalCounts[r] = pagas.filter((i) => i.regional === r).length;
+    });
 
     return { 
       total: inscricoes.length, 
@@ -380,9 +382,7 @@ function SuperPage() {
       validadas: validadas.length, 
       canceladas: canceladas.length, 
       receita,
-      regionalSede,
-      regional2,
-      regional21
+      regionalCounts,
     };
   }, [inscricoes]);
 
@@ -453,6 +453,7 @@ function SuperPage() {
             <ul className="mt-4 space-y-2">
               {[
                 { label: "Painel do Inscrito", path: "/painel" },
+                { label: "Painel da Recepção (Presencial)", path: "/recepcao" },
                 { label: "Controle de Acesso (Gate)", path: "/gate" },
                 { label: "Admin", path: "/admin" },
                 { label: "Super Admin", path: "/super" },
