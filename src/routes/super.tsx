@@ -10,6 +10,10 @@ import {
   listarUsuariosPainel,
   removerUsuarioPainel,
 } from "@/lib/users.functions";
+import {
+  carregarConfiguracaoMercadoPago,
+  salvarConfiguracaoMercadoPago,
+} from "@/lib/payment.functions";
 
 export const Route = createFileRoute("/super")({
   component: SuperPage,
@@ -69,9 +73,18 @@ function SuperPage() {
   const [editLabLimite, setEditLabLimite] = useState(100);
   const [editLabLocal, setEditLabLocal] = useState("");
 
+  // Mercado Pago config state
+  const [mpAtivo, setMpAtivo] = useState(false);
+  const [mpPublicKey, setMpPublicKey] = useState("");
+  const [mpAccessToken, setMpAccessToken] = useState("");
+  const [mpConfigurado, setMpConfigurado] = useState(false);
+  const [salvandoMP, setSalvandoMP] = useState(false);
+
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
   const remover = useServerFn(removerUsuarioPainel);
+  const carregarMP = useServerFn(carregarConfiguracaoMercadoPago);
+  const salvarMP = useServerFn(salvarConfiguracaoMercadoPago);
 
   useEffect(() => { if (user && isSuper) void carregar(); }, [user, isSuper]);
 
@@ -90,6 +103,18 @@ function SuperPage() {
     if (cfg) {
       setInscricoesAbertas(cfg.inscricoes_abertas);
       setGoogleSheetPastoresUrl(cfg.google_sheet_pastores_url || "");
+    }
+
+    try {
+      const mpCfg = await carregarMP();
+      setMpAtivo(mpCfg.mercadoPagoAtivo);
+      setMpPublicKey(mpCfg.mercadoPagoPublicKey);
+      setMpConfigurado(mpCfg.hasAccessToken);
+      if (mpCfg.hasAccessToken) {
+        setMpAccessToken("_KEEP_EXISTING_");
+      }
+    } catch (err) {
+      console.error("Erro ao carregar configurações do Mercado Pago:", err);
     }
 
     const { data: labsData } = await supabase
@@ -149,6 +174,30 @@ function SuperPage() {
       .eq("id", true);
     if (error) alert(error.message);
     else alert("URL da planilha de Pastores salva com sucesso!");
+  }
+
+  async function salvarMercadoPago(e: React.FormEvent) {
+    e.preventDefault();
+    setSalvandoMP(true);
+    try {
+      await salvarMP({
+        mercadoPagoAtivo: mpAtivo,
+        mercadoPagoPublicKey: mpPublicKey.trim(),
+        mercadoPagoAccessToken: mpAccessToken.trim(),
+      });
+      alert("Configurações do Mercado Pago salvas com sucesso!");
+      const mpCfg = await carregarMP();
+      setMpAtivo(mpCfg.mercadoPagoAtivo);
+      setMpPublicKey(mpCfg.mercadoPagoPublicKey);
+      setMpConfigurado(mpCfg.hasAccessToken);
+      if (mpCfg.hasAccessToken) {
+        setMpAccessToken("_KEEP_EXISTING_");
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao salvar configurações do Mercado Pago.");
+    } finally {
+      setSalvandoMP(false);
+    }
   }
 
   async function criarLab(e: React.FormEvent) {
@@ -415,6 +464,72 @@ function SuperPage() {
             />
             <button type="submit" className="rounded-md bg-primary px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90">
               SALVAR PLANILHA
+            </button>
+          </form>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <div>
+              <h2 className="font-display text-xl text-primary">Integração do Mercado Pago</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Habilite o checkout transparente (Cartão e Pix) para cobrar as inscrições automaticamente.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={mpAtivo}
+                  onChange={(e) => setMpAtivo(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
+                <span className="ml-2 text-xs font-semibold text-primary tracking-widest uppercase">
+                  {mpAtivo ? "Ativo" : "Inativo"}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <form onSubmit={salvarMercadoPago} className="space-y-4 max-w-2xl">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
+                  Public Key (Chave Pública)
+                </label>
+                <input
+                  type="text"
+                  required={mpAtivo}
+                  placeholder="APP_USR-..."
+                  value={mpPublicKey}
+                  onChange={(e) => setMpPublicKey(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left flex justify-between">
+                  <span>Access Token (Chave Privada)</span>
+                  {mpConfigurado && <span className="text-gold tracking-normal text-[9px] lowercase font-normal">(configurado)</span>}
+                </label>
+                <input
+                  type="password"
+                  required={mpAtivo && !mpConfigurado}
+                  placeholder={mpConfigurado ? "••••••••••••••••••••••••••••••••" : "TEST-... ou APP_USR-..."}
+                  value={mpAccessToken === "_KEEP_EXISTING_" ? "" : mpAccessToken}
+                  onChange={(e) => setMpAccessToken(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={salvandoMP}
+              className="rounded-md bg-primary px-5 py-2.5 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {salvandoMP ? "SALVANDO..." : "SALVAR CONFIGURAÇÃO"}
             </button>
           </form>
         </section>

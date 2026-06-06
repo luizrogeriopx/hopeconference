@@ -125,10 +125,11 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
     // 6. Check CPF for LABs that require validation
     const { data: settings } = await ad
       .from("app_settings")
-      .select("google_sheet_pastores_url")
+      .select("google_sheet_pastores_url, mercado_pago_ativo")
       .eq("id", true)
       .maybeSingle();
     const sheetUrl = settings?.google_sheet_pastores_url;
+    const isMpActive = settings?.mercado_pago_ativo ?? false;
 
     for (const p of data.participantes) {
       const lab = labsMap.get(p.labId)!;
@@ -184,7 +185,7 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
         lab_id: p.labId,
         cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
         valor: 50,
-        status: "pago" as const,
+        status: (isMpActive ? "pendente" : "pago") as any,
         lab_qr_token: hasSpecificLab ? globalThis.crypto.randomUUID() : null,
       };
     });
@@ -199,15 +200,25 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
 
     const payments = novas.map((n) => ({
       inscricao_id: n.id,
-      status: "pago",
-      metodo: "mock",
+      status: isMpActive ? "pendente" : "pago",
+      metodo: isMpActive ? "mercado_pago" : "mock",
       valor: n.valor,
     }));
 
-    const { error: payErr } = await ad.from("pagamentos").insert(payments);
-    if (payErr) {
+    const { data: paymentsData, error: payErr } = await ad
+      .from("pagamentos")
+      .insert(payments)
+      .select("id");
+
+    if (payErr || !paymentsData) {
       throw new Error("Erro ao registrar o pagamento das inscrições.");
     }
 
-    return { ok: true, count: novas.length };
+    return { 
+      ok: true, 
+      count: novas.length, 
+      mercadoPagoAtivo: isMpActive,
+      pendingPaymentIds: paymentsData.map((p) => p.id),
+      totalAmount: novas.reduce((s, n) => s + n.valor, 0),
+    };
   });

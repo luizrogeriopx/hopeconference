@@ -19,16 +19,40 @@ export type Database = {
           atualizado_em: string
           id: boolean
           inscricoes_abertas: boolean
+          mercado_pago_ativo: boolean
+          mercado_pago_public_key: string
         }
         Insert: {
           atualizado_em?: string
           id?: boolean
           inscricoes_abertas?: boolean
+          mercado_pago_ativo?: boolean
+          mercado_pago_public_key?: string
         }
         Update: {
           atualizado_em?: string
           id?: boolean
           inscricoes_abertas?: boolean
+          mercado_pago_ativo?: boolean
+          mercado_pago_public_key?: string
+        }
+        Relationships: []
+      }
+      app_secrets: {
+        Row: {
+          atualizado_em: string
+          id: boolean
+          mercado_pago_access_token: string
+        }
+        Insert: {
+          atualizado_em?: string
+          id?: boolean
+          mercado_pago_access_token?: string
+        }
+        Update: {
+          atualizado_em?: string
+          id?: boolean
+          mercado_pago_access_token?: string
         }
         Relationships: []
       }
@@ -82,6 +106,10 @@ export type Database = {
           metodo: string
           status: string
           valor: number
+          preference_id: string | null
+          payment_id: string | null
+          payment_url: string | null
+          pix_qr_base64: string | null
         }
         Insert: {
           criado_em?: string
@@ -90,6 +118,10 @@ export type Database = {
           metodo?: string
           status?: string
           valor: number
+          preference_id?: string | null
+          payment_id?: string | null
+          payment_url?: string | null
+          pix_qr_base64?: string | null
         }
         Update: {
           criado_em?: string
@@ -98,6 +130,10 @@ export type Database = {
           metodo?: string
           status?: string
           valor?: number
+          preference_id?: string | null
+          payment_id?: string | null
+          payment_url?: string | null
+          pix_qr_base64?: string | null
         }
         Relationships: [
           {

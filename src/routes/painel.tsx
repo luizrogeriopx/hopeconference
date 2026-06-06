@@ -6,6 +6,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { LocalCard } from "@/components/LocalCard";
 import { criarInscricoesPainel } from "@/lib/inscriptions.functions";
+import {
+  processarPagamentoTransparente,
+  verificarStatusPagamento,
+  cancelarPagamentoPendente,
+} from "@/lib/payment.functions";
+
+function loadMercadoPagoSDK(): Promise<void> {
+  return new Promise((resolve) => {
+    if ((window as any).MercadoPago) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://sdk.mercadopago.com/js/v2";
+    script.async = true;
+    script.onload = () => resolve();
+    document.body.appendChild(script);
+  });
+}
 
 export const Route = createFileRoute("/painel")({
   component: PainelInscrito,
@@ -56,10 +75,35 @@ function PainelInscrito() {
   const [erro, setErro] = useState<string | null>(null);
 
   const inscreverFn = useServerFn(criarInscricoesPainel);
+  const processarPagamento = useServerFn(processarPagamentoTransparente);
+  const verificarPagamento = useServerFn(verificarStatusPagamento);
+  const cancelarPendente = useServerFn(cancelarPagamentoPendente);
+
+  const [pendingPayments, setPendingPayments] = useState<any[]>([]);
+  const [checkoutAberto, setCheckoutAberto] = useState(false);
+  const [mpPublicKey, setMpPublicKey] = useState("");
+  const [mpAtivo, setMpAtivo] = useState(false);
+  const [verificandoPagamentoId, setVerificandoPagamentoId] = useState<string | null>(null);
+  const [cancelandoPagamento, setCancelandoPagamento] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    async function carregarMPSettings() {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("mercado_pago_ativo, mercado_pago_public_key")
+        .eq("id", true)
+        .maybeSingle();
+      if (data) {
+        setMpAtivo(data.mercado_pago_ativo);
+        setMpPublicKey(data.mercado_pago_public_key || "");
+      }
+    }
+    void carregarMPSettings();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -128,8 +172,141 @@ function PainelInscrito() {
       .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, labs(nome, local, eh_geral)")
       .eq("comprador_user_id", user!.id)
       .order("criado_em", { ascending: false });
-    if (!error && data) setInscricoes(data as any[]);
+    
+    if (!error && data) {
+      setInscricoes(data as any[]);
+      
+      const pendingInscs = (data ?? []).filter((i: any) => i.status === "pendente");
+      if (pendingInscs.length > 0) {
+        const { data: payData } = await supabase
+          .from("pagamentos")
+          .select("id, status, metodo, valor, preference_id, payment_id, payment_url, pix_qr_base64, inscricao_id")
+          .in("inscricao_id", pendingInscs.map((i: any) => i.id))
+          .eq("status", "pendente");
+        setPendingPayments(payData ?? []);
+      } else {
+        setPendingPayments([]);
+      }
+    }
     setCarregando(false);
+  }
+
+  // Efeito para inicializar o Payment Brick
+  useEffect(() => {
+    if (!mpPublicKey || pendingPayments.length === 0 || !checkoutAberto) return;
+
+    let brickController: any = null;
+
+    const initBrick = async () => {
+      try {
+        await loadMercadoPagoSDK();
+        const mp = new (window as any).MercadoPago(mpPublicKey);
+        const bricksBuilder = mp.bricks();
+
+        const totalAmount = pendingPayments.reduce((s, p) => s + p.valor, 0);
+
+        const settings = {
+          initialization: {
+            amount: totalAmount,
+            payer: {
+              email: user?.email,
+            },
+          },
+          customization: {
+            paymentMethods: {
+              bankTransfer: ["pix"],
+              creditCard: "all",
+              debitCard: "all",
+            },
+          },
+          callbacks: {
+            onReady: () => {
+              console.log("Payment Brick is ready");
+            },
+            onSubmit: ({ selectedPaymentMethod, formData }: any) => {
+              return new Promise<void>((resolve, reject) => {
+                processarPagamento({
+                  formData,
+                  pendingPaymentIds: pendingPayments.map((p) => p.id),
+                })
+                  .then(async (res: any) => {
+                    if (res.success) {
+                      resolve();
+                      alert(res.status === "approved" 
+                        ? "Pagamento confirmado! Seus ingressos foram liberados." 
+                        : "Pagamento Pix gerado com sucesso! Utilize o código QR abaixo para pagar."
+                      );
+                      setCheckoutAberto(false);
+                      await carregar();
+                    } else {
+                      reject();
+                      alert(`Erro no pagamento: ${res.statusDetail || "Tente novamente"}`);
+                    }
+                  })
+                  .catch((err: any) => {
+                    reject();
+                    alert(err instanceof Error ? err.message : "Erro ao processar o pagamento.");
+                  });
+              });
+            },
+            onError: (error: any) => {
+              console.error("Payment Brick Error:", error);
+            },
+          },
+        };
+
+        const container = document.getElementById("paymentBrick_container");
+        if (container) {
+          container.innerHTML = "";
+          brickController = await bricksBuilder.create("payment", "paymentBrick_container", settings);
+        }
+      } catch (err) {
+        console.error("Erro ao inicializar o Payment Brick:", err);
+      }
+    };
+
+    void initBrick();
+
+    return () => {
+      if (brickController) {
+        try {
+          brickController.unmount();
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, [mpPublicKey, pendingPayments, checkoutAberto]);
+
+  async function verificarPix(paymentId: string) {
+    setVerificandoPagamentoId(paymentId);
+    try {
+      const res = await verificarPagamento({ paymentId });
+      if (res.approved) {
+        alert("Pagamento confirmado com sucesso! Seus ingressos foram liberados.");
+        await carregar();
+      } else {
+        alert("O pagamento ainda não consta como aprovado. Por favor, conclua a transação no seu aplicativo do banco.");
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao consultar status.");
+    } finally {
+      setVerificandoPagamentoId(null);
+    }
+  }
+
+  async function refazerCheckout(paymentIds: string[]) {
+    if (!confirm("Deseja redefinir as opções de pagamento? O Pix anterior será cancelado.")) return;
+    setCancelandoPagamento(true);
+    try {
+      await cancelarPendente({ paymentIds });
+      await carregar();
+      setCheckoutAberto(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao cancelar transação pendente.");
+    } finally {
+      setCancelandoPagamento(false);
+    }
   }
 
   async function inscrever(e: React.FormEvent) {
@@ -149,11 +326,15 @@ function PainelInscrito() {
           cpf: p.cpf ? p.cpf.trim() : undefined,
         })),
       };
-      await inscreverFn({ data: payload });
+      const res = await inscreverFn({ data: payload });
       const generalLab = labs.find((l) => l.eh_geral);
       setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "" }]);
       await carregar();
       await carregarVagas();
+      
+      if (res.mercadoPagoAtivo && res.pendingPaymentIds && res.pendingPaymentIds.length > 0) {
+        setCheckoutAberto(true);
+      }
     } catch (err) {
       setErro(err instanceof Error ? err.message : "Erro ao realizar inscrição.");
     } finally {
@@ -289,6 +470,106 @@ function PainelInscrito() {
             )}
           </section>
 
+          {/* Seção de Pagamento Pendente (Mercado Pago) */}
+          {mpAtivo && pendingPayments.length > 0 && (
+            <section className="rounded-xl border border-gold bg-gold/5 p-6 shadow-sm space-y-4 text-left">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-display text-lg text-primary font-semibold">Pagamento Pendente</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Você possui {pendingPayments.length} inscrição(ões) aguardando pagamento para liberar os ingressos.
+                  </p>
+                </div>
+                <div className="text-lg font-bold text-primary">
+                  Total: R$ {pendingPayments.reduce((s, p) => s + p.valor, 0).toFixed(2)}
+                </div>
+              </div>
+
+              {/* Lista de participantes pendentes */}
+              <div className="rounded-lg bg-background/40 p-3 border border-border/50">
+                <p className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground mb-1.5">Participantes Pendentes</p>
+                <ul className="text-xs space-y-1 text-muted-foreground list-disc list-inside">
+                  {inscricoes
+                    .filter((i) => i.status === "pendente")
+                    .map((i) => (
+                      <li key={i.id}>
+                        <span className="font-semibold text-primary">{i.nome_participante}</span> ({i.labs?.nome || "Entrada Geral"})
+                      </li>
+                    ))}
+                </ul>
+              </div>
+
+              {/* Se Pix já gerado, mostrar o Pix diretamente */}
+              {pendingPayments[0]?.payment_url && pendingPayments[0]?.pix_qr_base64 ? (
+                <div className="flex flex-col items-center gap-4 p-4 rounded-lg bg-background border border-border max-w-sm mx-auto text-center">
+                  <span className="text-xs font-semibold tracking-wider text-gold uppercase">Pague via Pix</span>
+                  
+                  <img 
+                    src={`data:image/jpeg;base64,${pendingPayments[0].pix_qr_base64}`} 
+                    alt="Pix QR Code" 
+                    className="w-48 h-48 border border-border rounded-lg"
+                  />
+
+                  <div className="w-full space-y-2">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(pendingPayments[0].payment_url);
+                        alert("Código Pix copiado para a área de transferência!");
+                      }}
+                      className="w-full rounded-md border border-border px-3 py-2 text-xs font-semibold tracking-widest text-primary hover:bg-muted transition-colors cursor-pointer"
+                    >
+                      COPIAR CÓDIGO PIX (CÓPIA E COLA)
+                    </button>
+                    
+                    <button
+                      disabled={verificandoPagamentoId !== null}
+                      onClick={() => verificarPix(pendingPayments[0].payment_id)}
+                      className="w-full rounded-md bg-gold px-3 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-gold/90 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {verificandoPagamentoId === pendingPayments[0].payment_id ? "VERIFICANDO..." : "CONCLUÍ O PAGAMENTO (VERIFICAR)"}
+                    </button>
+
+                    <button
+                      disabled={cancelandoPagamento}
+                      onClick={() => refazerCheckout(pendingPayments.map(p => p.id))}
+                      className="w-full rounded-md border border-destructive/20 text-destructive px-3 py-2 text-[10px] tracking-widest uppercase hover:bg-destructive/5 transition-colors cursor-pointer"
+                    >
+                      {cancelandoPagamento ? "REDEFININDO..." : "MUDAR FORMA DE PAGAMENTO"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {!checkoutAberto ? (
+                    <button
+                      onClick={() => setCheckoutAberto(true)}
+                      className="w-full rounded-md bg-gold px-6 py-3 text-sm font-semibold tracking-wider text-primary-foreground hover:bg-gold/90 transition shadow-sm cursor-pointer"
+                    >
+                      EFETUAR PAGAMENTO
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Checkout Transparente</span>
+                        <button 
+                          onClick={() => setCheckoutAberto(false)} 
+                          className="text-xs text-muted-foreground hover:text-primary tracking-widest uppercase font-semibold"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                      
+                      {/* Container onde o Payment Brick será montado */}
+                      <div id="paymentBrick_container" className="rounded-lg border border-border bg-background p-4 shadow-inner min-h-[300px]">
+                        <p className="text-center text-sm text-muted-foreground py-10">Carregando formulário do Mercado Pago…</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
+
           <section>
             <h2 className="font-display text-2xl text-primary">Minhas inscrições</h2>
             {carregando ? (
@@ -324,18 +605,18 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
   const isLabValidated = !!inscricao.lab_validado_em;
 
   useEffect(() => {
-    if (!canvasGeralRef.current || !inscricao.qr_token || inscricao.status === "cancelado") return;
+    if (!canvasGeralRef.current || !inscricao.qr_token || inscricao.status === "cancelado" || inscricao.status === "pendente") return;
     QRCode.toCanvas(canvasGeralRef.current, inscricao.qr_token, { width: 160, margin: 1 }, () => {
       setDataUrlGeral(canvasGeralRef.current?.toDataURL("image/png") ?? "");
     });
   }, [inscricao.qr_token, inscricao.status]);
 
   useEffect(() => {
-    if (!canvasLabRef.current || !inscricao.lab_qr_token || !hasSpecificLab) return;
+    if (!canvasLabRef.current || !inscricao.lab_qr_token || !hasSpecificLab || inscricao.status === "pendente") return;
     QRCode.toCanvas(canvasLabRef.current, inscricao.lab_qr_token, { width: 160, margin: 1 }, () => {
       setDataUrlLab(canvasLabRef.current?.toDataURL("image/png") ?? "");
     });
-  }, [inscricao.lab_qr_token, hasSpecificLab]);
+  }, [inscricao.lab_qr_token, hasSpecificLab, inscricao.status]);
 
   const statusColor: Record<string, string> = {
     pago: "bg-gold/20 text-primary border-gold/50",
@@ -344,8 +625,8 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
     pendente: "bg-muted text-muted-foreground border-border",
   };
 
-  const showGeralQr = inscricao.status !== "cancelado";
-  const showLabQr = isGeneralValidated && hasSpecificLab && !!inscricao.lab_qr_token;
+  const showGeralQr = inscricao.status === "pago" || inscricao.status === "validado";
+  const showLabQr = isGeneralValidated && hasSpecificLab && !!inscricao.lab_qr_token && (inscricao.status === "pago" || inscricao.status === "validado");
 
   const baixarPDF = async () => {
     const nome = inscricao.nome_participante;
@@ -465,6 +746,9 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
       <div className="mt-3 text-xs text-muted-foreground leading-normal">
         {inscricao.status === "cancelado" && (
           <p className="text-destructive font-medium">Inscrição cancelada.</p>
+        )}
+        {inscricao.status === "pendente" && (
+          <p className="text-amber-500 font-semibold">Aguardando confirmação de pagamento para liberar o ingresso.</p>
         )}
         {inscricao.status === "pago" && (
           <p>Apresente o QR Code abaixo na entrada geral do evento para validar seu ingresso.</p>
