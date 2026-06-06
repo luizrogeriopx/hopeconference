@@ -24,10 +24,6 @@ create policy "labs_super_all" on public.labs
   with check (public.has_role(auth.uid(), 'super_admin'));
 
 -- =========== Inserir LABs iniciais ===========
--- 1. Dirigentes e Coordenadores - 250 vagas (Anexo 2)
-insert into public.labs (nome, limite_vagas, local, ativo, requer_cpf, eh_geral)
-values ('Dirigentes e Coordenadores', 250, 'Anexo 2', true, true, false);
-
 -- 2. HopeKids - 80 vagas (Auditório 4)
 insert into public.labs (nome, limite_vagas, local, ativo, requer_cpf, eh_geral)
 values ('HopeKids', 80, 'Auditório 4', true, false, false);
