@@ -98,6 +98,13 @@ function PainelInscrito() {
   const [verificandoPagamentoId, setVerificandoPagamentoId] = useState<string | null>(null);
   const [cancelandoPagamento, setCancelandoPagamento] = useState(false);
 
+  const [modalSenhaAberto, setModalSenhaAberto] = useState(false);
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarNovaSenha, setConfirmarNovaSenha] = useState("");
+  const [alterandoSenha, setAlterandoSenha] = useState(false);
+  const [senhaErro, setSenhaErro] = useState<string | null>(null);
+  const [senhaSucesso, setSenhaSucesso] = useState<string | null>(null);
+
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
@@ -334,6 +341,48 @@ function PainelInscrito() {
     }
   }
 
+  async function alterarSenha(e: React.FormEvent) {
+    e.preventDefault();
+    setSenhaErro(null);
+    setSenhaSucesso(null);
+
+    if (novaSenha.length < 6) {
+      setSenhaErro("A senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+
+    if (novaSenha !== confirmarNovaSenha) {
+      setSenhaErro("As senhas não coincidem.");
+      return;
+    }
+
+    setAlterandoSenha(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: novaSenha,
+        data: { senha_provisoria: false }
+      });
+
+      if (error) throw error;
+
+      setSenhaSucesso("Senha alterada com sucesso!");
+      setNovaSenha("");
+      setConfirmarNovaSenha("");
+      
+      // Atualiza a sessão local para carregar os novos metadados
+      await supabase.auth.refreshSession();
+      
+      setTimeout(() => {
+        setModalSenhaAberto(false);
+        setSenhaSucesso(null);
+      }, 2000);
+    } catch (err) {
+      setSenhaErro(err instanceof Error ? err.message : "Erro ao alterar a senha.");
+    } finally {
+      setAlterandoSenha(false);
+    }
+  }
+
   async function inscrever(e: React.FormEvent) {
     e.preventDefault();
     setErro(null);
@@ -391,6 +440,12 @@ function PainelInscrito() {
             {roles.includes("gate") && (
               <Link to="/gate" className="rounded-md border border-border px-3 py-2 tracking-widest text-primary hover:bg-muted">CONTROLE</Link>
             )}
+            <button
+              onClick={() => setModalSenhaAberto(true)}
+              className="rounded-md border border-border px-3 py-2 tracking-widest text-primary hover:bg-muted"
+            >
+              ALTERAR SENHA
+            </button>
             <button onClick={() => signOut().then(() => navigate({ to: "/" }))} className="rounded-md border border-border px-3 py-2 tracking-widest text-primary hover:bg-muted">
               SAIR
             </button>
@@ -400,6 +455,20 @@ function PainelInscrito() {
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-8">
+          {user?.user_metadata?.senha_provisoria && (
+            <div className="bg-amber-500/10 border border-amber-500/30 text-amber-500 px-4 py-3 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <span>⚠️</span>
+                <span>Você está utilizando uma senha temporária. Para garantir a segurança de sua conta, por favor, altere sua senha.</span>
+              </div>
+              <button
+                onClick={() => setModalSenhaAberto(true)}
+                className="shrink-0 rounded bg-amber-500 text-black px-3 py-1 font-semibold hover:bg-amber-500/90 text-xs transition"
+              >
+                ALTERAR SENHA AGORA
+              </button>
+            </div>
+          )}
           <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <h2 className="font-display text-2xl text-primary">Nova inscrição</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -666,6 +735,84 @@ function PainelInscrito() {
           <LocalCard />
         </aside>
       </div>
+
+      {modalSenhaAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-2xl animate-in fade-in-50 zoom-in-95 duration-200">
+            <h3 className="font-display text-xl text-primary mb-1">Alterar Senha</h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Escolha uma nova senha forte para acessar seu painel.
+            </p>
+
+            <form onSubmit={alterarSenha} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
+                  NOVA SENHA
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                  placeholder="No mínimo 6 caracteres"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                  minLength={6}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
+                  CONFIRMAR NOVA SENHA
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmarNovaSenha}
+                  onChange={(e) => setConfirmarNovaSenha(e.target.value)}
+                  placeholder="Digite a senha novamente"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                  minLength={6}
+                />
+              </div>
+
+              {senhaErro && (
+                <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive text-left">
+                  {senhaErro}
+                </p>
+              )}
+
+              {senhaSucesso && (
+                <p className="rounded-md border border-gold/40 bg-gold/10 p-3 text-xs text-primary text-left">
+                  {senhaSucesso}
+                </p>
+              )}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalSenhaAberto(false);
+                    setSenhaErro(null);
+                    setSenhaSucesso(null);
+                    setNovaSenha("");
+                    setConfirmarNovaSenha("");
+                  }}
+                  className="rounded-md border border-border px-4 py-2 text-xs font-semibold tracking-widest text-primary hover:bg-muted transition-colors"
+                >
+                  CANCELAR
+                </button>
+                <button
+                  type="submit"
+                  disabled={alterandoSenha}
+                  className="rounded-md bg-gold px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-gold/90 transition-colors disabled:opacity-50"
+                >
+                  {alterandoSenha ? "SALVANDO..." : "SALVAR SENHA"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

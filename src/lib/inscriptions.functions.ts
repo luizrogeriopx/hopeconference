@@ -245,6 +245,7 @@ const inputSchemaRecepcao = z.object({
     .array(
       z.object({
         nome: z.string().min(1).max(120),
+        email: z.string().email(),
         labId: z.string().uuid(),
         cpf: z.string().optional(),
         regional: z.enum(regionaisValidas),
@@ -356,18 +357,60 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
     }
 
     // 7. Salvar inscrições presenciais (status já vai como 'pago')
-    const rows = data.participantes.map((p) => {
+    const rows = [];
+    for (const p of data.participantes) {
       const lab = labsMap.get(p.labId);
       const isExclusivoRecepcao = lab?.exclusivo_recepcao ?? false;
       const hasSpecificLab = lab && !lab.eh_geral;
-      
-      // Se for lab exclusivo de recepção (ex: Dirigentes), o valor é 0. Caso contrário, 50.
       const valorInscricao = isExclusivoRecepcao ? 0 : 50;
 
-      return {
-        comprador_user_id: userId, // associado ao operador logado
+      const emailTrim = p.email.trim().toLowerCase();
+      let participantUserId = userId; // Fallback para o operador logado se tudo falhar
+
+      try {
+        const { data: userAuth, error: createErr } = await ad.auth.admin.createUser({
+          email: emailTrim,
+          password: "123456",
+          email_confirm: true,
+          user_metadata: { nome: p.nome.trim(), senha_provisoria: true }
+        });
+
+        if (createErr) {
+          // Se o erro for de email já cadastrado, buscamos seu ID correspondente
+          const { data: searchUser } = await ad
+            .from("profiles")
+            .select("id")
+            .eq("email", emailTrim)
+            .maybeSingle();
+
+          if (searchUser) {
+            participantUserId = searchUser.id;
+          } else {
+            console.error("Erro ao resolver usuário duplicado:", createErr);
+            throw createErr;
+          }
+        } else if (userAuth?.user) {
+          participantUserId = userAuth.user.id;
+        }
+      } catch (err) {
+        console.error("Falha ao registrar conta de participante:", err);
+        // Tentar obter usuário se o try/catch geral falhou
+        const { data: searchUser } = await ad
+          .from("profiles")
+          .select("id")
+          .eq("email", emailTrim)
+          .maybeSingle();
+        if (searchUser) {
+          participantUserId = searchUser.id;
+        } else {
+          throw new Error(`Erro ao registrar conta de acesso para o e-mail ${p.email}.`);
+        }
+      }
+
+      rows.push({
+        comprador_user_id: participantUserId,
         nome_participante: p.nome,
-        email: null, // opcional na recepção
+        email: emailTrim,
         lab_id: p.labId,
         cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
         valor: valorInscricao,
@@ -376,8 +419,8 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
         regional: p.regional,
         congregacao: p.congregacao,
         ministerio_id: p.regional === "SEDE" ? p.ministerioId : null,
-      };
-    });
+      });
+    }
 
     const { data: novas, error: insertErr } = await ad
       .from("inscricoes")

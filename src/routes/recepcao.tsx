@@ -25,6 +25,7 @@ type Lab = {
 type ParticipanteForm = {
   id?: string;
   nome: string;
+  email: string;
   labId: string;
   cpf: string;
   regional: string;
@@ -57,7 +58,7 @@ function RecepcaoPage() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", labId: "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }
+    { nome: "", email: "", labId: "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }
   ]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ultimasInscricoes, setUltimasInscricoes] = useState<UltimaInscricao[]>([]);
@@ -170,6 +171,7 @@ function RecepcaoPage() {
       const payload = {
         participantes: validos.map(p => ({
           nome: p.nome.trim(),
+          email: p.email.trim().toLowerCase(),
           labId: p.labId,
           cpf: p.cpf ? p.cpf.trim() : undefined,
           regional: p.regional,
@@ -180,10 +182,10 @@ function RecepcaoPage() {
       };
 
       const res = await inscreverRecepcaoFn({ data: payload });
-      setSucesso(`Inscrição presencial realizada com sucesso! Total recebido: R$ ${res.totalAmount.toFixed(2)} (${res.count} participantes).`);
+      setSucesso(`Inscrição presencial realizada com sucesso! As credenciais de acesso provisórias foram geradas (E-mail informado, senha provisória: 123456) para acesso ao painel (https://hopeconference.lovable.app/painel) onde estarão os QR Codes.`);
       
       const generalLab = labs.find(l => l.eh_geral);
-      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
+      setParticipantes([{ nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
       
       await carregarVagas();
       await carregarUltimasInscricoes();
@@ -236,13 +238,24 @@ function RecepcaoPage() {
                       </button>
                     )}
 
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-3 sm:grid-cols-3">
                       <div className="space-y-1">
                         <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">NOME COMPLETO</label>
                         <input
                           value={p.nome}
                           onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)))}
                           placeholder="Nome do participante"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">E-MAIL</label>
+                        <input
+                          value={p.email}
+                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, email: e.target.value } : x)))}
+                          placeholder="exemplo@email.com"
+                          type="email"
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
                           required
                         />
@@ -338,7 +351,7 @@ function RecepcaoPage() {
                   type="button"
                   onClick={() => {
                     const generalLab = labs.find(l => l.eh_geral);
-                    setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
+                    setParticipantes([...participantes, { nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
                   }}
                   className="text-xs tracking-widest text-primary font-semibold hover:underline"
                 >
