@@ -26,7 +26,7 @@ type ParticipanteForm = {
   nome: string;
   labId: string;
   cpf: string;
-  regional: "SEDE" | "2" | "21";
+  regional: string;
   congregacao: string;
 };
 
@@ -255,13 +255,15 @@ function RecepcaoPage() {
                         <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">REGIONAL</label>
                         <select
                           value={p.regional}
-                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, regional: e.target.value as any } : x)))}
+                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, regional: e.target.value } : x)))}
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
                           required
                         >
-                          <option value="SEDE">SEDE</option>
-                          <option value="2">Regional 2</option>
-                          <option value="21">Regional 21</option>
+                          {["SEDE", ...Array.from({ length: 20 }, (_, idx) => String(idx + 2))].map((r) => (
+                            <option key={r} value={r}>
+                              {r === "SEDE" ? "SEDE" : `Regional ${r}`}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div className="space-y-1">

@@ -26,6 +26,8 @@ function containsCPF(csvText: string, searchCPF: string): boolean {
   return false;
 }
 
+const regionaisValidas = ["SEDE", ...Array.from({ length: 20 }, (_, i) => String(i + 2))] as [string, ...string[]];
+
 const inputSchema = z.object({
   participantes: z
     .array(
@@ -33,7 +35,7 @@ const inputSchema = z.object({
         nome: z.string().min(1).max(120),
         labId: z.string().uuid(),
         cpf: z.string().optional(),
-        regional: z.enum(["SEDE", "2", "21"]),
+        regional: z.enum(regionaisValidas),
         congregacao: z.string().min(1).max(150),
       })
     )
@@ -234,7 +236,7 @@ const inputSchemaRecepcao = z.object({
         nome: z.string().min(1).max(120),
         labId: z.string().uuid(),
         cpf: z.string().optional(),
-        regional: z.enum(["SEDE", "2", "21"]),
+        regional: z.enum(regionaisValidas),
         congregacao: z.string().min(1).max(150),
       })
     )
