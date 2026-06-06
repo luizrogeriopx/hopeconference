@@ -37,6 +37,16 @@ const inputSchema = z.object({
         cpf: z.string().optional(),
         regional: z.enum(regionaisValidas),
         congregacao: z.string().min(1).max(150),
+        ministerioId: z.string().uuid().nullable().optional(),
+      })
+      .refine((p) => {
+        if (p.regional === "SEDE") {
+          return !!p.ministerioId;
+        }
+        return true;
+      }, {
+        message: "O Ministério é obrigatório quando a regional for SEDE.",
+        path: ["ministerioId"]
       })
     )
     .min(1),
@@ -193,6 +203,7 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
         lab_qr_token: hasSpecificLab ? globalThis.crypto.randomUUID() : null,
         regional: p.regional,
         congregacao: p.congregacao,
+        ministerio_id: p.regional === "SEDE" ? p.ministerioId : null,
       };
     });
 
@@ -238,6 +249,16 @@ const inputSchemaRecepcao = z.object({
         cpf: z.string().optional(),
         regional: z.enum(regionaisValidas),
         congregacao: z.string().min(1).max(150),
+        ministerioId: z.string().uuid().nullable().optional(),
+      })
+      .refine((p) => {
+        if (p.regional === "SEDE") {
+          return !!p.ministerioId;
+        }
+        return true;
+      }, {
+        message: "O Ministério é obrigatório quando a regional for SEDE.",
+        path: ["ministerioId"]
       })
     )
     .min(1),
@@ -354,6 +375,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
         lab_qr_token: hasSpecificLab ? globalThis.crypto.randomUUID() : null,
         regional: p.regional,
         congregacao: p.congregacao,
+        ministerio_id: p.regional === "SEDE" ? p.ministerioId : null,
       };
     });
 

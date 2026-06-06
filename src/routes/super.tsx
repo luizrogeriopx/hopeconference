@@ -33,8 +33,17 @@ type Inscricao = {
   regional: string;
   congregacao: string;
   labs?: { nome: string } | null;
+  ministerio_id?: string | null;
+  ministerios?: { nome: string } | null;
 };
 type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
+
+type Ministerio = {
+  id: string;
+  nome: string;
+  ativo: boolean;
+  criado_em: string;
+};
 
 type Lab = {
   id: string;
@@ -63,6 +72,10 @@ function SuperPage() {
   const [salvandoFlag, setSalvandoFlag] = useState(false);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [googleSheetPastoresUrl, setGoogleSheetPastoresUrl] = useState("");
+  const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
+  const [novoMinisterioNome, setNovoMinisterioNome] = useState("");
+  const [editingMinisterioId, setEditingMinisterioId] = useState<string | null>(null);
+  const [editMinisterioNome, setEditMinisterioNome] = useState("");
 
   // Novo LAB form state
   const [novoLabNome, setNovoLabNome] = useState("");
@@ -95,7 +108,7 @@ function SuperPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome)")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome), ministerio_id, ministerios(nome)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
     
@@ -127,6 +140,12 @@ function SuperPage() {
       .order("eh_geral", { ascending: true })
       .order("nome", { ascending: true });
     if (labsData) setLabs(labsData as Lab[]);
+
+    const { data: ministeriosData } = await supabase
+      .from("ministerios")
+      .select("*")
+      .order("nome", { ascending: true });
+    if (ministeriosData) setMinisterios(ministeriosData as Ministerio[]);
 
     try { setUsuarios(await listar()); } catch { /* noop */ }
   }
@@ -276,6 +295,64 @@ function SuperPage() {
     const { error } = await supabase
       .from("labs")
       .update({ requer_cpf: !requerCpfAtual })
+      .eq("id", id);
+    if (error) alert(error.message);
+    else await carregar();
+  }
+
+  async function criarMinisterio(e: React.FormEvent) {
+    e.preventDefault();
+    if (!novoMinisterioNome.trim()) {
+      alert("Preencha o nome do ministério.");
+      return;
+    }
+    const { error } = await supabase.from("ministerios").insert({
+      nome: novoMinisterioNome.trim(),
+      ativo: true,
+    });
+    if (error) {
+      alert(error.message);
+    } else {
+      setNovoMinisterioNome("");
+      await carregar();
+    }
+  }
+
+  async function excluirMinisterio(id: string) {
+    if (!confirm("Tem certeza que deseja excluir este ministério? Isso só funcionará se não houver inscrições vinculadas.")) return;
+    const { error } = await supabase.from("ministerios").delete().eq("id", id);
+    if (error) alert(error.message);
+    else await carregar();
+  }
+
+  async function salvarEdicaoMinisterio(id: string) {
+    if (!editMinisterioNome.trim()) {
+      alert("Preencha o nome do ministério.");
+      return;
+    }
+    const { error } = await supabase
+      .from("ministerios")
+      .update({
+        nome: editMinisterioNome.trim(),
+      })
+      .eq("id", id);
+    if (error) {
+      alert(error.message);
+    } else {
+      setEditingMinisterioId(null);
+      await carregar();
+    }
+  }
+
+  function iniciarEdicaoMinisterio(min: Ministerio) {
+    setEditingMinisterioId(min.id);
+    setEditMinisterioNome(min.nome);
+  }
+
+  async function toggleAtivoMinisterio(id: string, ativoAtual: boolean) {
+    const { error } = await supabase
+      .from("ministerios")
+      .update({ ativo: !ativoAtual })
       .eq("id", id);
     if (error) alert(error.message);
     else await carregar();
@@ -667,6 +744,79 @@ function SuperPage() {
                     </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card shadow-sm p-5">
+          <h2 className="font-display text-xl text-primary">Gerenciamento de Ministérios</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Adicione e edite os ministérios cadastrados na regional SEDE.</p>
+
+          <form onSubmit={criarMinisterio} className="mt-4 flex gap-3 max-w-xl items-end border-b border-border pb-5">
+            <div className="space-y-1 flex-1">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">NOME DO MINISTÉRIO</label>
+              <input required placeholder="Nome do Ministério" value={novoMinisterioNome} onChange={(e) => setNovoMinisterioNome(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
+            </div>
+            <button className="rounded-md bg-primary px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 h-[38px]">
+              ADICIONAR
+            </button>
+          </form>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[500px] text-sm">
+              <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
+                <tr>
+                  <th className="p-3">Nome</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ministerios.map((m) => {
+                  const isEditing = editingMinisterioId === m.id;
+
+                  return (
+                    <tr key={m.id} className="border-t border-border">
+                      <td className="p-3">
+                        {isEditing ? (
+                          <input required value={editMinisterioNome} onChange={(e) => setEditMinisterioNome(e.target.value)} className="rounded border border-input bg-background px-2 py-1 text-xs outline-none focus:border-gold w-full" />
+                        ) : (
+                          <span className="font-semibold text-primary">{m.nome}</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-left">
+                        <button onClick={() => toggleAtivoMinisterio(m.id, m.ativo)} className={`rounded px-2 py-0.5 text-[10px] tracking-wider uppercase font-semibold border cursor-pointer ${m.ativo ? 'bg-gold/10 border-gold/20 text-primary' : 'bg-destructive/10 border-destructive/20 text-destructive'}`}>
+                          {m.ativo ? "Ativo" : "Desativado"}
+                        </button>
+                      </td>
+                      <td className="p-3 text-right text-xs">
+                        {isEditing ? (
+                          <div className="flex gap-2 justify-end">
+                            <button onClick={() => salvarEdicaoMinisterio(m.id)} className="rounded-md bg-primary px-2 py-1 text-[10px] tracking-widest text-primary-foreground hover:bg-primary/90">
+                              SALVAR
+                            </button>
+                            <button onClick={() => setEditingMinisterioId(null)} className="rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-muted-foreground hover:bg-muted">
+                              CANCELAR
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 justify-end">
+                            <button onClick={() => iniciarEdicaoMinisterio(m)} className="rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-muted">
+                              EDITAR
+                            </button>
+                            <button onClick={() => excluirMinisterio(m.id)} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
+                              EXCLUIR
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {ministerios.length === 0 && (
+                  <tr><td colSpan={3} className="p-6 text-center text-sm text-muted-foreground">Nenhum ministério cadastrado.</td></tr>
+                )}
               </tbody>
             </table>
           </div>

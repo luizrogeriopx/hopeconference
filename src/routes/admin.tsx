@@ -27,6 +27,8 @@ type Inscricao = {
   regional: string;
   congregacao: string;
   labs?: { nome: string } | null;
+  ministerio_id?: string | null;
+  ministerios?: { nome: string } | null;
 };
 type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
@@ -51,7 +53,7 @@ function AdminPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome)")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome), ministerio_id, ministerios(nome)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 
@@ -195,6 +197,7 @@ export function ListaInscricoes({
               <th className="p-3">Categoria</th>
               <th className="p-3">Regional</th>
               <th className="p-3">Congregação</th>
+              <th className="p-3">Ministério</th>
               <th className="p-3">Status</th>
               <th className="p-3">Valor</th>
               <th className="p-3">Data</th>
@@ -210,6 +213,7 @@ export function ListaInscricoes({
                 <td className="p-3 text-muted-foreground">{i.labs?.nome || "Geral"}</td>
                 <td className="p-3 text-muted-foreground">{i.regional === "SEDE" ? "SEDE" : `Regional ${i.regional}`}</td>
                 <td className="p-3 text-muted-foreground">{i.congregacao || "-"}</td>
+                <td className="p-3 text-muted-foreground">{i.regional === "SEDE" ? (i.ministerios?.nome || "-") : "-"}</td>
                 <td className="p-3"><span className="rounded-md border border-border bg-background px-2 py-1 text-[10px] tracking-widest uppercase">{i.status}</span></td>
                 <td className="p-3 text-muted-foreground">R$ {Number(i.valor).toFixed(2)}</td>
                 <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleDateString("pt-BR")}</td>
@@ -226,7 +230,7 @@ export function ListaInscricoes({
               </tr>
             ))}
             {inscricoes.length === 0 && (
-              <tr><td colSpan={onExcluir ? 10 : 9} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
+              <tr><td colSpan={onExcluir ? 11 : 10} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
             )}
           </tbody>
         </table>

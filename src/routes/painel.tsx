@@ -62,6 +62,13 @@ type ParticipanteForm = {
   cpf: string;
   regional: string;
   congregacao: string;
+  ministerioId: string;
+};
+
+type Ministerio = {
+  id: string;
+  nome: string;
+  ativo: boolean;
 };
 
 function PainelInscrito() {
@@ -73,8 +80,9 @@ function PainelInscrito() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "" }
+    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }
   ]);
+  const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -109,11 +117,21 @@ function PainelInscrito() {
     void carregarMPSettings();
   }, []);
 
+  async function carregarMinisterios() {
+    const { data } = await supabase
+      .from("ministerios")
+      .select("id, nome, ativo")
+      .eq("ativo", true)
+      .order("nome", { ascending: true });
+    if (data) setMinisterios(data as Ministerio[]);
+  }
+
   useEffect(() => {
     if (!user) return;
     void carregar();
     void carregarLabs();
     void carregarVagas();
+    void carregarMinisterios();
 
     const channel = supabase
       .channel(`inscricoes-user-${user.id}`)
@@ -332,11 +350,12 @@ function PainelInscrito() {
           cpf: p.cpf ? p.cpf.trim() : undefined,
           regional: p.regional,
           congregacao: p.congregacao.trim(),
+          ministerioId: p.regional === "SEDE" ? (p.ministerioId || null) : null,
         })),
       };
       const res = await inscreverFn({ data: payload });
       const generalLab = labs.find((l) => l.eh_geral);
-      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "" }]);
+      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       await carregar();
       await carregarVagas();
       
@@ -468,8 +487,27 @@ function PainelInscrito() {
                         </div>
                       </div>
 
+                      {p.regional === "SEDE" && (
+                        <div className="space-y-1 mt-3">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">MINISTÉRIO</label>
+                          <select
+                            value={p.ministerioId}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, ministerioId: e.target.value } : x)))}
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          >
+                            <option value="" disabled>Selecione um ministério</option>
+                            {ministerios.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.nome}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
                       {showCpf && (
-                        <div className="space-y-1 sm:max-w-xs">
+                        <div className="space-y-1 sm:max-w-xs mt-3">
                           <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CPF do Pastor</label>
                           <input
                             value={p.cpf}
@@ -488,7 +526,7 @@ function PainelInscrito() {
                     type="button"
                     onClick={() => {
                       const generalLab = labs.find(l => l.eh_geral);
-                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "" }]);
+                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                     }}
                     className="text-xs tracking-widest text-primary font-semibold hover:underline"
                   >

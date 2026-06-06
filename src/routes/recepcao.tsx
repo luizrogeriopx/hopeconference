@@ -23,11 +23,19 @@ type Lab = {
 };
 
 type ParticipanteForm = {
+  id?: string;
   nome: string;
   labId: string;
   cpf: string;
   regional: string;
   congregacao: string;
+  ministerioId: string;
+};
+
+type Ministerio = {
+  id: string;
+  nome: string;
+  ativo: boolean;
 };
 
 type UltimaInscricao = {
@@ -49,8 +57,9 @@ function RecepcaoPage() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "" }
+    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }
   ]);
+  const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ultimasInscricoes, setUltimasInscricoes] = useState<UltimaInscricao[]>([]);
   
   const [enviando, setEnviando] = useState(false);
@@ -65,11 +74,21 @@ function RecepcaoPage() {
     }
   }, [loading, user, isStaff, navigate]);
 
+  async function carregarMinisterios() {
+    const { data } = await supabase
+      .from("ministerios")
+      .select("id, nome, ativo")
+      .eq("ativo", true)
+      .order("nome", { ascending: true });
+    if (data) setMinisterios(data as Ministerio[]);
+  }
+
   useEffect(() => {
     if (user && isStaff) {
       void carregarLabs();
       void carregarVagas();
       void carregarUltimasInscricoes();
+      void carregarMinisterios();
     }
   }, [user, isStaff]);
 
@@ -155,6 +174,7 @@ function RecepcaoPage() {
           cpf: p.cpf ? p.cpf.trim() : undefined,
           regional: p.regional,
           congregacao: p.congregacao.trim(),
+          ministerioId: p.regional === "SEDE" ? (p.ministerioId || null) : null,
         })),
         metodoPagamento: sumTotal === 0 ? ("isento" as const) : ("dinheiro" as const),
       };
@@ -163,7 +183,7 @@ function RecepcaoPage() {
       setSucesso(`Inscrição presencial realizada com sucesso! Total recebido: R$ ${res.totalAmount.toFixed(2)} (${res.count} participantes).`);
       
       const generalLab = labs.find(l => l.eh_geral);
-      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "" }]);
+      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       
       await carregarVagas();
       await carregarUltimasInscricoes();
@@ -278,8 +298,27 @@ function RecepcaoPage() {
                       </div>
                     </div>
 
+                    {p.regional === "SEDE" && (
+                      <div className="space-y-1 mt-3">
+                        <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">MINISTÉRIO</label>
+                        <select
+                          value={p.ministerioId}
+                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, ministerioId: e.target.value } : x)))}
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                          required
+                        >
+                          <option value="" disabled>Selecione um ministério</option>
+                          {ministerios.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.nome}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
                     {showCpf && (
-                      <div className="space-y-1 sm:max-w-xs">
+                      <div className="space-y-1 sm:max-w-xs mt-3">
                         <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">CPF do Pastor</label>
                         <input
                           value={p.cpf}
@@ -299,7 +338,7 @@ function RecepcaoPage() {
                   type="button"
                   onClick={() => {
                     const generalLab = labs.find(l => l.eh_geral);
-                    setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "" }]);
+                    setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                   }}
                   className="text-xs tracking-widest text-primary font-semibold hover:underline"
                 >

@@ -75,6 +75,7 @@ export type Database = {
           lab_validado_em: string | null
           regional: string
           congregacao: string
+          ministerio_id: string | null
         }
         Insert: {
           comprador_user_id: string
@@ -94,6 +95,7 @@ export type Database = {
           lab_validado_em?: string | null
           regional?: string
           congregacao?: string
+          ministerio_id?: string | null
         }
         Update: {
           comprador_user_id?: string
@@ -113,6 +115,7 @@ export type Database = {
           lab_validado_em?: string | null
           regional?: string
           congregacao?: string
+          ministerio_id?: string | null
         }
         Relationships: []
       }
@@ -148,6 +151,27 @@ export type Database = {
           requer_cpf?: boolean
           eh_geral?: boolean
           exclusivo_recepcao?: boolean
+          criado_em?: string
+        }
+        Relationships: []
+      }
+      ministerios: {
+        Row: {
+          id: string
+          nome: string
+          ativo: boolean
+          criado_em: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          ativo?: boolean
+          criado_em?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          ativo?: boolean
           criado_em?: string
         }
         Relationships: []
