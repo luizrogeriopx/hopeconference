@@ -189,15 +189,7 @@ function SuperPage() {
     else await carregar();
   }
 
-  async function salvarPlanilhaUrl(e: React.FormEvent) {
-    e.preventDefault();
-    const { error } = await supabase
-      .from("app_settings")
-      .update({ google_sheet_pastores_url: googleSheetPastoresUrl })
-      .eq("id", true);
-    if (error) alert(error.message);
-    else alert("URL da planilha de Pastores salva com sucesso!");
-  }
+
 
   async function salvarMercadoPago(e: React.FormEvent) {
     e.preventDefault();
@@ -546,25 +538,6 @@ function SuperPage() {
         </section>
 
 
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="font-display text-xl text-primary">Planilha de Pastores (Google Sheets)</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Cadastre a URL do CSV da planilha publicada na web para validar pastores pelo CPF.
-          </p>
-          <form onSubmit={salvarPlanilhaUrl} className="mt-4 flex gap-3 max-w-2xl">
-            <input
-              type="url"
-              placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv"
-              value={googleSheetPastoresUrl}
-              onChange={(e) => setGoogleSheetPastoresUrl(e.target.value)}
-              className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-              required
-            />
-            <button type="submit" className="rounded-md bg-primary px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90">
-              SALVAR PLANILHA
-            </button>
-          </form>
-        </section>
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-border pb-3">
