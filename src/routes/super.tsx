@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Cards, ListaInscricoes, GestaoUsuarios } from "./admin";
+import { Cards, RegionalCards, ListaInscricoes, GestaoUsuarios } from "./admin";
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import {
   criarUsuarioPainel,
@@ -28,7 +28,11 @@ type Inscricao = {
   valor: number;
   criado_em: string;
   validado_em: string | null;
+  cpf: string | null;
   lab_id: string | null;
+  regional: string;
+  congregacao: string;
+  labs?: { nome: string } | null;
 };
 type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
@@ -91,7 +95,7 @@ function SuperPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, lab_id")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
     
@@ -296,7 +300,21 @@ function SuperPage() {
     const validadas = inscricoes.filter((i) => i.status === "validado");
     const canceladas = inscricoes.filter((i) => i.status === "cancelado");
     const receita = pagas.reduce((s, i) => s + Number(i.valor), 0);
-    return { total: inscricoes.length, pagas: pagas.length, validadas: validadas.length, canceladas: canceladas.length, receita };
+    
+    const regionalSede = pagas.filter((i) => i.regional === "SEDE").length;
+    const regional2 = pagas.filter((i) => i.regional === "2").length;
+    const regional21 = pagas.filter((i) => i.regional === "21").length;
+
+    return { 
+      total: inscricoes.length, 
+      pagas: pagas.length, 
+      validadas: validadas.length, 
+      canceladas: canceladas.length, 
+      receita,
+      regionalSede,
+      regional2,
+      regional21
+    };
   }, [inscricoes]);
 
   const validadasList = inscricoes.filter((i) => i.status === "validado");
@@ -333,6 +351,7 @@ function SuperPage() {
 
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Cards stats={stats} />
+        <RegionalCards stats={stats} />
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">

@@ -41,6 +41,8 @@ type Inscricao = {
   lab_id?: string | null;
   lab_qr_token?: string | null;
   lab_validado_em?: string | null;
+  regional: string;
+  congregacao: string;
   labs?: { nome: string; local: string; eh_geral: boolean } | null;
 };
 
@@ -58,6 +60,8 @@ type ParticipanteForm = {
   nome: string;
   labId: string;
   cpf: string;
+  regional: "SEDE" | "2" | "21";
+  congregacao: string;
 };
 
 function PainelInscrito() {
@@ -69,7 +73,7 @@ function PainelInscrito() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", labId: "", cpf: "" }
+    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "" }
   ]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -169,7 +173,7 @@ function PainelInscrito() {
     setCarregando(true);
     const { data, error } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, labs(nome, local, eh_geral)")
+      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, regional, congregacao, labs(nome, local, eh_geral)")
       .eq("comprador_user_id", user!.id)
       .order("criado_em", { ascending: false });
     
@@ -326,11 +330,13 @@ function PainelInscrito() {
           nome: p.nome.trim(),
           labId: p.labId,
           cpf: p.cpf ? p.cpf.trim() : undefined,
+          regional: p.regional,
+          congregacao: p.congregacao.trim(),
         })),
       };
       const res = await inscreverFn({ data: payload });
       const generalLab = labs.find((l) => l.eh_geral);
-      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "" }]);
+      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "" }]);
       await carregar();
       await carregarVagas();
       
@@ -433,6 +439,33 @@ function PainelInscrito() {
                           </select>
                         </div>
                       </div>
+                      
+                      <div className="grid gap-3 sm:grid-cols-2 mt-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">REGIONAL</label>
+                          <select
+                            value={p.regional}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, regional: e.target.value as any } : x)))}
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          >
+                            <option value="SEDE">SEDE</option>
+                            <option value="2">Regional 2</option>
+                            <option value="21">Regional 21</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CONGREGAÇÃO</label>
+                          <input
+                            value={p.congregacao}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
+                            placeholder="Nome da congregação"
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          />
+                        </div>
+                      </div>
+
                       {showCpf && (
                         <div className="space-y-1 sm:max-w-xs">
                           <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CPF do Pastor</label>
@@ -453,7 +486,7 @@ function PainelInscrito() {
                     type="button"
                     onClick={() => {
                       const generalLab = labs.find(l => l.eh_geral);
-                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "" }]);
+                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "" }]);
                     }}
                     className="text-xs tracking-widest text-primary font-semibold hover:underline"
                   >
@@ -737,6 +770,11 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
           {inscricao.labs && (
             <p className="text-xs text-gold font-semibold mt-1">
               Categoria: {inscricao.labs.nome} ({inscricao.labs.local})
+            </p>
+          )}
+          {inscricao.regional && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Regional: {inscricao.regional === "SEDE" ? "SEDE" : `Regional ${inscricao.regional}`} | Congregação: {inscricao.congregacao || "Nenhuma"}
             </p>
           )}
         </div>

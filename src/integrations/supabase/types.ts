@@ -69,6 +69,12 @@ export type Database = {
           validado_em: string | null
           validado_por: string | null
           valor: number
+          cpf: string | null
+          lab_id: string | null
+          lab_qr_token: string | null
+          lab_validado_em: string | null
+          regional: string
+          congregacao: string
         }
         Insert: {
           comprador_user_id: string
@@ -82,6 +88,12 @@ export type Database = {
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
+          cpf?: string | null
+          lab_id?: string | null
+          lab_qr_token?: string | null
+          lab_validado_em?: string | null
+          regional?: string
+          congregacao?: string
         }
         Update: {
           comprador_user_id?: string
@@ -95,6 +107,12 @@ export type Database = {
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
+          cpf?: string | null
+          lab_id?: string | null
+          lab_qr_token?: string | null
+          lab_validado_em?: string | null
+          regional?: string
+          congregacao?: string
         }
         Relationships: []
       }

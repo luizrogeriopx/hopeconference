@@ -22,6 +22,11 @@ type Inscricao = {
   valor: number;
   criado_em: string;
   validado_em: string | null;
+  cpf: string | null;
+  lab_id: string | null;
+  regional: string;
+  congregacao: string;
+  labs?: { nome: string } | null;
 };
 type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
@@ -46,7 +51,7 @@ function AdminPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 
@@ -65,7 +70,21 @@ function AdminPage() {
     const validadas = inscricoes.filter((i) => i.status === "validado");
     const canceladas = inscricoes.filter((i) => i.status === "cancelado");
     const receita = pagas.reduce((s, i) => s + Number(i.valor), 0);
-    return { total: inscricoes.length, pagas: pagas.length, validadas: validadas.length, canceladas: canceladas.length, receita };
+    
+    const regionalSede = pagas.filter((i) => i.regional === "SEDE").length;
+    const regional2 = pagas.filter((i) => i.regional === "2").length;
+    const regional21 = pagas.filter((i) => i.regional === "21").length;
+
+    return { 
+      total: inscricoes.length, 
+      pagas: pagas.length, 
+      validadas: validadas.length, 
+      canceladas: canceladas.length, 
+      receita,
+      regionalSede,
+      regional2,
+      regional21
+    };
   }, [inscricoes]);
 
   const filtradas = inscricoes.filter((i) =>
@@ -94,6 +113,7 @@ function AdminPage() {
 
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Cards stats={stats} />
+        <RegionalCards stats={stats} />
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
         <GestaoUsuarios
           usuarios={usuarios}
@@ -127,6 +147,27 @@ export function Cards({ stats }: { stats: { total: number; pagas: number; valida
   );
 }
 
+export function RegionalCards({ stats }: { stats: { regionalSede: number; regional2: number; regional21: number } }) {
+  const items = [
+    { label: "Sede (Ativas)", v: stats.regionalSede },
+    { label: "Regional 2 (Ativas)", v: stats.regional2 },
+    { label: "Regional 21 (Ativas)", v: stats.regional21 },
+  ];
+  return (
+    <div className="space-y-2">
+      <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">Inscrições Confirmadas por Regional</h3>
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {items.map((i) => (
+          <div key={i.label} className="rounded-xl border border-border bg-card/60 p-4 shadow-sm flex justify-between items-center">
+            <span className="text-[10px] tracking-widest uppercase text-muted-foreground">{i.label}</span>
+            <span className="font-display text-2xl text-primary font-bold">{i.v}</span>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
+
 export function ListaInscricoes({
   inscricoes,
   busca,
@@ -145,11 +186,15 @@ export function ListaInscricoes({
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail" className="w-full max-w-xs rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[600px] text-sm">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
             <tr>
               <th className="p-3">Nome</th>
+              <th className="p-3">CPF</th>
               <th className="p-3">E-mail</th>
+              <th className="p-3">Categoria</th>
+              <th className="p-3">Regional</th>
+              <th className="p-3">Congregação</th>
               <th className="p-3">Status</th>
               <th className="p-3">Valor</th>
               <th className="p-3">Data</th>
@@ -159,8 +204,12 @@ export function ListaInscricoes({
           <tbody>
             {inscricoes.map((i) => (
               <tr key={i.id} className="border-t border-border">
-                <td className="p-3 text-primary">{i.nome_participante}</td>
+                <td className="p-3 text-primary font-medium">{i.nome_participante}</td>
+                <td className="p-3 text-muted-foreground font-mono">{i.cpf ? i.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "-"}</td>
                 <td className="p-3 text-muted-foreground">{i.email}</td>
+                <td className="p-3 text-muted-foreground">{i.labs?.nome || "Geral"}</td>
+                <td className="p-3 text-muted-foreground">{i.regional === "SEDE" ? "SEDE" : `Regional ${i.regional}`}</td>
+                <td className="p-3 text-muted-foreground">{i.congregacao || "-"}</td>
                 <td className="p-3"><span className="rounded-md border border-border bg-background px-2 py-1 text-[10px] tracking-widest uppercase">{i.status}</span></td>
                 <td className="p-3 text-muted-foreground">R$ {Number(i.valor).toFixed(2)}</td>
                 <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleDateString("pt-BR")}</td>
@@ -177,7 +226,7 @@ export function ListaInscricoes({
               </tr>
             ))}
             {inscricoes.length === 0 && (
-              <tr><td colSpan={onExcluir ? 6 : 5} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
+              <tr><td colSpan={onExcluir ? 10 : 9} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
             )}
           </tbody>
         </table>

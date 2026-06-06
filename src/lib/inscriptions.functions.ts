@@ -33,6 +33,8 @@ const inputSchema = z.object({
         nome: z.string().min(1).max(120),
         labId: z.string().uuid(),
         cpf: z.string().optional(),
+        regional: z.enum(["SEDE", "2", "21"]),
+        congregacao: z.string().min(1).max(150),
       })
     )
     .min(1),
@@ -187,6 +189,8 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
         valor: 50,
         status: (isMpActive ? "pendente" : "pago") as any,
         lab_qr_token: hasSpecificLab ? globalThis.crypto.randomUUID() : null,
+        regional: p.regional,
+        congregacao: p.congregacao,
       };
     });
 
