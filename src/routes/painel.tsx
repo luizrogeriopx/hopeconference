@@ -226,8 +226,10 @@ function PainelInscrito() {
             onSubmit: ({ selectedPaymentMethod, formData }: any) => {
               return new Promise<void>((resolve, reject) => {
                 processarPagamento({
-                  formData,
-                  pendingPaymentIds: pendingPayments.map((p) => p.id),
+                  data: {
+                    formData,
+                    pendingPaymentIds: pendingPayments.map((p) => p.id),
+                  }
                 })
                   .then(async (res: any) => {
                     if (res.success) {
@@ -281,7 +283,7 @@ function PainelInscrito() {
   async function verificarPix(paymentId: string) {
     setVerificandoPagamentoId(paymentId);
     try {
-      const res = await verificarPagamento({ paymentId });
+      const res = await verificarPagamento({ data: { paymentId } });
       if (res.approved) {
         alert("Pagamento confirmado com sucesso! Seus ingressos foram liberados.");
         await carregar();
@@ -299,7 +301,7 @@ function PainelInscrito() {
     if (!confirm("Deseja redefinir as opções de pagamento? O Pix anterior será cancelado.")) return;
     setCancelandoPagamento(true);
     try {
-      await cancelarPendente({ paymentIds });
+      await cancelarPendente({ data: { paymentIds } });
       await carregar();
       setCheckoutAberto(true);
     } catch (err) {

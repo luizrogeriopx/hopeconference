@@ -181,9 +181,11 @@ function SuperPage() {
     setSalvandoMP(true);
     try {
       await salvarMP({
-        mercadoPagoAtivo: mpAtivo,
-        mercadoPagoPublicKey: mpPublicKey.trim(),
-        mercadoPagoAccessToken: mpAccessToken.trim(),
+        data: {
+          mercadoPagoAtivo: mpAtivo,
+          mercadoPagoPublicKey: mpPublicKey.trim(),
+          mercadoPagoAccessToken: mpAccessToken.trim(),
+        }
       });
       alert("Configurações do Mercado Pago salvas com sucesso!");
       const mpCfg = await carregarMP();
