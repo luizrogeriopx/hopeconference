@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SuperRouteImport } from './routes/super'
+import { Route as RecepcaoRouteImport } from './routes/recepcao'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as GateRouteImport } from './routes/gate'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -20,6 +21,11 @@ import { Route as ApiWebhookMercadopagoRouteImport } from './routes/api/webhook/
 const SuperRoute = SuperRouteImport.update({
   id: '/super',
   path: '/super',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecepcaoRoute = RecepcaoRouteImport.update({
+  id: '/recepcao',
+  path: '/recepcao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PainelRoute = PainelRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
+  '/recepcao': typeof RecepcaoRoute
   '/super': typeof SuperRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
+  '/recepcao': typeof RecepcaoRoute
   '/super': typeof SuperRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
+  '/recepcao': typeof RecepcaoRoute
   '/super': typeof SuperRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gate'
     | '/painel'
+    | '/recepcao'
     | '/super'
     | '/api/webhook/mercadopago'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gate'
     | '/painel'
+    | '/recepcao'
     | '/super'
     | '/api/webhook/mercadopago'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gate'
     | '/painel'
+    | '/recepcao'
     | '/super'
     | '/api/webhook/mercadopago'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   GateRoute: typeof GateRoute
   PainelRoute: typeof PainelRoute
+  RecepcaoRoute: typeof RecepcaoRoute
   SuperRoute: typeof SuperRoute
   ApiWebhookMercadopagoRoute: typeof ApiWebhookMercadopagoRoute
 }
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/super'
       fullPath: '/super'
       preLoaderRoute: typeof SuperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recepcao': {
+      id: '/recepcao'
+      path: '/recepcao'
+      fullPath: '/recepcao'
+      preLoaderRoute: typeof RecepcaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel': {
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   GateRoute: GateRoute,
   PainelRoute: PainelRoute,
+  RecepcaoRoute: RecepcaoRoute,
   SuperRoute: SuperRoute,
   ApiWebhookMercadopagoRoute: ApiWebhookMercadopagoRoute,
 }

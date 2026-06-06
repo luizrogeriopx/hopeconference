@@ -120,7 +120,7 @@ function AdminPage() {
           podeCriarAdmin={isSuper}
           labs={labs}
           onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
-          onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" } }); await carregar(); }}
+          onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" | "recepcao" } }); await carregar(); }}
         />
       </div>
     </main>
@@ -249,7 +249,7 @@ export function GestaoUsuarios({
     email: string;
     senha: string;
     nome: string;
-    role: "admin" | "gate";
+    role: "admin" | "gate" | "recepcao";
     labId?: string | null;
   }) => Promise<void>;
   onRemover: (u: UsuarioPainel) => Promise<void>;
@@ -257,7 +257,7 @@ export function GestaoUsuarios({
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
-  const [role, setRole] = useState<"admin" | "gate">("gate");
+  const [role, setRole] = useState<"admin" | "gate" | "recepcao">("gate");
   const [selectedLabId, setSelectedLabId] = useState<string>("");
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -287,8 +287,9 @@ export function GestaoUsuarios({
           <input required placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
           <input required type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
           <input required type="password" minLength={6} placeholder="Senha (mín. 6)" value={senha} onChange={(e) => setSenha(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
-          <select value={role} onChange={(e) => setRole(e.target.value as "admin" | "gate")} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold">
+          <select value={role} onChange={(e) => setRole(e.target.value as "admin" | "gate" | "recepcao")} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold">
             <option value="gate">Controle de Acesso (gate)</option>
+            <option value="recepcao">Recepção / Inscrição Presencial</option>
             {podeCriarAdmin && <option value="admin">Admin</option>}
           </select>
           {role === "gate" && (
@@ -319,7 +320,7 @@ export function GestaoUsuarios({
                 <p className="text-sm font-semibold text-primary break-all">{u.nome || u.email}</p>
                 <p className="text-xs text-muted-foreground break-all">{u.email}</p>
                 <p className="text-xs text-muted-foreground">
-                  <span className="uppercase font-semibold text-primary">{u.role}</span>
+                  <span className="uppercase font-semibold text-primary">{u.role === "recepcao" ? "recepção" : u.role}</span>
                   {u.role === "gate" && (
                     <span className="text-gold font-semibold ml-1">
                       ({u.lab_nome ? `Portaria LAB: ${u.lab_nome}` : "Portaria Geral"})
@@ -327,7 +328,7 @@ export function GestaoUsuarios({
                   )}
                 </p>
               </div>
-              {(podeCriarAdmin || u.role === "gate") && (
+              {(podeCriarAdmin || u.role === "gate" || u.role === "recepcao") && (
                 <button 
                   onClick={() => { if (confirm("Remover este usuário?")) void onRemover(u); }} 
                   className="self-start sm:self-center rounded-md border border-border px-3 py-1.5 text-[10px] tracking-widest text-destructive hover:bg-destructive/10 cursor-pointer"

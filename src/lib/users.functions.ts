@@ -16,7 +16,7 @@ const createSchema = z.object({
   email: z.string().email().max(255),
   senha: z.string().min(6).max(72),
   nome: z.string().min(1).max(120),
-  role: z.enum(["admin", "gate"]),
+  role: z.enum(["admin", "gate", "recepcao"]),
   labId: z.string().uuid().nullable().optional(),
 });
 
@@ -34,7 +34,7 @@ export const criarUsuarioPainel = createServerFn({ method: "POST" })
     const isSuper = roles.includes("super_admin");
     const isAdmin = roles.includes("admin");
     if (data.role === "admin" && !isSuper) throw new Error("Apenas super admin pode criar admin.");
-    if (data.role === "gate" && !(isSuper || isAdmin)) throw new Error("Sem permissão.");
+    if ((data.role === "gate" || data.role === "recepcao") && !(isSuper || isAdmin)) throw new Error("Sem permissão.");
 
     const ad = admin();
     const { data: created, error } = await ad.auth.admin.createUser({
@@ -76,7 +76,7 @@ export const listarUsuariosPainel = createServerFn({ method: "GET" })
     const { data: rolesData } = await ad
       .from("user_roles")
       .select("user_id, role, criado_em, lab_id, labs(nome, local)")
-      .in("role", ["admin", "gate"]);
+      .in("role", ["admin", "gate", "recepcao"]);
     const ids = Array.from(new Set((rolesData ?? []).map((r) => r.user_id)));
     const { data: profs } = await ad
       .from("profiles")
@@ -97,7 +97,7 @@ export const listarUsuariosPainel = createServerFn({ method: "GET" })
 export const removerUsuarioPainel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ user_id: z.string().uuid(), role: z.enum(["admin", "gate"]) }).parse(input)
+    z.object({ user_id: z.string().uuid(), role: z.enum(["admin", "gate", "recepcao"]) }).parse(input)
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -109,7 +109,7 @@ export const removerUsuarioPainel = createServerFn({ method: "POST" })
     const isSuper = roles.includes("super_admin");
     const isAdmin = roles.includes("admin");
     if (data.role === "admin" && !isSuper) throw new Error("Apenas super admin.");
-    if (data.role === "gate" && !(isSuper || isAdmin)) throw new Error("Sem permissão.");
+    if ((data.role === "gate" || data.role === "recepcao") && !(isSuper || isAdmin)) throw new Error("Sem permissão.");
 
     const ad = admin();
     await ad.from("user_roles").delete().eq("user_id", data.user_id).eq("role", data.role);

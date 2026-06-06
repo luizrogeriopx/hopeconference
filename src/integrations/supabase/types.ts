@@ -116,6 +116,42 @@ export type Database = {
         }
         Relationships: []
       }
+      labs: {
+        Row: {
+          id: string
+          nome: string
+          limite_vagas: number
+          local: string
+          ativo: boolean
+          requer_cpf: boolean
+          eh_geral: boolean
+          exclusivo_recepcao: boolean
+          criado_em: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          limite_vagas: number
+          local: string
+          ativo?: boolean
+          requer_cpf?: boolean
+          eh_geral?: boolean
+          exclusivo_recepcao?: boolean
+          criado_em?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          limite_vagas?: number
+          local?: string
+          ativo?: boolean
+          requer_cpf?: boolean
+          eh_geral?: boolean
+          exclusivo_recepcao?: boolean
+          criado_em?: string
+        }
+        Relationships: []
+      }
       pagamentos: {
         Row: {
           criado_em: string
@@ -220,7 +256,7 @@ export type Database = {
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "super_admin" | "admin" | "gate" | "inscrito"
+      app_role: "super_admin" | "admin" | "gate" | "recepcao" | "inscrito"
       inscricao_status: "pendente" | "pago" | "cancelado" | "validado"
     }
     CompositeTypes: {
@@ -349,7 +385,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "admin", "gate", "inscrito"],
+      app_role: ["super_admin", "admin", "gate", "recepcao", "inscrito"],
       inscricao_status: ["pendente", "pago", "cancelado", "validado"],
     },
   },
