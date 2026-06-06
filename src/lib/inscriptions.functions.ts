@@ -391,6 +391,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
           }
         } else if (userAuth?.user) {
           participantUserId = userAuth.user.id;
+          void enviarEmailAcesso(emailTrim, p.nome.trim(), "123456");
         }
       } catch (err) {
         console.error("Falha ao registrar conta de participante:", err);
@@ -452,3 +453,57 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
       totalAmount: novas.reduce((s, n) => s + n.valor, 0),
     };
   });
+
+async function enviarEmailAcesso(email: string, nome: string, senhaProvisoria: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("Aviso: RESEND_API_KEY não configurada no servidor. O e-mail de acesso não foi enviado.");
+    return;
+  }
+
+  const de = process.env.EMAIL_REMETENTE || "Hope Conference <onboarding@resend.dev>";
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <h2 style="color: #b59247; text-align: center;">HOPE CONFERENCE 2026</h2>
+      <p>Olá, <strong>${nome}</strong>!</p>
+      <p>Sua inscrição presencial foi realizada com sucesso pela secretaria do evento.</p>
+      <p>Aqui estão os seus dados de acesso ao painel do inscrito, onde você poderá visualizar seus QR Codes para a validação de entrada:</p>
+      
+      <div style="background-color: #f7fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #b59247;">
+        <p style="margin: 5px 0;"><strong>Link do Painel:</strong> <a href="https://hopeconference.lovable.app/painel" style="color: #b59247;">https://hopeconference.lovable.app/painel</a></p>
+        <p style="margin: 5px 0;"><strong>Usuário (E-mail):</strong> ${email}</p>
+        <p style="margin: 5px 0;"><strong>Senha Provisória:</strong> ${senhaProvisoria}</p>
+      </div>
+
+      <p style="color: #718096; font-size: 13px;">⚠️ <strong>Importante:</strong> Esta é uma senha temporária. Para a segurança dos seus dados, você precisará alterá-la logo após realizar o primeiro acesso ao painel.</p>
+      
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p style="text-align: center; color: #a0aec0; font-size: 11px;">Hope Conference &copy; 2026. Todos os direitos reservados.</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: de,
+        to: [email],
+        subject: "Dados de Acesso ao Painel — Hope Conference",
+        html,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("Erro ao enviar e-mail via Resend API:", errText);
+    } else {
+      console.log(`E-mail de acesso enviado com sucesso para ${email}`);
+    }
+  } catch (err) {
+    console.error("Falha na chamada de envio de e-mail:", err);
+  }
+}
