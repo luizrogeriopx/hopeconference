@@ -26,7 +26,7 @@ type Inscricao = {
   lab_id: string | null;
   regional: string;
   congregacao: string;
-  labs?: { nome: string } | null;
+  labs?: { nome: string; requer_cpf: boolean } | null;
   ministerio_id?: string | null;
   ministerios?: { nome: string } | null;
 };
@@ -44,6 +44,7 @@ function AdminPage() {
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
   const [labs, setLabs] = useState<any[]>([]);
+  const [totalDinheiro, setTotalDinheiro] = useState(0);
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
   const remover = useServerFn(removerUsuarioPainel);
@@ -53,9 +54,17 @@ function AdminPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome), ministerio_id, ministerios(nome)")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
+
+    const { data: pgDinheiro } = await supabase
+      .from("pagamentos")
+      .select("valor")
+      .eq("metodo", "dinheiro")
+      .eq("status", "pago");
+    const totalD = (pgDinheiro ?? []).reduce((s, p) => s + Number(p.valor), 0);
+    setTotalDinheiro(totalD);
 
     const { data: labsData } = await supabase
       .from("labs")
@@ -86,8 +95,9 @@ function AdminPage() {
       canceladas: canceladas.length, 
       receita,
       regionalCounts,
+      totalDinheiro,
     };
-  }, [inscricoes]);
+  }, [inscricoes, totalDinheiro]);
 
   const filtradas = inscricoes.filter((i) =>
     !busca ||
@@ -117,19 +127,20 @@ function AdminPage() {
         <Cards stats={stats} />
         <RegionalCards stats={stats} />
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
+        <ListaPastoresCoordenadores inscricoes={filtradas} />
 
       </div>
     </main>
   );
 }
 
-export function Cards({ stats }: { stats: { total: number; pagas: number; validadas: number; canceladas: number; receita: number } }) {
+export function Cards({ stats }: { stats: { total: number; pagas: number; validadas: number; canceladas: number; receita: number; totalDinheiro: number } }) {
   const items = [
     { label: "Inscrições", v: stats.total },
     { label: "Pagas / Ativas", v: stats.pagas },
     { label: "Validadas", v: stats.validadas },
-    { label: "Canceladas", v: stats.canceladas },
-    { label: "Receita", v: `R$ ${stats.receita.toFixed(2)}` },
+    { label: "Receita Geral", v: `R$ ${stats.receita.toFixed(2)}` },
+    { label: "Caixa Dinheiro (Recepção)", v: `R$ ${(stats.totalDinheiro ?? 0).toFixed(2)}` },
   ];
   return (
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -338,6 +349,60 @@ export function GestaoUsuarios({
           ))}
           {usuarios.length === 0 && <li className="py-6 text-center text-sm text-muted-foreground">Nenhum usuário cadastrado.</li>}
         </ul>
+      </div>
+    </section>
+  );
+}
+
+export function ListaPastoresCoordenadores({ inscricoes }: { inscricoes: Inscricao[] }) {
+  const list = useMemo(() => {
+    return inscricoes.filter((i) => {
+      const nomeLab = i.labs?.nome?.toLowerCase() || "";
+      return (
+        nomeLab.includes("pastor") ||
+        nomeLab.includes("dirigente") ||
+        nomeLab.includes("coordenador") ||
+        i.labs?.requer_cpf === true
+      );
+    });
+  }, [inscricoes]);
+
+  return (
+    <section className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b border-border p-4">
+        <h2 className="font-display text-xl text-primary">Pastores e Coordenadores Cadastrados</h2>
+        <span className="rounded-md border border-border bg-background px-2.5 py-1 text-[10px] tracking-widest uppercase text-muted-foreground">{list.length} Total</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[700px] text-sm text-left">
+          <thead className="text-xs tracking-widest uppercase text-muted-foreground">
+            <tr>
+              <th className="p-3">Nome</th>
+              <th className="p-3">CPF</th>
+              <th className="p-3">Categoria</th>
+              <th className="p-3">Regional</th>
+              <th className="p-3">Congregação</th>
+              <th className="p-3">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((i) => (
+              <tr key={i.id} className="border-t border-border">
+                <td className="p-3 text-primary font-medium">{i.nome_participante}</td>
+                <td className="p-3 text-muted-foreground font-mono">{i.cpf ? i.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "-"}</td>
+                <td className="p-3 text-muted-foreground">{i.labs?.nome}</td>
+                <td className="p-3 text-muted-foreground">{i.regional === "SEDE" ? "SEDE" : `Regional ${i.regional}`}</td>
+                <td className="p-3 text-muted-foreground">{i.congregacao || "-"}</td>
+                <td className="p-3"><span className="rounded-md border border-border bg-background px-2 py-1 text-[10px] tracking-widest uppercase">{i.status}</span></td>
+              </tr>
+            ))}
+            {list.length === 0 && (
+              <tr>
+                <td colSpan={6} className="p-6 text-center text-sm text-muted-foreground">Nenhum pastor ou coordenador cadastrado.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </section>
   );

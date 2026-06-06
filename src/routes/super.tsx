@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Cards, RegionalCards, ListaInscricoes, GestaoUsuarios } from "./admin";
+import { Cards, RegionalCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import {
   criarUsuarioPainel,
@@ -32,7 +32,7 @@ type Inscricao = {
   lab_id: string | null;
   regional: string;
   congregacao: string;
-  labs?: { nome: string } | null;
+  labs?: { nome: string; requer_cpf: boolean } | null;
   ministerio_id?: string | null;
   ministerios?: { nome: string } | null;
 };
@@ -76,6 +76,7 @@ function SuperPage() {
   const [novoMinisterioNome, setNovoMinisterioNome] = useState("");
   const [editingMinisterioId, setEditingMinisterioId] = useState<string | null>(null);
   const [editMinisterioNome, setEditMinisterioNome] = useState("");
+  const [totalDinheiro, setTotalDinheiro] = useState(0);
 
   // Novo LAB form state
   const [novoLabNome, setNovoLabNome] = useState("");
@@ -108,9 +109,17 @@ function SuperPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome), ministerio_id, ministerios(nome)")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
+
+    const { data: pgDinheiro } = await supabase
+      .from("pagamentos")
+      .select("valor")
+      .eq("metodo", "dinheiro")
+      .eq("status", "pago");
+    const totalD = (pgDinheiro ?? []).reduce((s, p) => s + Number(p.valor), 0);
+    setTotalDinheiro(totalD);
     
     const { data: cfg } = await supabase
       .from("app_settings")
@@ -383,8 +392,9 @@ function SuperPage() {
       canceladas: canceladas.length, 
       receita,
       regionalCounts,
+      totalDinheiro,
     };
-  }, [inscricoes]);
+  }, [inscricoes, totalDinheiro]);
 
   const validadasList = inscricoes.filter((i) => i.status === "validado");
   const canceladasList = inscricoes.filter((i) => i.status === "cancelado");
@@ -802,6 +812,7 @@ function SuperPage() {
           setBusca={setBusca}
           onExcluir={excluirInscricao}
         />
+        <ListaPastoresCoordenadores inscricoes={filtradas} />
 
         <GestaoUsuarios
           usuarios={usuarios}
