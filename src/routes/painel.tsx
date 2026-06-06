@@ -164,6 +164,7 @@ function PainelInscrito() {
     const { data } = await supabase
       .from("labs")
       .select("*")
+      .eq("exclusivo_recepcao", false)
       .order("eh_geral", { ascending: true })
       .order("nome", { ascending: true });
     if (data) setLabs(data as Lab[]);
