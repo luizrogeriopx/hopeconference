@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -135,8 +136,9 @@ export const processarPagamentoTransparente = createServerFn({ method: "POST" })
     }
 
     // Obter origin do webhook
-    const host = context.request.headers.get("x-forwarded-host") || context.request.headers.get("host") || "";
-    const protocol = context.request.headers.get("x-forwarded-proto") || "https";
+    const request = getRequest();
+    const host = request?.headers.get("x-forwarded-host") || request?.headers.get("host") || "";
+    const protocol = request?.headers.get("x-forwarded-proto") || "https";
     const webhookUrl = host ? `${protocol}://${host}/api/webhook/mercadopago` : "";
 
     // Montar requisição de pagamento transparente do Mercado Pago
