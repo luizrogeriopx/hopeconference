@@ -33,6 +33,10 @@ import hamiltonCesar from "@/assets/speaker-hamilton-cesar.png";
 import wellingtonRocha from "@/assets/speaker-wellington-rocha.png";
 import jehanPorto from "@/assets/speaker-jehan-porto.png";
 
+import adoracaoEsperanca from "@/assets/band-adoracao-esperanca.png";
+import hopeMusic from "@/assets/band-hope-music.png";
+import suzanaNazareno from "@/assets/singer-suzana-nazareno.png";
+
 const speakers: { name: string; photo?: string; position?: string; zoom?: number }[] = [
   { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "50% 25%", zoom: 1.4 },
   { name: "Pr. Romeu Ivo", photo: wellingtonRocha, position: "50% 30%", zoom: 1.4 },
@@ -40,6 +44,12 @@ const speakers: { name: string; photo?: string; position?: string; zoom?: number
   { name: "Pr. Hamilton Cesar", photo: jehanPorto, position: "center top", zoom: 1 },
   { name: "Pr. Wellington Rocha", photo: jocymarFonseca, position: "50% 52%", zoom: 1.8 },
   { name: "Pr. Jehan Porto", photo: romeuIvo, position: "50% 30%", zoom: 1.5 },
+];
+
+const bands: { name: string; photo: string; type: string; position?: string }[] = [
+  { name: "Adoração Esperança", photo: adoracaoEsperanca, type: "MINISTÉRIO DE LOUVOR", position: "50% 30%" },
+  { name: "Hope Music", photo: hopeMusic, type: "BANDA", position: "50% 50%" },
+  { name: "Suzana Nazareno", photo: suzanaNazareno, type: "CANTORA", position: "50% 30%" },
 ];
 
 function Index() {
@@ -176,6 +186,37 @@ function Index() {
         </div>
       </section>
 
+      {/* LOUVOR */}
+      <section className="border-b border-border py-20 bg-card/10">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mb-12 text-center">
+            <h2 className="font-display text-4xl text-primary md:text-5xl">
+              LOUVOR
+            </h2>
+          </div>
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {bands.map(({ name, photo, type, position }) => (
+              <li
+                key={name}
+                className="group overflow-hidden rounded-lg border border-border bg-card p-4 transition hover:border-gold hover:shadow-md"
+              >
+                <div className="overflow-hidden rounded-md border border-border/50 aspect-[4/3] bg-black">
+                  <img
+                    src={photo}
+                    alt={name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={{ objectPosition: position ?? "center center" }}
+                  />
+                </div>
+                <div className="mt-4 text-center">
+                  <p className="font-display text-xl text-primary">{name}</p>
+                  <p className="text-[10px] tracking-widest text-muted-foreground mt-1 uppercase font-semibold">{type}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
       {/* REGISTRATION CTA */}
       <section id="inscricao" className="py-20">
