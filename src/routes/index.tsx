@@ -46,10 +46,10 @@ const speakers: { name: string; photo?: string; position?: string; zoom?: number
   { name: "Pr. Jehan Porto", photo: romeuIvo, position: "50% 30%", zoom: 1.5 },
 ];
 
-const bands: { name: string; photo: string; type: string; position?: string }[] = [
-  { name: "Adoração Esperança", photo: adoracaoEsperanca, type: "MINISTÉRIO DE LOUVOR", position: "50% 30%" },
-  { name: "Hope Music", photo: hopeMusic, type: "BANDA", position: "50% 50%" },
-  { name: "Suzana Nazareno", photo: suzanaNazareno, type: "CANTORA", position: "50% 30%" },
+const bands: { name: string; photo: string; position?: string }[] = [
+  { name: "Adoração Esperança", photo: adoracaoEsperanca, position: "50% 30%" },
+  { name: "Hope Music", photo: hopeMusic, position: "50% 50%" },
+  { name: "Suzana Nazareno", photo: suzanaNazareno, position: "50% 30%" },
 ];
 
 function Index() {
@@ -195,7 +195,7 @@ function Index() {
             </h2>
           </div>
           <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {bands.map(({ name, photo, type, position }) => (
+            {bands.map(({ name, photo, position }) => (
               <li
                 key={name}
                 className="group overflow-hidden rounded-lg border border-border bg-card p-4 transition hover:border-gold hover:shadow-md"
@@ -210,7 +210,6 @@ function Index() {
                 </div>
                 <div className="mt-4 text-center">
                   <p className="font-display text-xl text-primary">{name}</p>
-                  <p className="text-[10px] tracking-widest text-muted-foreground mt-1 uppercase font-semibold">{type}</p>
                 </div>
               </li>
             ))}
