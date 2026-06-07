@@ -195,31 +195,39 @@ export function RegionalCards({
           const label = r === "SEDE" ? "Sede" : `Reg. ${r}`;
           const isSelected = selectedRegional === r;
 
-          const CardElement = onSelectRegional ? "button" : "div";
-          const interactiveProps = onSelectRegional
-            ? {
-                type: "button" as const,
-                onClick: () => onSelectRegional(isSelected ? null : r),
-              }
-            : {};
+          if (onSelectRegional) {
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => {
+                  console.log("Selecionando regional:", r, "isSelected:", isSelected);
+                  onSelectRegional(isSelected ? null : r);
+                }}
+                className={`rounded-xl border p-3 shadow-sm flex flex-col justify-between items-start transition-all text-left w-full cursor-pointer hover:border-gold hover:bg-gold/5 ${
+                  isSelected
+                    ? "border-gold bg-gold/10 text-primary"
+                    : "border-border bg-card/60 text-foreground"
+                }`}
+              >
+                <span className="text-[9px] tracking-wider uppercase text-muted-foreground">{label}</span>
+                <span className={`mt-1 font-display text-lg font-bold ${isSelected ? "text-gold" : "text-primary"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          }
 
           return (
-            <CardElement
+            <div
               key={r}
-              {...interactiveProps}
-              className={`rounded-xl border p-3 shadow-sm flex flex-col justify-between items-start transition-all text-left w-full ${
-                isSelected
-                  ? "border-gold bg-gold/10 text-primary"
-                  : onSelectRegional
-                  ? "border-border bg-card/60 text-foreground hover:border-gold hover:bg-gold/5 cursor-pointer"
-                  : "border-border bg-card/60 text-foreground"
-              }`}
+              className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start text-left w-full"
             >
               <span className="text-[9px] tracking-wider uppercase text-muted-foreground">{label}</span>
-              <span className={`mt-1 font-display text-lg font-bold ${isSelected ? "text-gold" : "text-primary"}`}>
+              <span className="mt-1 font-display text-lg text-primary font-bold">
                 {count}
               </span>
-            </CardElement>
+            </div>
           );
         })}
       </section>
