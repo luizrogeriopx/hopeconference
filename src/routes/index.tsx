@@ -233,10 +233,10 @@ function Index() {
             </p>
             <ul className="mt-8 mx-auto max-w-sm space-y-3 text-sm md:mx-1 md:max-w-none">
               {[
-                "Acesso a todas as ministrações",
+                "Acesso aos 3 dias de Conferência",
+                "Acesso a LAB escolhida",
                 "Material exclusivo do evento",
-                "Credencial oficial Hope Conference",
-                "Coffee break nos intervalos",
+                "Pulseira Hope Conference",
               ].map((b) => (
                 <li key={b} className="flex items-start gap-3 justify-center md:justify-start">
                   <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-gold shrink-0" />
