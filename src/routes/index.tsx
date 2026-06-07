@@ -51,7 +51,7 @@ const bands: { name: string; photo: string; position?: string }[] = [
   { name: "Adoração Esperança", photo: adoracaoEsperanca, position: "50% 30%" },
   { name: "Hope Music", photo: hopeMusic, position: "50% 50%" },
   { name: "Suzana Nazareno", photo: suzanaNazareno, position: "50% 30%" },
-  { name: "YES WORSHIP", photo: yesWorship, position: "50% 30%" },
+  { name: "Yes Worship", photo: yesWorship, position: "50% 30%" },
 ];
 
 function Index() {
