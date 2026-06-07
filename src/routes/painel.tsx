@@ -106,7 +106,7 @@ function PainelInscrito() {
   const [senhaSucesso, setSenhaSucesso] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { redirect: "/painel" } });
   }, [loading, user, navigate]);
 
   useEffect(() => {

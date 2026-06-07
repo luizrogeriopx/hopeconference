@@ -70,8 +70,12 @@ function RecepcaoPage() {
   const inscreverRecepcaoFn = useServerFn(criarInscricoesRecepcao);
 
   useEffect(() => {
-    if (!loading && (!user || !isStaff)) {
-      navigate({ to: "/auth" });
+    if (!loading) {
+      if (!user) {
+        navigate({ to: "/auth", search: { redirect: "/recepcao" } });
+      } else if (!isStaff) {
+        navigate({ to: "/painel" });
+      }
     }
   }, [loading, user, isStaff, navigate]);
 

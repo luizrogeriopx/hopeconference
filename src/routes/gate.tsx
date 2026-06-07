@@ -12,7 +12,7 @@ function GatePage() {
   const navigate = useNavigate();
   const { user, isGate, isStaff, loading, signOut } = useAuth();
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { redirect: "/gate" } });
     if (!loading && user && !isGate && !isStaff) navigate({ to: "/painel" });
   }, [loading, user, isGate, isStaff, navigate]);
 

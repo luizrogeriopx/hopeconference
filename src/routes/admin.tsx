@@ -36,7 +36,7 @@ function AdminPage() {
   const navigate = useNavigate();
   const { user, isStaff, isSuper, loading, signOut } = useAuth();
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { redirect: "/admin" } });
     if (!loading && user && !isStaff) navigate({ to: "/painel" });
   }, [loading, user, isStaff, navigate]);
 

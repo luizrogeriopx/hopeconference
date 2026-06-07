@@ -2,12 +2,22 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+type AuthSearch = {
+  redirect?: string;
+};
+
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
+  validateSearch: (search: Record<string, unknown>): AuthSearch => {
+    return {
+      redirect: search.redirect ? String(search.redirect) : undefined,
+    };
+  },
   head: () => ({ meta: [{ title: "Entrar — Hope Conference" }] }),
 });
 
 function AuthPage() {
+  const { redirect } = Route.useSearch();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -19,9 +29,9 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/painel" });
+      if (data.session) navigate({ to: redirect || "/painel" });
     });
-  }, [navigate]);
+  }, [navigate, redirect]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +52,7 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw error;
-        navigate({ to: "/painel" });
+        navigate({ to: redirect || "/painel" });
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro ao autenticar";

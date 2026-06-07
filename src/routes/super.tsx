@@ -60,7 +60,7 @@ function SuperPage() {
   const navigate = useNavigate();
   const { user, isSuper, loading, signOut } = useAuth();
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { redirect: "/super" } });
     if (!loading && user && !isSuper) navigate({ to: "/painel" });
   }, [loading, user, isSuper, navigate]);
 
