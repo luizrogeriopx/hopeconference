@@ -58,7 +58,7 @@ function RecepcaoPage() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", email: "", labId: "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }
+    { nome: "", email: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }
   ]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ultimasInscricoes, setUltimasInscricoes] = useState<UltimaInscricao[]>([]);
@@ -179,7 +179,7 @@ function RecepcaoPage() {
           labId: p.labId,
           cpf: p.cpf ? p.cpf.trim() : undefined,
           regional: p.regional,
-          congregacao: p.congregacao.trim(),
+          congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao.trim(),
           ministerioId: p.regional === "SEDE" ? (p.ministerioId || null) : null,
         })),
         metodoPagamento: sumTotal === 0 ? ("isento" as const) : ("dinheiro" as const),
@@ -189,7 +189,7 @@ function RecepcaoPage() {
       setSucesso(`Inscrição presencial realizada com sucesso! As credenciais de acesso provisórias foram geradas (E-mail informado, senha provisória: 123456) para acesso ao painel (https://hopeconference.lovable.app/painel) onde estarão os QR Codes.`);
       
       const generalLab = labs.find(l => l.eh_geral);
-      setParticipantes([{ nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
+      setParticipantes([{ nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       
       await carregarVagas();
       await carregarUltimasInscricoes();
@@ -296,23 +296,25 @@ function RecepcaoPage() {
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
                           required
                         >
-                          {[...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"].map((r) => (
+                          {["SEDE", ...Array.from({ length: 20 }, (_, idx) => String(idx + 2))].map((r) => (
                             <option key={r} value={r}>
-                              {r === "SEDE" ? "SEDE" : `Regional ${r}`}
+                              {r === "SEDE" ? "Regional 01 - SEDE" : `Regional ${String(r).padStart(2, "0")}`}
                             </option>
                           ))}
                         </select>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">CONGREGAÇÃO</label>
-                        <input
-                          value={p.congregacao}
-                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
-                          placeholder="Nome da congregação"
-                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                          required
-                        />
-                      </div>
+                      {p.regional !== "SEDE" && (
+                        <div className="space-y-1">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">CONGREGAÇÃO</label>
+                          <input
+                            value={p.congregacao}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
+                            placeholder="Nome da congregação"
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {p.regional === "SEDE" && (
@@ -355,7 +357,7 @@ function RecepcaoPage() {
                   type="button"
                   onClick={() => {
                     const generalLab = labs.find(l => l.eh_geral);
-                    setParticipantes([...participantes, { nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
+                    setParticipantes([...participantes, { nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                   }}
                   className="text-xs tracking-widest text-primary font-semibold hover:underline"
                 >

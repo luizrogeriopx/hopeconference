@@ -36,7 +36,7 @@ const inputSchema = z.object({
         labId: z.string().uuid(),
         cpf: z.string().optional(),
         regional: z.enum(regionaisValidas),
-        congregacao: z.string().min(1).max(150),
+        congregacao: z.string().max(150).optional().or(z.literal("")),
         ministerioId: z.string().uuid().nullable().optional(),
       })
       .refine((p) => {
@@ -47,6 +47,15 @@ const inputSchema = z.object({
       }, {
         message: "O Ministério é obrigatório quando a regional for SEDE.",
         path: ["ministerioId"]
+      })
+      .refine((p) => {
+        if (p.regional !== "SEDE") {
+          return !!p.congregacao && p.congregacao.trim().length > 0;
+        }
+        return true;
+      }, {
+        message: "A congregação é obrigatória para esta regional.",
+        path: ["congregacao"]
       })
     )
     .min(1),
@@ -202,7 +211,7 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
         status: (isMpActive ? "pendente" : "pago") as any,
         lab_qr_token: hasSpecificLab ? globalThis.crypto.randomUUID() : null,
         regional: p.regional,
-        congregacao: p.congregacao,
+        congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao,
         ministerio_id: p.regional === "SEDE" ? p.ministerioId : null,
       };
     });
@@ -249,7 +258,7 @@ const inputSchemaRecepcao = z.object({
         labId: z.string().uuid(),
         cpf: z.string().optional(),
         regional: z.enum(regionaisValidas),
-        congregacao: z.string().min(1).max(150),
+        congregacao: z.string().max(150).optional().or(z.literal("")),
         ministerioId: z.string().uuid().nullable().optional(),
       })
       .refine((p) => {
@@ -260,6 +269,15 @@ const inputSchemaRecepcao = z.object({
       }, {
         message: "O Ministério é obrigatório quando a regional for SEDE.",
         path: ["ministerioId"]
+      })
+      .refine((p) => {
+        if (p.regional !== "SEDE") {
+          return !!p.congregacao && p.congregacao.trim().length > 0;
+        }
+        return true;
+      }, {
+        message: "A congregação é obrigatória para esta regional.",
+        path: ["congregacao"]
       })
     )
     .min(1),
@@ -418,7 +436,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
         status: "pago" as const,
         lab_qr_token: hasSpecificLab ? globalThis.crypto.randomUUID() : null,
         regional: p.regional,
-        congregacao: p.congregacao,
+        congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao,
         ministerio_id: p.regional === "SEDE" ? p.ministerioId : null,
       });
     }

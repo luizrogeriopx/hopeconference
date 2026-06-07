@@ -80,7 +80,7 @@ function PainelInscrito() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", labId: "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }
+    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }
   ]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [enviando, setEnviando] = useState(false);
@@ -399,13 +399,13 @@ function PainelInscrito() {
           labId: p.labId,
           cpf: p.cpf ? p.cpf.trim() : undefined,
           regional: p.regional,
-          congregacao: p.congregacao.trim(),
+          congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao.trim(),
           ministerioId: p.regional === "SEDE" ? (p.ministerioId || null) : null,
         })),
       };
       const res = await inscreverFn({ data: payload });
       const generalLab = labs.find((l) => l.eh_geral);
-      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
+      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       await carregar();
       await carregarVagas();
       
@@ -538,23 +538,25 @@ function PainelInscrito() {
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
                             required
                           >
-                            {[...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"].map((r) => (
+                            {["SEDE", ...Array.from({ length: 20 }, (_, idx) => String(idx + 2))].map((r) => (
                               <option key={r} value={r}>
-                                {r === "SEDE" ? "SEDE" : `Regional ${r}`}
+                                {r === "SEDE" ? "Regional 01 - SEDE" : `Regional ${String(r).padStart(2, "0")}`}
                               </option>
                             ))}
                           </select>
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CONGREGAÇÃO</label>
-                          <input
-                            value={p.congregacao}
-                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
-                            placeholder="Nome da congregação"
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                            required
-                          />
-                        </div>
+                        {p.regional !== "SEDE" && (
+                          <div className="space-y-1">
+                            <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CONGREGAÇÃO</label>
+                            <input
+                              value={p.congregacao}
+                              onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
+                              placeholder="Nome da congregação"
+                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                              required
+                            />
+                          </div>
+                        )}
                       </div>
 
                       {p.regional === "SEDE" && (
@@ -596,7 +598,7 @@ function PainelInscrito() {
                     type="button"
                     onClick={() => {
                       const generalLab = labs.find(l => l.eh_geral);
-                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "2", congregacao: "", ministerioId: "" }]);
+                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                     }}
                     className="text-xs tracking-widest text-primary font-semibold hover:underline"
                   >
