@@ -278,9 +278,10 @@ function RecepcaoPage() {
                             const restantes = Math.max(0, l.limite_vagas - ocupadas);
                             const esgotado = restantes <= 0 || !l.ativo;
                             const isFree = l.exclusivo_recepcao || l.nome === "Liderança Ministerial e Obreiros";
+                            const displayName = l.nome === "Liderança Ministerial e Obreiros" ? "Liderança Ministerial" : l.nome;
                             return (
                               <option key={l.id} value={l.id} disabled={esgotado}>
-                                {l.nome} ({l.local}) {isFree ? "— ISENTO" : ""} — {esgotado ? "ESGOTADO" : `${restantes} vagas`}
+                                {displayName} ({l.local}) {isFree ? "— ISENTO" : ""} — {esgotado ? "ESGOTADO" : `${restantes} vagas`}
                               </option>
                             );
                           })}
@@ -400,7 +401,11 @@ function RecepcaoPage() {
                   {ultimasInscricoes.map((insc) => (
                     <tr key={insc.id}>
                       <td className="py-2 text-primary font-medium">{insc.nome_participante}</td>
-                      <td className="py-2 text-muted-foreground">{insc.labs?.nome || "Geral"}</td>
+                      <td className="py-2 text-muted-foreground">
+                        {insc.labs?.nome === "Liderança Ministerial e Obreiros"
+                          ? "Liderança Ministerial"
+                          : insc.labs?.nome || "Geral"}
+                      </td>
                       <td className="py-2 text-muted-foreground">{insc.regional}</td>
                       <td className="py-2 text-right text-muted-foreground">R$ {insc.valor.toFixed(2)}</td>
                       <td className="py-2 text-right text-muted-foreground">{new Date(insc.criado_em).toLocaleDateString("pt-BR")}</td>
