@@ -143,7 +143,7 @@ function Index() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-12 text-center">
             <h2 className="font-display text-4xl text-primary md:text-5xl">
-              Vozes que inspiram esperança
+              PRELETORES
             </h2>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
