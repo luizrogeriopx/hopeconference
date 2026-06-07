@@ -156,16 +156,7 @@ function PainelInscrito() {
     };
   }, [user]);
 
-  useEffect(() => {
-    if (labs.length > 0) {
-      const generalLab = labs.find((l) => l.eh_geral);
-      if (generalLab) {
-        setParticipantes((prev) =>
-          prev.map((p) => (p.labId ? p : { ...p, labId: generalLab.id }))
-        );
-      }
-    }
-  }, [labs]);
+
 
   async function carregarLabs() {
     const { data } = await supabase
@@ -404,8 +395,7 @@ function PainelInscrito() {
         })),
       };
       const res = await inscreverFn({ data: payload });
-      const generalLab = labs.find((l) => l.eh_geral);
-      setParticipantes([{ nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+      setParticipantes([{ nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       await carregar();
       await carregarVagas();
       
@@ -597,8 +587,7 @@ function PainelInscrito() {
                   <button
                     type="button"
                     onClick={() => {
-                      const generalLab = labs.find(l => l.eh_geral);
-                      setParticipantes([...participantes, { nome: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+                      setParticipantes([...participantes, { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                     }}
                     className="text-xs tracking-widest text-primary font-semibold hover:underline"
                   >
