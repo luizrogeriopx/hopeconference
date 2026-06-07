@@ -67,6 +67,7 @@ function SuperPage() {
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
+  const [regionalSelecionada, setRegionalSelecionada] = useState<string | null>(null);
   const [copiado, setCopiado] = useState<string | null>(null);
   const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
   const [salvandoFlag, setSalvandoFlag] = useState(false);
@@ -398,11 +399,15 @@ function SuperPage() {
 
   const validadasList = inscricoes.filter((i) => i.status === "validado");
   const canceladasList = inscricoes.filter((i) => i.status === "cancelado");
-  const filtradas = inscricoes.filter((i) =>
-    !busca ||
-    i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
-    (i.email ?? "").toLowerCase().includes(busca.toLowerCase())
-  );
+  const filtradas = useMemo(() => {
+    return inscricoes.filter((i) => {
+      const matchesBusca = !busca ||
+        i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
+        (i.email ?? "").toLowerCase().includes(busca.toLowerCase());
+      const matchesRegional = !regionalSelecionada || i.regional === regionalSelecionada;
+      return matchesBusca && matchesRegional;
+    });
+  }, [inscricoes, busca, regionalSelecionada]);
 
   function copiar(path: string) {
     const url = `${window.location.origin}${path}`;
@@ -430,7 +435,11 @@ function SuperPage() {
 
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Cards stats={stats} />
-        <RegionalCards stats={stats} />
+        <RegionalCards
+          stats={stats}
+          selectedRegional={regionalSelecionada}
+          onSelectRegional={setRegionalSelecionada}
+        />
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">

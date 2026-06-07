@@ -43,6 +43,7 @@ function AdminPage() {
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
+  const [regionalSelecionada, setRegionalSelecionada] = useState<string | null>(null);
   const [labs, setLabs] = useState<any[]>([]);
   const [totalDinheiro, setTotalDinheiro] = useState(0);
   const listar = useServerFn(listarUsuariosPainel);
@@ -99,11 +100,15 @@ function AdminPage() {
     };
   }, [inscricoes, totalDinheiro]);
 
-  const filtradas = inscricoes.filter((i) =>
-    !busca ||
-    i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
-    (i.email ?? "").toLowerCase().includes(busca.toLowerCase())
-  );
+  const filtradas = useMemo(() => {
+    return inscricoes.filter((i) => {
+      const matchesBusca = !busca ||
+        i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
+        (i.email ?? "").toLowerCase().includes(busca.toLowerCase());
+      const matchesRegional = !regionalSelecionada || i.regional === regionalSelecionada;
+      return matchesBusca && matchesRegional;
+    });
+  }, [inscricoes, busca, regionalSelecionada]);
 
   if (loading || !user) {
     return <main className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Carregando…</main>;
@@ -125,7 +130,11 @@ function AdminPage() {
 
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
         <Cards stats={stats} />
-        <RegionalCards stats={stats} />
+        <RegionalCards
+          stats={stats}
+          selectedRegional={regionalSelecionada}
+          onSelectRegional={setRegionalSelecionada}
+        />
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
 
@@ -154,20 +163,63 @@ export function Cards({ stats }: { stats: { total: number; pagas: number; valida
   );
 }
 
-export function RegionalCards({ stats }: { stats: { regionalCounts: Record<string, number> } }) {
+export function RegionalCards({
+  stats,
+  selectedRegional,
+  onSelectRegional,
+}: {
+  stats: { regionalCounts: Record<string, number> };
+  selectedRegional?: string | null;
+  onSelectRegional?: (r: string | null) => void;
+}) {
   const regionais = [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"];
   return (
     <div className="space-y-2">
-      <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">Inscrições Confirmadas por Regional</h3>
+      <div className="flex items-center justify-between min-h-[20px]">
+        <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
+          Inscrições Confirmadas por Regional
+        </h3>
+        {selectedRegional && onSelectRegional && (
+          <button
+            type="button"
+            onClick={() => onSelectRegional(null)}
+            className="text-[10px] tracking-widest text-gold hover:underline uppercase font-bold"
+          >
+            LIMPAR FILTRO
+          </button>
+        )}
+      </div>
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
         {regionais.map((r) => {
           const count = stats.regionalCounts[r] ?? 0;
           const label = r === "SEDE" ? "Sede" : `Reg. ${r}`;
+          const isSelected = selectedRegional === r;
+
+          const CardElement = onSelectRegional ? "button" : "div";
+          const interactiveProps = onSelectRegional
+            ? {
+                type: "button" as const,
+                onClick: () => onSelectRegional(isSelected ? null : r),
+              }
+            : {};
+
           return (
-            <div key={r} className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start">
+            <CardElement
+              key={r}
+              {...interactiveProps}
+              className={`rounded-xl border p-3 shadow-sm flex flex-col justify-between items-start transition-all text-left w-full ${
+                isSelected
+                  ? "border-gold bg-gold/10 text-primary"
+                  : onSelectRegional
+                  ? "border-border bg-card/60 text-foreground hover:border-gold hover:bg-gold/5 cursor-pointer"
+                  : "border-border bg-card/60 text-foreground"
+              }`}
+            >
               <span className="text-[9px] tracking-wider uppercase text-muted-foreground">{label}</span>
-              <span className="mt-1 font-display text-lg text-primary font-bold">{count}</span>
-            </div>
+              <span className={`mt-1 font-display text-lg font-bold ${isSelected ? "text-gold" : "text-primary"}`}>
+                {count}
+              </span>
+            </CardElement>
           );
         })}
       </section>
