@@ -14,30 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      app_settings: {
-        Row: {
-          atualizado_em: string
-          id: boolean
-          inscricoes_abertas: boolean
-          mercado_pago_ativo: boolean
-          mercado_pago_public_key: string
-        }
-        Insert: {
-          atualizado_em?: string
-          id?: boolean
-          inscricoes_abertas?: boolean
-          mercado_pago_ativo?: boolean
-          mercado_pago_public_key?: string
-        }
-        Update: {
-          atualizado_em?: string
-          id?: boolean
-          inscricoes_abertas?: boolean
-          mercado_pago_ativo?: boolean
-          mercado_pago_public_key?: string
-        }
-        Relationships: []
-      }
       app_secrets: {
         Row: {
           atualizado_em: string
@@ -56,123 +32,168 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          atualizado_em: string
+          google_sheet_pastores_url: string
+          id: boolean
+          inscricoes_abertas: boolean
+          mercado_pago_ativo: boolean
+          mercado_pago_public_key: string
+        }
+        Insert: {
+          atualizado_em?: string
+          google_sheet_pastores_url?: string
+          id?: boolean
+          inscricoes_abertas?: boolean
+          mercado_pago_ativo?: boolean
+          mercado_pago_public_key?: string
+        }
+        Update: {
+          atualizado_em?: string
+          google_sheet_pastores_url?: string
+          id?: boolean
+          inscricoes_abertas?: boolean
+          mercado_pago_ativo?: boolean
+          mercado_pago_public_key?: string
+        }
+        Relationships: []
+      }
       inscricoes: {
         Row: {
           comprador_user_id: string
+          congregacao: string
+          cpf: string | null
           criado_em: string
           email: string | null
           id: string
+          lab_id: string | null
+          lab_qr_token: string | null
+          lab_validado_em: string | null
+          lab_validado_por: string | null
+          ministerio_id: string | null
           nome_participante: string
           qr_token: string
+          regional: string
           status: Database["public"]["Enums"]["inscricao_status"]
           telefone: string | null
           validado_em: string | null
           validado_por: string | null
           valor: number
-          cpf: string | null
-          lab_id: string | null
-          lab_qr_token: string | null
-          lab_validado_em: string | null
-          regional: string
-          congregacao: string
-          ministerio_id: string | null
         }
         Insert: {
           comprador_user_id: string
+          congregacao?: string
+          cpf?: string | null
           criado_em?: string
           email?: string | null
           id?: string
+          lab_id?: string | null
+          lab_qr_token?: string | null
+          lab_validado_em?: string | null
+          lab_validado_por?: string | null
+          ministerio_id?: string | null
           nome_participante: string
           qr_token?: string
+          regional?: string
           status?: Database["public"]["Enums"]["inscricao_status"]
           telefone?: string | null
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
-          cpf?: string | null
-          lab_id?: string | null
-          lab_qr_token?: string | null
-          lab_validado_em?: string | null
-          regional?: string
-          congregacao?: string
-          ministerio_id?: string | null
         }
         Update: {
           comprador_user_id?: string
+          congregacao?: string
+          cpf?: string | null
           criado_em?: string
           email?: string | null
           id?: string
+          lab_id?: string | null
+          lab_qr_token?: string | null
+          lab_validado_em?: string | null
+          lab_validado_por?: string | null
+          ministerio_id?: string | null
           nome_participante?: string
           qr_token?: string
+          regional?: string
           status?: Database["public"]["Enums"]["inscricao_status"]
           telefone?: string | null
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
-          cpf?: string | null
-          lab_id?: string | null
-          lab_qr_token?: string | null
-          lab_validado_em?: string | null
-          regional?: string
-          congregacao?: string
-          ministerio_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_ministerio_id_fkey"
+            columns: ["ministerio_id"]
+            isOneToOne: false
+            referencedRelation: "ministerios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       labs: {
         Row: {
-          id: string
-          nome: string
-          limite_vagas: number
-          local: string
           ativo: boolean
-          requer_cpf: boolean
+          criado_em: string
           eh_geral: boolean
           exclusivo_recepcao: boolean
-          criado_em: string
-        }
-        Insert: {
-          id?: string
-          nome: string
+          id: string
           limite_vagas: number
           local: string
+          nome: string
+          requer_cpf: boolean
+        }
+        Insert: {
           ativo?: boolean
-          requer_cpf?: boolean
+          criado_em?: string
           eh_geral?: boolean
           exclusivo_recepcao?: boolean
-          criado_em?: string
+          id?: string
+          limite_vagas: number
+          local: string
+          nome: string
+          requer_cpf?: boolean
         }
         Update: {
-          id?: string
-          nome?: string
-          limite_vagas?: number
-          local?: string
           ativo?: boolean
-          requer_cpf?: boolean
+          criado_em?: string
           eh_geral?: boolean
           exclusivo_recepcao?: boolean
-          criado_em?: string
+          id?: string
+          limite_vagas?: number
+          local?: string
+          nome?: string
+          requer_cpf?: boolean
         }
         Relationships: []
       }
       ministerios: {
         Row: {
-          id: string
-          nome: string
           ativo: boolean
           criado_em: string
+          id: string
+          nome: string
         }
         Insert: {
+          ativo?: boolean
+          criado_em?: string
           id?: string
           nome: string
-          ativo?: boolean
-          criado_em?: string
         }
         Update: {
-          id?: string
-          nome?: string
           ativo?: boolean
           criado_em?: string
+          id?: string
+          nome?: string
         }
         Relationships: []
       }
@@ -182,36 +203,36 @@ export type Database = {
           id: string
           inscricao_id: string
           metodo: string
-          status: string
-          valor: number
-          preference_id: string | null
           payment_id: string | null
           payment_url: string | null
           pix_qr_base64: string | null
+          preference_id: string | null
+          status: string
+          valor: number
         }
         Insert: {
           criado_em?: string
           id?: string
           inscricao_id: string
           metodo?: string
-          status?: string
-          valor: number
-          preference_id?: string | null
           payment_id?: string | null
           payment_url?: string | null
           pix_qr_base64?: string | null
+          preference_id?: string | null
+          status?: string
+          valor: number
         }
         Update: {
           criado_em?: string
           id?: string
           inscricao_id?: string
           metodo?: string
-          status?: string
-          valor?: number
-          preference_id?: string | null
           payment_id?: string | null
           payment_url?: string | null
           pix_qr_base64?: string | null
+          preference_id?: string | null
+          status?: string
+          valor?: number
         }
         Relationships: [
           {
@@ -248,22 +269,33 @@ export type Database = {
         Row: {
           criado_em: string
           id: string
+          lab_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           criado_em?: string
           id?: string
+          lab_id?: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           criado_em?: string
           id?: string
+          lab_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -280,7 +312,7 @@ export type Database = {
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "super_admin" | "admin" | "gate" | "recepcao" | "inscrito"
+      app_role: "super_admin" | "admin" | "gate" | "inscrito" | "recepcao"
       inscricao_status: "pendente" | "pago" | "cancelado" | "validado"
     }
     CompositeTypes: {
@@ -409,7 +441,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "admin", "gate", "recepcao", "inscrito"],
+      app_role: ["super_admin", "admin", "gate", "inscrito", "recepcao"],
       inscricao_status: ["pendente", "pago", "cancelado", "validado"],
     },
   },
