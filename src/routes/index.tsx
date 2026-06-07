@@ -36,6 +36,7 @@ import jehanPorto from "@/assets/speaker-jehan-porto.png";
 import adoracaoEsperanca from "@/assets/band-adoracao-esperanca.png";
 import hopeMusic from "@/assets/band-hope-music.png";
 import suzanaNazareno from "@/assets/singer-suzana-nazareno.png";
+import yesWorship from "@/assets/band-yes-worship.jpg";
 
 const speakers: { name: string; photo?: string; position?: string; zoom?: number }[] = [
   { name: "Pr. Ronny Marcos", photo: ronnyMarcos, position: "50% 25%", zoom: 1.4 },
@@ -50,6 +51,7 @@ const bands: { name: string; photo: string; position?: string }[] = [
   { name: "Adoração Esperança", photo: adoracaoEsperanca, position: "50% 30%" },
   { name: "Hope Music", photo: hopeMusic, position: "50% 50%" },
   { name: "Suzana Nazareno", photo: suzanaNazareno, position: "50% 30%" },
+  { name: "YES WORSHIP", photo: yesWorship, position: "50% 30%" },
 ];
 
 function Index() {
@@ -194,7 +196,7 @@ function Index() {
               LOUVOR
             </h2>
           </div>
-          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {bands.map(({ name, photo, position }) => (
               <li
                 key={name}
