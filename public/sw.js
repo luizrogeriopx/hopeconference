@@ -5,8 +5,8 @@ const ASSETS_TO_CACHE = [
   "/admin",
   "/super",
   "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png",
+  "/icon-192.jpg",
+  "/icon-512.jpg",
   "/favicon.ico"
 ];
 
