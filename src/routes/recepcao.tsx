@@ -142,7 +142,7 @@ function RecepcaoPage() {
   // Calcula valores dinamicamente
   const sumTotal = participantes.reduce((acc, p) => {
     const lab = labs.find(l => l.id === p.labId);
-    const isFree = (lab?.exclusivo_recepcao ?? false) || lab?.nome === "Liderança Ministerial e Obreiros";
+    const isFree = lab?.nome === "Liderança Ministerial e Obreiros" || lab?.nome === "Dirigentes e Coordenadores (Anexo 2)";
     return acc + (isFree ? 0 : 50);
   }, 0);
 
@@ -277,7 +277,7 @@ function RecepcaoPage() {
                             const ocupadas = l.eh_geral ? totalGeralOcupado : (vagasOcupadas[l.id] || 0);
                             const restantes = Math.max(0, l.limite_vagas - ocupadas);
                             const esgotado = restantes <= 0 || !l.ativo;
-                            const isFree = l.exclusivo_recepcao || l.nome === "Liderança Ministerial e Obreiros";
+                            const isFree = l.nome === "Liderança Ministerial e Obreiros" || l.nome === "Dirigentes e Coordenadores (Anexo 2)";
                             const displayName = l.nome === "Liderança Ministerial e Obreiros" ? "Liderança Ministerial" : l.nome;
                             return (
                               <option key={l.id} value={l.id} disabled={esgotado}>
