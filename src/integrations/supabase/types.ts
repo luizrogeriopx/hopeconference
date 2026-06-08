@@ -80,6 +80,7 @@ export type Database = {
           validado_em: string | null
           validado_por: string | null
           valor: number
+          canal: string
         }
         Insert: {
           comprador_user_id: string
@@ -101,6 +102,7 @@ export type Database = {
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
+          canal?: string
         }
         Update: {
           comprador_user_id?: string
@@ -122,6 +124,7 @@ export type Database = {
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
+          canal?: string
         }
         Relationships: [
           {

@@ -213,6 +213,7 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
         regional: p.regional,
         congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao,
         ministerio_id: p.regional === "SEDE" ? p.ministerioId : null,
+        canal: "internet",
       };
     });
 
@@ -438,6 +439,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
         regional: p.regional,
         congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao,
         ministerio_id: p.regional === "SEDE" ? p.ministerioId : null,
+        canal: "recepcao",
       });
     }
 

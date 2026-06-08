@@ -35,6 +35,8 @@ type Inscricao = {
   labs?: { nome: string; requer_cpf: boolean } | null;
   ministerio_id?: string | null;
   ministerios?: { nome: string } | null;
+  canal?: string | null;
+  pagamentos?: { metodo: string }[] | null;
 };
 type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
@@ -110,7 +112,7 @@ function SuperPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome)")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 

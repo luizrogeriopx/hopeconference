@@ -29,6 +29,8 @@ type Inscricao = {
   labs?: { nome: string; requer_cpf: boolean } | null;
   ministerio_id?: string | null;
   ministerios?: { nome: string } | null;
+  canal?: string | null;
+  pagamentos?: { metodo: string }[] | null;
 };
 type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
@@ -55,7 +57,7 @@ function AdminPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome)")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 
@@ -253,7 +255,7 @@ export function ListaInscricoes({
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail" className="w-full max-w-xs rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="w-full min-w-[1100px] text-sm">
           <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
             <tr>
               <th className="p-3">Nome</th>
@@ -264,6 +266,8 @@ export function ListaInscricoes({
               <th className="p-3">Congregação</th>
               <th className="p-3">Ministério</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Origem</th>
+              <th className="p-3">Forma Pgto.</th>
               <th className="p-3">Valor</th>
               <th className="p-3">Data</th>
               {onExcluir && <th className="p-3 text-right">Ação</th>}
@@ -280,6 +284,14 @@ export function ListaInscricoes({
                 <td className="p-3 text-muted-foreground">{i.congregacao || "-"}</td>
                 <td className="p-3 text-muted-foreground">{i.regional === "SEDE" ? (i.ministerios?.nome || "-") : "-"}</td>
                 <td className="p-3"><span className="rounded-md border border-border bg-background px-2 py-1 text-[10px] tracking-widest uppercase">{i.status}</span></td>
+                <td className="p-3 text-muted-foreground">
+                  {i.canal === "recepcao" ? "Secretaria (/recepcao)" : "Internet (/painel)"}
+                </td>
+                <td className="p-3 text-muted-foreground capitalize">
+                  {i.pagamentos && i.pagamentos.length > 0
+                    ? (i.pagamentos[0].metodo === "mock" ? "Simulado (Mock)" : i.pagamentos[0].metodo === "mercado_pago" ? "Mercado Pago" : i.pagamentos[0].metodo)
+                    : (i.valor === 0 ? "Isento" : "—")}
+                </td>
                 <td className="p-3 text-muted-foreground">R$ {Number(i.valor).toFixed(2)}</td>
                 <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleDateString("pt-BR")}</td>
                 {onExcluir && (
@@ -295,7 +307,7 @@ export function ListaInscricoes({
               </tr>
             ))}
             {inscricoes.length === 0 && (
-              <tr><td colSpan={onExcluir ? 11 : 10} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
+              <tr><td colSpan={onExcluir ? 13 : 12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
             )}
           </tbody>
         </table>
