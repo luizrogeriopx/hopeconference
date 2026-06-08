@@ -163,7 +163,7 @@ function PainelInscrito() {
       .from("labs")
       .select("*")
       .eq("exclusivo_recepcao", false)
-      .neq("nome", "Nenhum")
+      .eq("eh_geral", false)
       .order("eh_geral", { ascending: true })
       .order("nome", { ascending: true });
     if (data) setLabs(data as Lab[]);

@@ -101,7 +101,7 @@ function RecepcaoPage() {
     const { data } = await supabase
       .from("labs")
       .select("id, nome, limite_vagas, local, ativo, requer_cpf, eh_geral, exclusivo_recepcao")
-      .neq("nome", "Nenhum")
+      .eq("eh_geral", false)
       .order("eh_geral", { ascending: true })
       .order("nome", { ascending: true });
     if (data) {
