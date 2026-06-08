@@ -378,7 +378,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
     const rows = [];
     for (const p of data.participantes) {
       const lab = labsMap.get(p.labId);
-      const isExclusivoRecepcao = lab?.nome === "Liderança Ministerial e Obreiros" || lab?.nome === "Dirigentes e Coordenadores (Anexo 2)";
+      const isExclusivoRecepcao = lab?.nome === "Liderança Ministerial e Obreiros" || lab?.nome?.startsWith("Dirigentes e Coordenadores");
       const hasSpecificLab = lab && !lab.eh_geral;
       const valorInscricao = isExclusivoRecepcao ? 0 : 50;
 
