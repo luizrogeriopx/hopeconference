@@ -201,6 +201,35 @@ function SuperPage() {
     else await carregar();
   }
 
+  async function alterarLabInscricao(id: string, newLabId: string) {
+    const selectedLab = labs.find(l => l.id === newLabId);
+    if (!selectedLab) return;
+    
+    if (!confirm(`Deseja alterar a categoria LAB deste participante para "${selectedLab.nome} (${selectedLab.local})"?`)) {
+      await carregar();
+      return;
+    }
+
+    const isGeral = selectedLab.eh_geral;
+    const labQrToken = isGeral ? null : globalThis.crypto.randomUUID();
+
+    const { error } = await supabase
+      .from("inscricoes")
+      .update({
+        lab_id: newLabId,
+        lab_qr_token: labQrToken,
+        lab_validado_em: null,
+        lab_validado_por: null,
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
+    } else {
+      await carregar();
+    }
+  }
+
 
 
   async function salvarMercadoPago(e: React.FormEvent) {
@@ -822,6 +851,8 @@ function SuperPage() {
           busca={busca}
           setBusca={setBusca}
           onExcluir={excluirInscricao}
+          onAlterarLab={alterarLabInscricao}
+          labs={labs}
         />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
 

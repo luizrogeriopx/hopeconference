@@ -242,11 +242,15 @@ export function ListaInscricoes({
   busca,
   setBusca,
   onExcluir,
+  onAlterarLab,
+  labs,
 }: {
   inscricoes: Inscricao[];
   busca: string;
   setBusca: (s: string) => void;
   onExcluir?: (id: string) => void;
+  onAlterarLab?: (id: string, labId: string) => Promise<void> | void;
+  labs?: { id: string; nome: string; local: string; eh_geral: boolean }[];
 }) {
   return (
     <section className="rounded-xl border border-border bg-card shadow-sm">
@@ -279,7 +283,23 @@ export function ListaInscricoes({
                 <td className="p-3 text-primary font-medium">{i.nome_participante}</td>
                 <td className="p-3 text-muted-foreground font-mono">{i.cpf ? i.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "-"}</td>
                 <td className="p-3 text-muted-foreground">{i.email}</td>
-                <td className="p-3 text-muted-foreground">{i.labs?.nome || "Geral"}</td>
+                <td className="p-3 text-muted-foreground">
+                  {onAlterarLab && labs && labs.length > 0 ? (
+                    <select
+                      value={i.lab_id || ""}
+                      onChange={(e) => onAlterarLab(i.id, e.target.value)}
+                      className="rounded-md border border-input bg-background px-2 py-1 text-xs outline-none focus:border-gold"
+                    >
+                      {labs.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.nome} ({l.local})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    i.labs?.nome || "Geral"
+                  )}
+                </td>
                 <td className="p-3 text-muted-foreground">{i.regional === "SEDE" ? "SEDE" : `Regional ${i.regional}`}</td>
                 <td className="p-3 text-muted-foreground">{i.congregacao || "-"}</td>
                 <td className="p-3 text-muted-foreground">{i.regional === "SEDE" ? (i.ministerios?.nome || "-") : "-"}</td>
