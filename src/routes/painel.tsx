@@ -11,6 +11,7 @@ import {
   verificarStatusPagamento,
   cancelarPagamentoPendente,
 } from "@/lib/payment.functions";
+import { regionaisCongregacoes } from "@/lib/regionais";
 
 function loadMercadoPagoSDK(): Promise<void> {
   return new Promise((resolve) => {
@@ -525,7 +526,7 @@ function PainelInscrito() {
                           <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">REGIONAL</label>
                           <select
                             value={p.regional}
-                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, regional: e.target.value } : x)))}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, regional: e.target.value, congregacao: "" } : x)))}
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
                             required
                           >
@@ -539,13 +540,29 @@ function PainelInscrito() {
                         {p.regional !== "SEDE" && (
                           <div className="space-y-1">
                             <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CONGREGAÇÃO</label>
-                            <input
-                              value={p.congregacao}
-                              onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
-                              placeholder="Nome da congregação"
-                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                              required
-                            />
+                            {regionaisCongregacoes[p.regional] ? (
+                              <select
+                                value={p.congregacao}
+                                onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
+                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                                required
+                              >
+                                <option value="" disabled>Selecione a congregação</option>
+                                {regionaisCongregacoes[p.regional].map((c) => (
+                                  <option key={c} value={c}>
+                                    {c}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                value={p.congregacao}
+                                onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
+                                placeholder="Nome da congregação"
+                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                                required
+                              />
+                            )}
                           </div>
                         )}
                       </div>

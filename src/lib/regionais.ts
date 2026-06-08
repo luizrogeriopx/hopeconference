@@ -1,0 +1,22 @@
+export const regionaisCongregacoes: Record<string, string[]> = {
+  "2": ["Estrela do Sul", "Cidade Vera Cruz 2", "Conj. Santa Fé", "Jardim Luz", "Vila Rosa"],
+  "3": ["Veiga Jardim", "Cidade Vera Cruz 3", "Res. Alva Luz", "Terra Prometida"],
+  "4": ["Pontal Sul", "Pontal Sul 2", "Village Garavelo", "JD. Girassóis"],
+  "5": ["Oriente Ville", "Cond. Esmeralda 1", "JD. Real Conquista", "JD. Ipanema", "Res. Itaipú"],
+  "6": ["Morada", "São Carlos", "Brisas da Mata", "Estrela D'Alva", "Lago Azul", "Vista Bela"],
+  "7": ["Porto Dourado", "Aragoiania", "Crominia", "JD. Ipê", "Madre Germana 1", "Quinta da Boa Vista"],
+  "8": ["Hidrolandia", "JD. Miramar", "Parque Flamboyant"],
+  "9": ["Parque Paraíso", "Bairro Goiá", "Beatriz Nascimento", "JD. Imperial"],
+  "10": ["Nerópolis", "Res. Fratelli", "Santo Antonio de Goiás"],
+  "11": ["Colina Azul", "JD. Ipiranga", "Virginia Park"],
+  "12": ["Triunfo 2", "Nova Goianira", "Paineiras", "Res. Araguaia", "Setor Sul", "Triunfo 1", "Triunfo 3"],
+  "13": ["Buriti de Goiás", "Jaupaci", "Jussara", "Parauna"],
+  "14": ["JD. Cerrado 4", "Alto do Cerrado", "Lírios do Campo", "Monte Pascoal 1", "Monte Pascoal 2", "Res. Portinari"],
+  "15": ["Res. Pedro Miranda", "Flor do Ipê", "Res. Primavera", "Setor Alvorada", "Vila Galvão"],
+  "16": ["Orlando de Morais", "Montes Claros", "Bela Goiania", "Res. Morumbi", "Vale dos Sonhos"],
+  "17": ["Abadia Central", "Goiania Sul", "Porto Seguro - Abadia", "Res. Dori", "Res. Primavera"],
+  "18": ["Morada dos Pássaros", "Cid. Vera Cruz 1", "Goiania Park Sul", "JD. Veneza"],
+  "19": ["St. Cristina", "JD. Marista", "Serra Branca", "Rosa Morena", "Vida Nova"],
+  "20": ["JD. Scala", "Maisa 2", "Renata Parque", "St. dos Bandeirantes"],
+  "21": ["Tiradentes", "Parque Haiala", "Ind. Mansões", "Vila Delfiori"]
+};

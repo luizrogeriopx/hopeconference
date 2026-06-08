@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { criarInscricoesRecepcao } from "@/lib/inscriptions.functions";
 import { LocalCard } from "@/components/LocalCard";
+import { regionaisCongregacoes } from "@/lib/regionais";
 
 export const Route = createFileRoute("/recepcao")({
   component: RecepcaoPage,
@@ -295,7 +296,7 @@ function RecepcaoPage() {
                         <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">REGIONAL</label>
                         <select
                           value={p.regional}
-                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, regional: e.target.value } : x)))}
+                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, regional: e.target.value, congregacao: "" } : x)))}
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
                           required
                         >
@@ -309,13 +310,29 @@ function RecepcaoPage() {
                       {p.regional !== "SEDE" && (
                         <div className="space-y-1">
                           <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">CONGREGAÇÃO</label>
-                          <input
-                            value={p.congregacao}
-                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
-                            placeholder="Nome da congregação"
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                            required
-                          />
+                          {regionaisCongregacoes[p.regional] ? (
+                            <select
+                              value={p.congregacao}
+                              onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
+                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                              required
+                            >
+                              <option value="" disabled>Selecione a congregação</option>
+                              {regionaisCongregacoes[p.regional].map((c) => (
+                                <option key={c} value={c}>
+                                  {c}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              value={p.congregacao}
+                              onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, congregacao: e.target.value } : x)))}
+                              placeholder="Nome da congregação"
+                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                              required
+                            />
+                          )}
                         </div>
                       )}
                     </div>
