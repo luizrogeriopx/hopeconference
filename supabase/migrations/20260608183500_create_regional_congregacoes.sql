@@ -12,7 +12,7 @@ ALTER TABLE public.regional_congregacoes ENABLE ROW LEVEL SECURITY;
 
 -- Qualquer um pode ler
 CREATE POLICY "regional_congregacoes_select_all" ON public.regional_congregacoes
-  FOR SELECT TO authenticated, anonymous
+  FOR SELECT TO authenticated, anon
   USING (true);
 
 -- Apenas super_admin pode gerenciar
