@@ -24,6 +24,7 @@ type Inscricao = {
   validado_em: string | null;
   cpf: string | null;
   lab_id: string | null;
+  lab_qr_token?: string | null;
   regional: string;
   congregacao: string;
   labs?: { nome: string; requer_cpf: boolean } | null;
@@ -57,7 +58,7 @@ function AdminPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
+      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, lab_qr_token, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 
