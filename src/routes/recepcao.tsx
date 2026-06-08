@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { criarInscricoesRecepcao } from "@/lib/inscriptions.functions";
 import { LocalCard } from "@/components/LocalCard";
-import { regionaisCongregacoes } from "@/lib/regionais";
+
 
 export const Route = createFileRoute("/recepcao")({
   component: RecepcaoPage,
@@ -63,6 +63,7 @@ function RecepcaoPage() {
   ]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ultimasInscricoes, setUltimasInscricoes] = useState<UltimaInscricao[]>([]);
+  const [regionaisCongregacoes, setRegionaisCongregacoes] = useState<Record<string, string[]>>({});
   
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -89,12 +90,31 @@ function RecepcaoPage() {
     if (data) setMinisterios(data as Ministerio[]);
   }
 
+  async function carregarRegionaisCongregacoes() {
+    const { data } = await supabase
+      .from("regional_congregacoes")
+      .select("regional, congregacao")
+      .order("congregacao", { ascending: true });
+    
+    if (data) {
+      const mapping: Record<string, string[]> = {};
+      data.forEach((row) => {
+        if (!mapping[row.regional]) {
+          mapping[row.regional] = [];
+        }
+        mapping[row.regional].push(row.congregacao);
+      });
+      setRegionaisCongregacoes(mapping);
+    }
+  }
+
   useEffect(() => {
     if (user && isStaff) {
       void carregarLabs();
       void carregarVagas();
       void carregarUltimasInscricoes();
       void carregarMinisterios();
+      void carregarRegionaisCongregacoes();
     }
   }, [user, isStaff]);
 

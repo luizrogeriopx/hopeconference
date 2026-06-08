@@ -59,6 +59,13 @@ type Lab = {
   criado_em: string;
 };
 
+type RegionalCongregacao = {
+  id: string;
+  regional: string;
+  congregacao: string;
+  criado_em: string;
+};
+
 function SuperPage() {
   const navigate = useNavigate();
   const { user, isSuper, loading, signOut } = useAuth();
@@ -101,6 +108,13 @@ function SuperPage() {
   const [mpAccessToken, setMpAccessToken] = useState("");
   const [mpConfigurado, setMpConfigurado] = useState(false);
   const [salvandoMP, setSalvandoMP] = useState(false);
+
+  // Congregações state
+  const [congregacoes, setCongregacoes] = useState<RegionalCongregacao[]>([]);
+  const [novaCongregacaoRegional, setNovaCongregacaoRegional] = useState("2");
+  const [novaCongregacaoNome, setNovaCongregacaoNome] = useState("");
+  const [editingCongregacaoId, setEditingCongregacaoId] = useState<string | null>(null);
+  const [editCongregacaoNome, setEditCongregacaoNome] = useState("");
 
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
@@ -160,6 +174,13 @@ function SuperPage() {
       .order("nome", { ascending: true });
     if (ministeriosData) setMinisterios(ministeriosData as Ministerio[]);
 
+    const { data: congData } = await supabase
+      .from("regional_congregacoes")
+      .select("*")
+      .order("regional", { ascending: true })
+      .order("congregacao", { ascending: true });
+    if (congData) setCongregacoes(congData as RegionalCongregacao[]);
+
     try { setUsuarios(await listar()); } catch { /* noop */ }
   }
 
@@ -200,6 +221,79 @@ function SuperPage() {
     const { error } = await supabase.from("inscricoes").delete().eq("id", id);
     if (error) alert(error.message);
     else await carregar();
+  }
+
+  async function criarCongregacao(e: React.FormEvent) {
+    e.preventDefault();
+    if (!novaCongregacaoNome.trim()) return;
+
+    const { error } = await supabase
+      .from("regional_congregacoes")
+      .insert({
+        regional: novaCongregacaoRegional,
+        congregacao: novaCongregacaoNome.trim()
+      });
+
+    if (error) {
+      alert("Erro ao adicionar congregação: " + error.message);
+    } else {
+      setNovaCongregacaoNome("");
+      // Recarregar
+      const { data: congData } = await supabase
+        .from("regional_congregacoes")
+        .select("*")
+        .order("regional", { ascending: true })
+        .order("congregacao", { ascending: true });
+      if (congData) setCongregacoes(congData as RegionalCongregacao[]);
+    }
+  }
+
+  function iniciarEdicaoCongregacao(c: RegionalCongregacao) {
+    setEditingCongregacaoId(c.id);
+    setEditCongregacaoNome(c.congregacao);
+  }
+
+  async function salvarEdicaoCongregacao(id: string) {
+    if (!editCongregacaoNome.trim()) return;
+
+    const { error } = await supabase
+      .from("regional_congregacoes")
+      .update({ congregacao: editCongregacaoNome.trim() })
+      .eq("id", id);
+
+    if (error) {
+      alert("Erro ao salvar congregação: " + error.message);
+    } else {
+      setEditingCongregacaoId(null);
+      // Recarregar
+      const { data: congData } = await supabase
+        .from("regional_congregacoes")
+        .select("*")
+        .order("regional", { ascending: true })
+        .order("congregacao", { ascending: true });
+      if (congData) setCongregacoes(congData as RegionalCongregacao[]);
+    }
+  }
+
+  async function excluirCongregacao(id: string) {
+    if (!confirm("Tem certeza que deseja excluir esta congregação?")) return;
+
+    const { error } = await supabase
+      .from("regional_congregacoes")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      alert("Erro ao excluir congregação: " + error.message);
+    } else {
+      // Recarregar
+      const { data: congData } = await supabase
+        .from("regional_congregacoes")
+        .select("*")
+        .order("regional", { ascending: true })
+        .order("congregacao", { ascending: true });
+      if (congData) setCongregacoes(congData as RegionalCongregacao[]);
+    }
   }
 
   async function alterarLabInscricao(id: string, newLabId: string) {
@@ -845,6 +939,131 @@ function SuperPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card shadow-sm p-5">
+          <h2 className="font-display text-xl text-primary">Gerenciamento de Congregações</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Adicione, edite ou remova as congregações vinculadas às regionais (02 a 21).</p>
+
+          <div className="mt-4 flex flex-col md:flex-row gap-4 items-end border-b border-border pb-5">
+            <div className="space-y-1 w-full md:w-1/3">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">SELECIONAR REGIONAL</label>
+              <select
+                value={novaCongregacaoRegional}
+                onChange={(e) => setNovaCongregacaoRegional(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+              >
+                {Array.from({ length: 20 }, (_, idx) => String(idx + 2)).map((r) => (
+                  <option key={r} value={r}>
+                    Regional {String(r).padStart(2, "0")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <form onSubmit={criarCongregacao} className="flex-1 flex gap-3 items-end w-full">
+              <div className="space-y-1 flex-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">NOME DA CONGREGAÇÃO</label>
+                <input
+                  required
+                  placeholder="Nome da congregação"
+                  value={novaCongregacaoNome}
+                  onChange={(e) => setNovaCongregacaoNome(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              </div>
+              <button className="rounded-md bg-primary px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 h-[38px] whitespace-nowrap">
+                ADICIONAR
+              </button>
+            </form>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-xs text-muted-foreground">
+                Exibindo congregações da <strong>Regional {String(novaCongregacaoRegional).padStart(2, "0")}</strong>
+              </span>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px] text-sm">
+                <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
+                  <tr>
+                    <th className="p-3">Regional</th>
+                    <th className="p-3">Congregação</th>
+                    <th className="p-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {congregacoes
+                    .filter((c) => c.regional === novaCongregacaoRegional)
+                    .map((c) => {
+                      const isEditing = editingCongregacaoId === c.id;
+
+                      return (
+                        <tr key={c.id} className="border-t border-border hover:bg-muted/30">
+                          <td className="p-3 font-medium text-muted-foreground">
+                            Regional {String(c.regional).padStart(2, "0")}
+                          </td>
+                          <td className="p-3">
+                            {isEditing ? (
+                              <input
+                                required
+                                value={editCongregacaoNome}
+                                onChange={(e) => setEditCongregacaoNome(e.target.value)}
+                                className="rounded border border-input bg-background px-2 py-1 text-xs outline-none focus:border-gold w-full"
+                              />
+                            ) : (
+                              <span className="font-semibold text-primary">{c.congregacao}</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right text-xs">
+                            {isEditing ? (
+                              <div className="flex gap-2 justify-end">
+                                <button
+                                  onClick={() => salvarEdicaoCongregacao(c.id)}
+                                  className="rounded-md bg-primary px-2 py-1 text-[10px] tracking-widest text-primary-foreground hover:bg-primary/90"
+                                >
+                                  SALVAR
+                                </button>
+                                <button
+                                  onClick={() => setEditingCongregacaoId(null)}
+                                  className="rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-muted-foreground hover:bg-muted"
+                                >
+                                  CANCELAR
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex gap-2 justify-end">
+                                <button
+                                  onClick={() => iniciarEdicaoCongregacao(c)}
+                                  className="rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-muted"
+                                >
+                                  EDITAR
+                                </button>
+                                <button
+                                  onClick={() => excluirCongregacao(c.id)}
+                                  className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10"
+                                >
+                                  EXCLUIR
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  {congregacoes.filter((c) => c.regional === novaCongregacaoRegional).length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="p-6 text-center text-sm text-muted-foreground">
+                        Nenhuma congregação cadastrada para esta regional.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 

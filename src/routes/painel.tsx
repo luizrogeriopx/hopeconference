@@ -11,7 +11,6 @@ import {
   verificarStatusPagamento,
   cancelarPagamentoPendente,
 } from "@/lib/payment.functions";
-import { regionaisCongregacoes } from "@/lib/regionais";
 
 function loadMercadoPagoSDK(): Promise<void> {
   return new Promise((resolve) => {
@@ -86,6 +85,7 @@ function PainelInscrito() {
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [regionaisCongregacoes, setRegionaisCongregacoes] = useState<Record<string, string[]>>({});
 
   const inscreverFn = useServerFn(criarInscricoesPainel);
   const processarPagamento = useServerFn(processarPagamentoTransparente);
@@ -140,6 +140,7 @@ function PainelInscrito() {
     void carregarLabs();
     void carregarVagas();
     void carregarMinisterios();
+    void carregarRegionaisCongregacoes();
 
     const channel = supabase
       .channel(`inscricoes-user-${user.id}`)
@@ -168,6 +169,24 @@ function PainelInscrito() {
       .order("eh_geral", { ascending: true })
       .order("nome", { ascending: true });
     if (data) setLabs(data as Lab[]);
+  }
+
+  async function carregarRegionaisCongregacoes() {
+    const { data } = await supabase
+      .from("regional_congregacoes")
+      .select("regional, congregacao")
+      .order("congregacao", { ascending: true });
+    
+    if (data) {
+      const mapping: Record<string, string[]> = {};
+      data.forEach((row) => {
+        if (!mapping[row.regional]) {
+          mapping[row.regional] = [];
+        }
+        mapping[row.regional].push(row.congregacao);
+      });
+      setRegionaisCongregacoes(mapping);
+    }
   }
 
   async function carregarVagas() {
