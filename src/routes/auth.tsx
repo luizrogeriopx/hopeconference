@@ -38,7 +38,7 @@ function AuthPage() {
     setErro(null); setMsg(null); setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password: senha,
           options: {
@@ -47,8 +47,13 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        setMsg("Cadastro realizado! Verifique seu e-mail para confirmar e depois faça login.");
-        setMode("login");
+        
+        if (data?.session) {
+          navigate({ to: redirect || "/painel" });
+        } else {
+          setMsg("Cadastro realizado! Você já pode fazer login.");
+          setMode("login");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw error;
