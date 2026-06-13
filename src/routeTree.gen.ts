@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SuperRouteImport } from './routes/super'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecepcaoRouteImport } from './routes/recepcao'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as GateRouteImport } from './routes/gate'
@@ -21,6 +22,11 @@ import { Route as ApiWebhookMercadopagoRouteImport } from './routes/api/webhook/
 const SuperRoute = SuperRouteImport.update({
   id: '/super',
   path: '/super',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecepcaoRoute = RecepcaoRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
   '/recepcao': typeof RecepcaoRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
   '/recepcao': typeof RecepcaoRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
   '/recepcao': typeof RecepcaoRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/gate'
     | '/painel'
     | '/recepcao'
+    | '/reset-password'
     | '/super'
     | '/api/webhook/mercadopago'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/gate'
     | '/painel'
     | '/recepcao'
+    | '/reset-password'
     | '/super'
     | '/api/webhook/mercadopago'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/gate'
     | '/painel'
     | '/recepcao'
+    | '/reset-password'
     | '/super'
     | '/api/webhook/mercadopago'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   GateRoute: typeof GateRoute
   PainelRoute: typeof PainelRoute
   RecepcaoRoute: typeof RecepcaoRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SuperRoute: typeof SuperRoute
   ApiWebhookMercadopagoRoute: typeof ApiWebhookMercadopagoRoute
 }
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/super'
       fullPath: '/super'
       preLoaderRoute: typeof SuperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recepcao': {
@@ -202,9 +222,20 @@ const rootRouteChildren: RootRouteChildren = {
   GateRoute: GateRoute,
   PainelRoute: PainelRoute,
   RecepcaoRoute: RecepcaoRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SuperRoute: SuperRoute,
   ApiWebhookMercadopagoRoute: ApiWebhookMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
