@@ -61,6 +61,7 @@ export type Database = {
       }
       inscricoes: {
         Row: {
+          canal: string
           comprador_user_id: string
           congregacao: string
           cpf: string | null
@@ -80,9 +81,9 @@ export type Database = {
           validado_em: string | null
           validado_por: string | null
           valor: number
-          canal: string
         }
         Insert: {
+          canal?: string
           comprador_user_id: string
           congregacao?: string
           cpf?: string | null
@@ -102,9 +103,9 @@ export type Database = {
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
-          canal?: string
         }
         Update: {
+          canal?: string
           comprador_user_id?: string
           congregacao?: string
           cpf?: string | null
@@ -124,7 +125,6 @@ export type Database = {
           validado_em?: string | null
           validado_por?: string | null
           valor?: number
-          canal?: string
         }
         Relationships: [
           {
@@ -265,6 +265,27 @@ export type Database = {
           email?: string
           id?: string
           nome?: string | null
+        }
+        Relationships: []
+      }
+      regional_congregacoes: {
+        Row: {
+          congregacao: string
+          criado_em: string
+          id: string
+          regional: string
+        }
+        Insert: {
+          congregacao: string
+          criado_em?: string
+          id?: string
+          regional: string
+        }
+        Update: {
+          congregacao?: string
+          criado_em?: string
+          id?: string
+          regional?: string
         }
         Relationships: []
       }
