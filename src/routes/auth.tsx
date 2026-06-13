@@ -54,6 +54,12 @@ function AuthPage() {
           setMsg("Cadastro realizado! Você já pode fazer login.");
           setMode("login");
         }
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setMsg("Enviamos um e-mail com o link para redefinir sua senha. Verifique sua caixa de entrada.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw error;
