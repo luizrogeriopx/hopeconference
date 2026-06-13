@@ -19,7 +19,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
@@ -54,6 +54,12 @@ function AuthPage() {
           setMsg("Cadastro realizado! Você já pode fazer login.");
           setMode("login");
         }
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setMsg("Enviamos um e-mail com o link para redefinir sua senha. Verifique sua caixa de entrada.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw error;
@@ -74,10 +80,12 @@ function AuthPage() {
           ← VOLTAR AO SITE
         </Link>
         <h1 className="mt-4 font-display text-3xl text-primary">
-          {mode === "login" ? "Entrar" : "Criar conta"}
+          {mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Recuperar senha"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Painel do Inscrito — Hope Conference 2026
+          {mode === "forgot"
+            ? "Informe seu e-mail para receber o link de redefinição."
+            : "Painel do Inscrito — Hope Conference 2026"}
         </p>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
@@ -97,13 +105,25 @@ function AuthPage() {
               className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
             />
           </label>
-          <label className="block">
-            <span className="text-xs tracking-widest text-muted-foreground">SENHA</span>
-            <input
-              required type="password" minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)}
-              className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
-            />
-          </label>
+          {mode !== "forgot" && (
+            <label className="block">
+              <span className="text-xs tracking-widest text-muted-foreground">SENHA</span>
+              <input
+                required type="password" minLength={6} value={senha} onChange={(e) => setSenha(e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
+            </label>
+          )}
+
+          {mode === "login" && (
+            <button
+              type="button"
+              onClick={() => { setErro(null); setMsg(null); setMode("forgot"); }}
+              className="block text-xs tracking-widest text-muted-foreground hover:text-primary"
+            >
+              ESQUECI MINHA SENHA
+            </button>
+          )}
 
           {erro && <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}
           {msg && <p className="rounded-md border border-gold/40 bg-gold/10 p-3 text-sm text-primary">{msg}</p>}
@@ -112,17 +132,27 @@ function AuthPage() {
             type="submit" disabled={loading}
             className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "AGUARDE..." : mode === "login" ? "ENTRAR" : "CADASTRAR"}
+            {loading ? "AGUARDE..." : mode === "login" ? "ENTRAR" : mode === "signup" ? "CADASTRAR" : "ENVIAR LINK"}
           </button>
         </form>
 
-        <button
-          type="button"
-          onClick={() => { setErro(null); setMsg(null); setMode(mode === "login" ? "signup" : "login"); }}
-          className="mt-6 w-full rounded-md border border-primary px-6 py-3 text-center text-sm font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
-        >
-          {mode === "login" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
-        </button>
+        {mode === "forgot" ? (
+          <button
+            type="button"
+            onClick={() => { setErro(null); setMsg(null); setMode("login"); }}
+            className="mt-6 w-full rounded-md border border-primary px-6 py-3 text-center text-sm font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
+          >
+            Voltar para o login
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setErro(null); setMsg(null); setMode(mode === "login" ? "signup" : "login"); }}
+            className="mt-6 w-full rounded-md border border-primary px-6 py-3 text-center text-sm font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
+          >
+            {mode === "login" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
+          </button>
+        )}
       </div>
     </main>
   );
