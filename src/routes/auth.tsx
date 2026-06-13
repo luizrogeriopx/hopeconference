@@ -22,6 +22,7 @@ function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
   const [nome, setNome] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -37,13 +38,17 @@ function AuthPage() {
     e.preventDefault();
     setErro(null); setMsg(null); setLoading(true);
     try {
+      const emailNormalizado = email.trim().toLowerCase();
       if (mode === "signup") {
+        if (senha !== confirmarSenha) {
+          throw new Error("As senhas não coincidem. Digite a mesma senha nos dois campos.");
+        }
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: emailNormalizado,
           password: senha,
           options: {
             emailRedirectTo: `${window.location.origin}/painel`,
-            data: { nome },
+            data: { nome: nome.trim() },
           },
         });
         if (error) throw error;
@@ -55,13 +60,13 @@ function AuthPage() {
           setMode("login");
         }
       } else if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(emailNormalizado, {
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
         setMsg("Enviamos um e-mail com o link para redefinir sua senha. Verifique sua caixa de entrada.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+        const { error } = await supabase.auth.signInWithPassword({ email: emailNormalizado, password: senha });
         if (error) throw error;
         navigate({ to: redirect || "/painel" });
       }
@@ -114,6 +119,15 @@ function AuthPage() {
               />
             </label>
           )}
+          {mode === "signup" && (
+            <label className="block">
+              <span className="text-xs tracking-widest text-muted-foreground">CONFIRMAR SENHA</span>
+              <input
+                required type="password" minLength={6} value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
+            </label>
+          )}
 
           {mode === "login" && (
             <button
@@ -147,7 +161,7 @@ function AuthPage() {
         ) : (
           <button
             type="button"
-            onClick={() => { setErro(null); setMsg(null); setMode(mode === "login" ? "signup" : "login"); }}
+            onClick={() => { setErro(null); setMsg(null); setConfirmarSenha(""); setMode(mode === "login" ? "signup" : "login"); }}
             className="mt-6 w-full rounded-md border border-primary px-6 py-3 text-center text-sm font-medium tracking-wider text-primary transition hover:bg-primary hover:text-primary-foreground"
           >
             {mode === "login" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}

@@ -27,6 +27,7 @@ function containsCPF(csvText: string, searchCPF: string): boolean {
 }
 
 const regionaisValidas = ["SEDE", ...Array.from({ length: 20 }, (_, i) => String(i + 2))] as [string, ...string[]];
+const SENHA_PROVISORIA_RECEPCAO = "123456";
 
 const inputSchema = z.object({
   participantes: z
@@ -389,7 +390,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
       try {
         const { data: userAuth, error: createErr } = await ad.auth.admin.createUser({
           email: emailTrim,
-          password: "123456",
+          password: SENHA_PROVISORIA_RECEPCAO,
           email_confirm: true,
           user_metadata: { nome: p.nome.trim(), senha_provisoria: true }
         });
@@ -404,13 +405,20 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
 
           if (searchUser) {
             participantUserId = searchUser.id;
+            const { error: updateErr } = await ad.auth.admin.updateUserById(searchUser.id, {
+              password: SENHA_PROVISORIA_RECEPCAO,
+              email_confirm: true,
+              user_metadata: { nome: p.nome.trim(), senha_provisoria: true, email_verified: true },
+            });
+            if (updateErr) throw updateErr;
+            void enviarEmailAcesso(emailTrim, p.nome.trim(), SENHA_PROVISORIA_RECEPCAO);
           } else {
             console.error("Erro ao resolver usuário duplicado:", createErr);
             throw createErr;
           }
         } else if (userAuth?.user) {
           participantUserId = userAuth.user.id;
-          void enviarEmailAcesso(emailTrim, p.nome.trim(), "123456");
+          void enviarEmailAcesso(emailTrim, p.nome.trim(), SENHA_PROVISORIA_RECEPCAO);
         }
       } catch (err) {
         console.error("Falha ao registrar conta de participante:", err);
