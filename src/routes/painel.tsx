@@ -89,7 +89,7 @@ function PainelInscrito() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }
+    { nome: "", labId: "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }
   ]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [enviando, setEnviando] = useState(false);
@@ -425,7 +425,7 @@ function PainelInscrito() {
         })),
       };
       const res = await inscreverFn({ data: payload });
-      setParticipantes([{ nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+      setParticipantes([{ nome: "", labId: "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       await carregar();
       await carregarVagas();
       
@@ -633,7 +633,7 @@ function PainelInscrito() {
                   <button
                     type="button"
                     onClick={() => {
-                      setParticipantes([...participantes, { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+                      setParticipantes([...participantes, { nome: "", labId: "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                     }}
                     className="text-xs tracking-widest text-primary font-semibold hover:underline"
                   >
