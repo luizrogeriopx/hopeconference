@@ -7,6 +7,7 @@ import {
   resetarSenhaConta,
   gerarLinkAcessoConta,
   listarInscricoesDaConta,
+  excluirConta,
 } from "@/lib/usuarios-admin.functions";
 
 type Conta = {
@@ -60,6 +61,7 @@ export function ContasUsuarios() {
   const resetar = useServerFn(resetarSenhaConta);
   const gerarLink = useServerFn(gerarLinkAcessoConta);
   const listarInscs = useServerFn(listarInscricoesDaConta);
+  const excluir = useServerFn(excluirConta);
 
   const [contas, setContas] = useState<Conta[]>([]);
   const [busca, setBusca] = useState("");
@@ -165,6 +167,22 @@ export function ContasUsuarios() {
       setMensagem(e instanceof Error ? e.message : "Erro ao carregar inscrições.");
     } finally {
       setCarregandoInscs(false);
+    }
+  }
+
+  async function onExcluir(c: Conta) {
+    const aviso = c.total_inscricoes > 0
+      ? `Esta conta possui ${c.total_inscricoes} inscrição(ões). Ao excluir, TODAS as inscrições, QRs e dados desta conta serão removidos permanentemente.\n\nDigite EXCLUIR para confirmar a exclusão de ${c.email}:`
+      : `Tem certeza que deseja excluir permanentemente a conta ${c.email}?\n\nDigite EXCLUIR para confirmar:`;
+    const resp = prompt(aviso);
+    if (resp !== "EXCLUIR") return;
+    setMensagem(null);
+    try {
+      await excluir({ data: { user_id: c.id } });
+      setMensagem(`Conta ${c.email} excluída.`);
+      await carregar();
+    } catch (e) {
+      setMensagem(e instanceof Error ? e.message : "Erro ao excluir conta.");
     }
   }
 
@@ -311,6 +329,12 @@ export function ContasUsuarios() {
                             className="rounded-md border border-gold/40 bg-gold/10 px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-gold/20"
                           >
                             LOGAR COMO
+                          </button>
+                          <button
+                            onClick={() => void onExcluir(c)}
+                            className="rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/20"
+                          >
+                            EXCLUIR
                           </button>
                         </>
                       )}
