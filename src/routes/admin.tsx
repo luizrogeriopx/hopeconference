@@ -256,26 +256,29 @@ export function ListaInscricoes({
   return (
     <section className="rounded-xl border border-border bg-card shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
-        <h2 className="font-display text-xl text-primary">Inscritos</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="font-display text-xl text-primary">Inscritos</h2>
+          <span className="rounded-md border border-border bg-background px-2.5 py-1 text-[10px] tracking-widest uppercase text-muted-foreground">{inscricoes.length} Total</span>
+        </div>
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail" className="w-full max-w-xs rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
       </div>
-      <div className="overflow-x-auto">
+      <div className="max-h-[70vh] overflow-auto">
         <table className="w-full min-w-[1100px] text-sm">
-          <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
+          <thead className="sticky top-0 z-10 bg-card text-left text-xs tracking-widest uppercase text-muted-foreground shadow-[0_1px_0_0_var(--color-border)]">
             <tr>
-              <th className="p-3">Nome</th>
-              <th className="p-3">CPF</th>
-              <th className="p-3">E-mail</th>
-              <th className="p-3">Categoria</th>
-              <th className="p-3">Regional</th>
-              <th className="p-3">Congregação</th>
-              <th className="p-3">Ministério</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Origem</th>
-              <th className="p-3">Forma Pgto.</th>
-              <th className="p-3">Valor</th>
-              <th className="p-3">Data</th>
-              {onExcluir && <th className="p-3 text-right">Ação</th>}
+              <th className="p-3 bg-card">Nome</th>
+              <th className="p-3 bg-card">CPF</th>
+              <th className="p-3 bg-card">E-mail</th>
+              <th className="p-3 bg-card">Categoria</th>
+              <th className="p-3 bg-card">Regional</th>
+              <th className="p-3 bg-card">Congregação</th>
+              <th className="p-3 bg-card">Ministério</th>
+              <th className="p-3 bg-card">Status</th>
+              <th className="p-3 bg-card">Origem</th>
+              <th className="p-3 bg-card">Forma Pgto.</th>
+              <th className="p-3 bg-card">Valor</th>
+              <th className="p-3 bg-card">Data</th>
+              {onExcluir && <th className="p-3 bg-card text-right">Ação</th>}
             </tr>
           </thead>
           <tbody>
@@ -466,16 +469,16 @@ export function ListaPastoresCoordenadores({ inscricoes }: { inscricoes: Inscric
         <h2 className="font-display text-xl text-primary">Pastores e Coordenadores Cadastrados</h2>
         <span className="rounded-md border border-border bg-background px-2.5 py-1 text-[10px] tracking-widest uppercase text-muted-foreground">{list.length} Total</span>
       </div>
-      <div className="overflow-x-auto">
+      <div className="max-h-[70vh] overflow-auto">
         <table className="w-full min-w-[700px] text-sm text-left">
-          <thead className="text-xs tracking-widest uppercase text-muted-foreground">
+          <thead className="sticky top-0 z-10 bg-card text-xs tracking-widest uppercase text-muted-foreground shadow-[0_1px_0_0_var(--color-border)]">
             <tr>
-              <th className="p-3">Nome</th>
-              <th className="p-3">CPF</th>
-              <th className="p-3">Categoria</th>
-              <th className="p-3">Regional</th>
-              <th className="p-3">Congregação</th>
-              <th className="p-3">Status</th>
+              <th className="p-3 bg-card">Nome</th>
+              <th className="p-3 bg-card">CPF</th>
+              <th className="p-3 bg-card">Categoria</th>
+              <th className="p-3 bg-card">Regional</th>
+              <th className="p-3 bg-card">Congregação</th>
+              <th className="p-3 bg-card">Status</th>
             </tr>
           </thead>
           <tbody>
