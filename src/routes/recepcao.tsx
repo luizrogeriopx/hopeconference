@@ -199,6 +199,11 @@ function RecepcaoPage() {
         setErro(`O CPF é obrigatório para a categoria "${selectedLab.nome}".`);
         return;
       }
+      const d = p.whatsapp.replace(/\D/g, "");
+      if (d.length < 10 || d.length > 11) {
+        setErro(`Informe o WhatsApp do participante "${p.nome.trim()}" com DDD.`);
+        return;
+      }
     }
 
     setEnviando(true);
@@ -209,6 +214,7 @@ function RecepcaoPage() {
           email: p.email.trim().toLowerCase(),
           labId: p.labId,
           cpf: p.cpf ? p.cpf.trim() : undefined,
+          whatsapp: p.whatsapp.replace(/\D/g, ""),
           regional: p.regional,
           congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao.trim(),
           ministerioId: p.regional === "SEDE" ? (p.ministerioId || null) : null,
