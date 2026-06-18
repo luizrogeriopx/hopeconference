@@ -302,6 +302,17 @@ function RecepcaoPage() {
                         />
                       </div>
                       <div className="space-y-1">
+                        <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">WHATSAPP (COM DDD)</label>
+                        <input
+                          value={p.whatsapp}
+                          onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, whatsapp: formatWhatsBR(e.target.value) } : x)))}
+                          placeholder="(00) 00000-0000"
+                          inputMode="numeric"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
                         <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">CATEGORIA (LAB)</label>
                         <select
                           value={p.labId}
