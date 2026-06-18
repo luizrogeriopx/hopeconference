@@ -52,12 +52,16 @@ function AuthPage() {
         if (senha !== confirmarSenha) {
           throw new Error("As senhas não coincidem. Digite a mesma senha nos dois campos.");
         }
+        const whatsDig = whatsapp.replace(/\D/g, "");
+        if (whatsDig.length < 10 || whatsDig.length > 11) {
+          throw new Error("Informe um WhatsApp válido com DDD (10 ou 11 dígitos).");
+        }
         const { data, error } = await supabase.auth.signUp({
           email: emailNormalizado,
           password: senha,
           options: {
             emailRedirectTo: `${window.location.origin}/painel`,
-            data: { nome: nome.trim() },
+            data: { nome: nome.trim(), whatsapp: whatsDig },
           },
         });
         if (error) throw error;
