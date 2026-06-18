@@ -79,7 +79,7 @@ export const atualizarConta = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
-    const patch: Record<string, string> = {};
+    const patch: { nome?: string; email?: string } = {};
     if (data.nome !== undefined) patch.nome = data.nome;
     if (data.email !== undefined) patch.email = data.email.trim().toLowerCase();
     if (Object.keys(patch).length > 0) {
