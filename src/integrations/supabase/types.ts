@@ -253,18 +253,21 @@ export type Database = {
           email: string
           id: string
           nome: string | null
+          whatsapp: string | null
         }
         Insert: {
           criado_em?: string
           email: string
           id: string
           nome?: string | null
+          whatsapp?: string | null
         }
         Update: {
           criado_em?: string
           email?: string
           id?: string
           nome?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }
