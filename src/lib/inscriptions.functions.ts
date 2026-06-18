@@ -211,6 +211,7 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
         comprador_user_id: userId,
         nome_participante: p.nome,
         email: emailToUse,
+        telefone: p.whatsapp.replace(/\D/g, ""),
         lab_id: p.labId,
         cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
         valor: 50,
