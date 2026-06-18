@@ -24,9 +24,18 @@ function AuthPage() {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [nome, setNome] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  function formatWhats(v: string) {
+    const d = v.replace(/\D/g, "").slice(0, 11);
+    if (d.length <= 2) return d;
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -43,12 +52,16 @@ function AuthPage() {
         if (senha !== confirmarSenha) {
           throw new Error("As senhas não coincidem. Digite a mesma senha nos dois campos.");
         }
+        const whatsDig = whatsapp.replace(/\D/g, "");
+        if (whatsDig.length < 10 || whatsDig.length > 11) {
+          throw new Error("Informe um WhatsApp válido com DDD (10 ou 11 dígitos).");
+        }
         const { data, error } = await supabase.auth.signUp({
           email: emailNormalizado,
           password: senha,
           options: {
             emailRedirectTo: `${window.location.origin}/painel`,
-            data: { nome: nome.trim() },
+            data: { nome: nome.trim(), whatsapp: whatsDig },
           },
         });
         if (error) throw error;
@@ -99,6 +112,17 @@ function AuthPage() {
               <span className="text-xs tracking-widest text-muted-foreground">NOME COMPLETO</span>
               <input
                 required value={nome} onChange={(e) => setNome(e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
+            </label>
+          )}
+          {mode === "signup" && (
+            <label className="block">
+              <span className="text-xs tracking-widest text-muted-foreground">WHATSAPP (COM DDD)</span>
+              <input
+                required inputMode="numeric" value={whatsapp}
+                onChange={(e) => setWhatsapp(formatWhats(e.target.value))}
+                placeholder="(00) 00000-0000"
                 className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
               />
             </label>

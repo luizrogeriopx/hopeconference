@@ -36,9 +36,14 @@ const inputSchema = z.object({
         nome: z.string().min(1).max(120),
         labId: z.string().uuid(),
         cpf: z.string().optional(),
+        whatsapp: z.string().min(10).max(20),
         regional: z.enum(regionaisValidas),
         congregacao: z.string().max(150).optional().or(z.literal("")),
         ministerioId: z.string().uuid().nullable().optional(),
+      })
+      .refine((p) => p.whatsapp.replace(/\D/g, "").length >= 10 && p.whatsapp.replace(/\D/g, "").length <= 11, {
+        message: "WhatsApp inválido. Informe com DDD.",
+        path: ["whatsapp"],
       })
       .refine((p) => {
         if (p.regional === "SEDE") {
@@ -206,6 +211,7 @@ export const criarInscricoesPainel = createServerFn({ method: "POST" })
         comprador_user_id: userId,
         nome_participante: p.nome,
         email: emailToUse,
+        telefone: p.whatsapp.replace(/\D/g, ""),
         lab_id: p.labId,
         cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
         valor: 50,
@@ -259,9 +265,14 @@ const inputSchemaRecepcao = z.object({
         email: z.string().email(),
         labId: z.string().uuid(),
         cpf: z.string().optional(),
+        whatsapp: z.string().min(10).max(20),
         regional: z.enum(regionaisValidas),
         congregacao: z.string().max(150).optional().or(z.literal("")),
         ministerioId: z.string().uuid().nullable().optional(),
+      })
+      .refine((p) => p.whatsapp.replace(/\D/g, "").length >= 10 && p.whatsapp.replace(/\D/g, "").length <= 11, {
+        message: "WhatsApp inválido. Informe com DDD.",
+        path: ["whatsapp"],
       })
       .refine((p) => {
         if (p.regional === "SEDE") {
@@ -439,6 +450,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
         comprador_user_id: participantUserId,
         nome_participante: p.nome,
         email: emailTrim,
+        telefone: p.whatsapp.replace(/\D/g, ""),
         lab_id: p.labId,
         cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
         valor: valorInscricao,

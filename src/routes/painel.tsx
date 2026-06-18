@@ -60,10 +60,19 @@ type ParticipanteForm = {
   nome: string;
   labId: string;
   cpf: string;
+  whatsapp: string;
   regional: string;
   congregacao: string;
   ministerioId: string;
 };
+
+function formatWhatsBR(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
 
 type Ministerio = {
   id: string;
@@ -80,7 +89,7 @@ function PainelInscrito() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }
+    { nome: "", labId: "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }
   ]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [enviando, setEnviando] = useState(false);
@@ -403,6 +412,13 @@ function PainelInscrito() {
       setErro("Informe ao menos um participante.");
       return;
     }
+    for (const p of validos) {
+      const d = p.whatsapp.replace(/\D/g, "");
+      if (d.length < 10 || d.length > 11) {
+        setErro(`Informe o WhatsApp do participante "${p.nome.trim()}" com DDD.`);
+        return;
+      }
+    }
     setEnviando(true);
     try {
       const payload = {
@@ -410,13 +426,14 @@ function PainelInscrito() {
           nome: p.nome.trim(),
           labId: p.labId,
           cpf: p.cpf ? p.cpf.trim() : undefined,
+          whatsapp: p.whatsapp.replace(/\D/g, ""),
           regional: p.regional,
           congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao.trim(),
           ministerioId: p.regional === "SEDE" ? (p.ministerioId || null) : null,
         })),
       };
       const res = await inscreverFn({ data: payload });
-      setParticipantes([{ nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+      setParticipantes([{ nome: "", labId: "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       await carregar();
       await carregarVagas();
       
@@ -539,7 +556,21 @@ function PainelInscrito() {
                           </select>
                         </div>
                       </div>
-                      
+
+                      <div className="grid gap-3 sm:grid-cols-2 mt-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">WHATSAPP DO PARTICIPANTE</label>
+                          <input
+                            value={p.whatsapp}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, whatsapp: formatWhatsBR(e.target.value) } : x)))}
+                            placeholder="(00) 00000-0000"
+                            inputMode="numeric"
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          />
+                        </div>
+                      </div>
+
                       <div className="grid gap-3 sm:grid-cols-2 mt-3">
                         <div className="space-y-1">
                           <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">REGIONAL</label>
@@ -624,7 +655,7 @@ function PainelInscrito() {
                   <button
                     type="button"
                     onClick={() => {
-                      setParticipantes([...participantes, { nome: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+                      setParticipantes([...participantes, { nome: "", labId: "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                     }}
                     className="text-xs tracking-widest text-primary font-semibold hover:underline"
                   >

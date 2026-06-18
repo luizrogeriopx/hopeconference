@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { WhatsAppGate } from "@/components/WhatsAppGate";
 
 function NotFoundComponent() {
   return (
@@ -149,7 +150,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <WhatsAppGate>
+        <Outlet />
+      </WhatsAppGate>
     </QueryClientProvider>
   );
 }
