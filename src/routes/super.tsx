@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Cards, RegionalCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
+import { ContasUsuarios } from "@/components/ContasUsuarios";
 import {
   criarUsuarioPainel,
   listarUsuariosPainel,
