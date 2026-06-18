@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Cards, RegionalCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
+import { ContasUsuarios } from "@/components/ContasUsuarios";
 import {
   criarUsuarioPainel,
   listarUsuariosPainel,
@@ -1084,6 +1085,8 @@ function SuperPage() {
           onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
           onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" | "recepcao" } }); await carregar(); }}
         />
+
+        <ContasUsuarios />
       </div>
     </main>
   );
