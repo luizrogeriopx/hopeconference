@@ -68,7 +68,7 @@ function RecepcaoPage() {
   const [vagasOcupadas, setVagasOcupadas] = useState<Record<string, number>>({});
   const [totalGeralOcupado, setTotalGeralOcupado] = useState(0);
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([
-    { nome: "", email: "", labId: "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }
+    { nome: "", email: "", labId: "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }
   ]);
   const [ministerios, setMinisterios] = useState<Ministerio[]>([]);
   const [ultimasInscricoes, setUltimasInscricoes] = useState<UltimaInscricao[]>([]);
@@ -220,7 +220,7 @@ function RecepcaoPage() {
       setSucesso(`Inscrição presencial realizada com sucesso! As credenciais de acesso provisórias foram geradas (E-mail informado, senha provisória: 123456) para acesso ao painel (https://hopeconference.lovable.app/painel) onde estarão os QR Codes.`);
       
       const generalLab = labs.find(l => l.eh_geral);
-      setParticipantes([{ nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+      setParticipantes([{ nome: "", email: "", labId: generalLab?.id || "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
       
       await carregarVagas();
       await carregarUltimasInscricoes();
@@ -406,7 +406,7 @@ function RecepcaoPage() {
                   type="button"
                   onClick={() => {
                     const generalLab = labs.find(l => l.eh_geral);
-                    setParticipantes([...participantes, { nome: "", email: "", labId: generalLab?.id || "", cpf: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
+                    setParticipantes([...participantes, { nome: "", email: "", labId: generalLab?.id || "", cpf: "", whatsapp: "", regional: "SEDE", congregacao: "", ministerioId: "" }]);
                   }}
                   className="text-xs tracking-widest text-primary font-semibold hover:underline"
                 >
