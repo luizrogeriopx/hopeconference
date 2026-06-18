@@ -61,6 +61,7 @@ export function ContasUsuarios() {
   const resetar = useServerFn(resetarSenhaConta);
   const gerarLink = useServerFn(gerarLinkAcessoConta);
   const listarInscs = useServerFn(listarInscricoesDaConta);
+  const excluir = useServerFn(excluirConta);
 
   const [contas, setContas] = useState<Conta[]>([]);
   const [busca, setBusca] = useState("");
