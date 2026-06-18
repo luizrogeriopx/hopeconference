@@ -265,9 +265,14 @@ const inputSchemaRecepcao = z.object({
         email: z.string().email(),
         labId: z.string().uuid(),
         cpf: z.string().optional(),
+        whatsapp: z.string().min(10).max(20),
         regional: z.enum(regionaisValidas),
         congregacao: z.string().max(150).optional().or(z.literal("")),
         ministerioId: z.string().uuid().nullable().optional(),
+      })
+      .refine((p) => p.whatsapp.replace(/\D/g, "").length >= 10 && p.whatsapp.replace(/\D/g, "").length <= 11, {
+        message: "WhatsApp inválido. Informe com DDD.",
+        path: ["whatsapp"],
       })
       .refine((p) => {
         if (p.regional === "SEDE") {
