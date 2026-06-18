@@ -1085,6 +1085,8 @@ function SuperPage() {
           onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
           onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" | "recepcao" } }); await carregar(); }}
         />
+
+        <ContasUsuarios />
       </div>
     </main>
   );
