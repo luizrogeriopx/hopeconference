@@ -27,6 +27,24 @@ export function WhatsAppGate({ children }: { children: React.ReactNode }) {
       setPrecisa(false);
       return;
     }
+    // Detecta impersonação via magic link: ?impersonated=1 marca a sessão
+    // para que o super admin logado como o usuário não seja obrigado a
+    // preencher o WhatsApp dele.
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("impersonated") === "1") {
+          sessionStorage.setItem("impersonated_session", "1");
+        }
+        if (sessionStorage.getItem("impersonated_session") === "1") {
+          setPrecisa(false);
+          setChecando(false);
+          return;
+        }
+      } catch {
+        // ignore
+      }
+    }
     let cancel = false;
     setChecando(true);
     supabase
