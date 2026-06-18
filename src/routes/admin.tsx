@@ -469,16 +469,16 @@ export function ListaPastoresCoordenadores({ inscricoes }: { inscricoes: Inscric
         <h2 className="font-display text-xl text-primary">Pastores e Coordenadores Cadastrados</h2>
         <span className="rounded-md border border-border bg-background px-2.5 py-1 text-[10px] tracking-widest uppercase text-muted-foreground">{list.length} Total</span>
       </div>
-      <div className="overflow-x-auto">
+      <div className="max-h-[70vh] overflow-auto">
         <table className="w-full min-w-[700px] text-sm text-left">
-          <thead className="text-xs tracking-widest uppercase text-muted-foreground">
+          <thead className="sticky top-0 z-10 bg-card text-xs tracking-widest uppercase text-muted-foreground shadow-[0_1px_0_0_var(--color-border)]">
             <tr>
-              <th className="p-3">Nome</th>
-              <th className="p-3">CPF</th>
-              <th className="p-3">Categoria</th>
-              <th className="p-3">Regional</th>
-              <th className="p-3">Congregação</th>
-              <th className="p-3">Status</th>
+              <th className="p-3 bg-card">Nome</th>
+              <th className="p-3 bg-card">CPF</th>
+              <th className="p-3 bg-card">Categoria</th>
+              <th className="p-3 bg-card">Regional</th>
+              <th className="p-3 bg-card">Congregação</th>
+              <th className="p-3 bg-card">Status</th>
             </tr>
           </thead>
           <tbody>
