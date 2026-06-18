@@ -412,6 +412,13 @@ function PainelInscrito() {
       setErro("Informe ao menos um participante.");
       return;
     }
+    for (const p of validos) {
+      const d = p.whatsapp.replace(/\D/g, "");
+      if (d.length < 10 || d.length > 11) {
+        setErro(`Informe o WhatsApp do participante "${p.nome.trim()}" com DDD.`);
+        return;
+      }
+    }
     setEnviando(true);
     try {
       const payload = {
