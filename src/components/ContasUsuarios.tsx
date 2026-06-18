@@ -170,6 +170,22 @@ export function ContasUsuarios() {
     }
   }
 
+  async function onExcluir(c: Conta) {
+    const aviso = c.total_inscricoes > 0
+      ? `Esta conta possui ${c.total_inscricoes} inscrição(ões). Ao excluir, TODAS as inscrições, QRs e dados desta conta serão removidos permanentemente.\n\nDigite EXCLUIR para confirmar a exclusão de ${c.email}:`
+      : `Tem certeza que deseja excluir permanentemente a conta ${c.email}?\n\nDigite EXCLUIR para confirmar:`;
+    const resp = prompt(aviso);
+    if (resp !== "EXCLUIR") return;
+    setMensagem(null);
+    try {
+      await excluir({ data: { user_id: c.id } });
+      setMensagem(`Conta ${c.email} excluída.`);
+      await carregar();
+    } catch (e) {
+      setMensagem(e instanceof Error ? e.message : "Erro ao excluir conta.");
+    }
+  }
+
   const contaSelecionada = contas.find((c) => c.id === verUserId);
 
   return (
