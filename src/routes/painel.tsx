@@ -556,7 +556,21 @@ function PainelInscrito() {
                           </select>
                         </div>
                       </div>
-                      
+
+                      <div className="grid gap-3 sm:grid-cols-2 mt-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">WHATSAPP DO PARTICIPANTE</label>
+                          <input
+                            value={p.whatsapp}
+                            onChange={(e) => setParticipantes(participantes.map((x, j) => (j === i ? { ...x, whatsapp: formatWhatsBR(e.target.value) } : x)))}
+                            placeholder="(00) 00000-0000"
+                            inputMode="numeric"
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                            required
+                          />
+                        </div>
+                      </div>
+
                       <div className="grid gap-3 sm:grid-cols-2 mt-3">
                         <div className="space-y-1">
                           <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">REGIONAL</label>
