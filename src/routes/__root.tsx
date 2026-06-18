@@ -150,7 +150,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <WhatsAppGate>
+        <Outlet />
+      </WhatsAppGate>
     </QueryClientProvider>
   );
 }
