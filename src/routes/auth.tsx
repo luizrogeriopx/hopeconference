@@ -116,6 +116,17 @@ function AuthPage() {
               />
             </label>
           )}
+          {mode === "signup" && (
+            <label className="block">
+              <span className="text-xs tracking-widest text-muted-foreground">WHATSAPP (COM DDD)</span>
+              <input
+                required inputMode="numeric" value={whatsapp}
+                onChange={(e) => setWhatsapp(formatWhats(e.target.value))}
+                placeholder="(00) 00000-0000"
+                className="mt-1 w-full rounded-md border border-input bg-background px-4 py-3 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30"
+              />
+            </label>
+          )}
           <label className="block">
             <span className="text-xs tracking-widest text-muted-foreground">E-MAIL</span>
             <input
