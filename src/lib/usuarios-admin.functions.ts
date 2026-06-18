@@ -143,3 +143,32 @@ export const listarInscricoesDaConta = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return inscs ?? [];
   });
+
+export const excluirConta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ user_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const ad = admin();
+    await assertSuper(ad, context.userId);
+
+    if (data.user_id === context.userId) {
+      throw new Error("Você não pode excluir sua própria conta.");
+    }
+
+    const { data: alvoRoles } = await ad
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.user_id);
+    if ((alvoRoles ?? []).some((r) => r.role === "super_admin")) {
+      throw new Error("Não é possível excluir outro super admin.");
+    }
+
+    // Remove dependências antes (caso FKs não tenham cascade)
+    await ad.from("inscricoes").delete().eq("comprador_user_id", data.user_id);
+    await ad.from("user_roles").delete().eq("user_id", data.user_id);
+    await ad.from("profiles").delete().eq("id", data.user_id);
+
+    const { error } = await ad.auth.admin.deleteUser(data.user_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
