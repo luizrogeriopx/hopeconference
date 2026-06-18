@@ -7,6 +7,7 @@ import {
   resetarSenhaConta,
   gerarLinkAcessoConta,
   listarInscricoesDaConta,
+  excluirConta,
 } from "@/lib/usuarios-admin.functions";
 
 type Conta = {
