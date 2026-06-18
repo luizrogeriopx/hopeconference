@@ -137,7 +137,18 @@ export function ContasUsuarios() {
     try {
       const res = await gerarLink({ data: { user_id: id } });
       const r = res as { url: string; email: string };
-      setShowLink({ url: r.url, email: r.email });
+      // Força o redirect_to do magic link para marcar a sessão como impersonação,
+      // assim o WhatsAppGate não exigirá WhatsApp do super logado como o usuário.
+      let finalUrl = r.url;
+      try {
+        const u = new URL(r.url);
+        const redirect = `${window.location.origin}/?impersonated=1`;
+        u.searchParams.set("redirect_to", redirect);
+        finalUrl = u.toString();
+      } catch {
+        // mantém url original em caso de parse falhar
+      }
+      setShowLink({ url: finalUrl, email: r.email });
     } catch (e) {
       setMensagem(e instanceof Error ? e.message : "Erro ao gerar link.");
     }
