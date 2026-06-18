@@ -419,6 +419,7 @@ function PainelInscrito() {
           nome: p.nome.trim(),
           labId: p.labId,
           cpf: p.cpf ? p.cpf.trim() : undefined,
+          whatsapp: p.whatsapp.replace(/\D/g, ""),
           regional: p.regional,
           congregacao: p.regional === "SEDE" ? "SEDE" : p.congregacao.trim(),
           ministerioId: p.regional === "SEDE" ? (p.ministerioId || null) : null,
