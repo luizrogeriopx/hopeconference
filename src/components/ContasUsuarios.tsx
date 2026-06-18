@@ -330,6 +330,12 @@ export function ContasUsuarios() {
                           >
                             LOGAR COMO
                           </button>
+                          <button
+                            onClick={() => void onExcluir(c)}
+                            className="rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/20"
+                          >
+                            EXCLUIR
+                          </button>
                         </>
                       )}
                     </div>
