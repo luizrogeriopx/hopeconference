@@ -450,6 +450,7 @@ export const criarInscricoesRecepcao = createServerFn({ method: "POST" })
         comprador_user_id: participantUserId,
         nome_participante: p.nome,
         email: emailTrim,
+        telefone: p.whatsapp.replace(/\D/g, ""),
         lab_id: p.labId,
         cpf: p.cpf ? p.cpf.replace(/\D/g, "") : null,
         valor: valorInscricao,
