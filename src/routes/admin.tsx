@@ -247,37 +247,62 @@ export function ListaInscricoes({
   onAlterarLab,
   onEditar,
   labs,
+  congregacoes,
+  ministerios,
 }: {
   inscricoes: Inscricao[];
   busca: string;
   setBusca: (s: string) => void;
   onExcluir?: (id: string) => void;
   onAlterarLab?: (id: string, labId: string) => Promise<void> | void;
-  onEditar?: (id: string, dados: { nome_participante: string; email: string | null; telefone: string | null }) => Promise<void> | void;
+  onEditar?: (id: string, dados: { nome_participante: string; email: string | null; telefone: string | null; regional: string; congregacao: string; ministerio_id: string | null }) => Promise<void> | void;
   labs?: { id: string; nome: string; local: string; eh_geral: boolean }[];
+  congregacoes?: { id: string; regional: string; congregacao: string }[];
+  ministerios?: { id: string; nome: string }[];
 }) {
   const [editando, setEditando] = useState<Inscricao | null>(null);
   const [editNome, setEditNome] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editTelefone, setEditTelefone] = useState("");
+  const [editRegional, setEditRegional] = useState("");
+  const [editCongregacao, setEditCongregacao] = useState("");
+  const [editMinisterioId, setEditMinisterioId] = useState<string>("");
   const [salvandoEdit, setSalvandoEdit] = useState(false);
+
+  const regionaisDisponiveis = useMemo(
+    () => [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"],
+    []
+  );
+
+  const congregacoesDaRegional = useMemo(() => {
+    if (!congregacoes || !editRegional || editRegional === "SEDE") return [];
+    return congregacoes.filter((c) => c.regional === editRegional);
+  }, [congregacoes, editRegional]);
 
   function abrirEdicao(i: Inscricao) {
     setEditando(i);
     setEditNome(i.nome_participante || "");
     setEditEmail(i.email || "");
     setEditTelefone(i.telefone || "");
+    setEditRegional(i.regional || "");
+    setEditCongregacao(i.congregacao || "");
+    setEditMinisterioId(i.ministerio_id || "");
   }
 
   async function salvarEdicao() {
     if (!editando || !onEditar) return;
     if (!editNome.trim()) { alert("Nome é obrigatório."); return; }
+    if (!editRegional) { alert("Regional é obrigatória."); return; }
+    if (editRegional !== "SEDE" && !editCongregacao.trim()) { alert("Congregação é obrigatória."); return; }
     setSalvandoEdit(true);
     try {
       await onEditar(editando.id, {
         nome_participante: editNome.trim(),
         email: editEmail.trim() || null,
         telefone: editTelefone.trim() || null,
+        regional: editRegional,
+        congregacao: editRegional === "SEDE" ? "SEDE" : editCongregacao.trim(),
+        ministerio_id: editRegional === "SEDE" ? (editMinisterioId || null) : null,
       });
       setEditando(null);
     } catch (err) {
