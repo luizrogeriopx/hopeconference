@@ -11,6 +11,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { WhatsAppGate } from "@/components/WhatsAppGate";
+import { WhatsAppSupportButton } from "@/components/WhatsAppSupportButton";
 
 function NotFoundComponent() {
   return (
@@ -153,6 +154,7 @@ function RootComponent() {
       <WhatsAppGate>
         <Outlet />
       </WhatsAppGate>
+      <WhatsAppSupportButton />
     </QueryClientProvider>
   );
 }
