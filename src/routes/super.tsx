@@ -225,6 +225,23 @@ function SuperPage() {
     else await carregar();
   }
 
+  async function editarInscricao(
+    id: string,
+    dados: { nome_participante: string; email: string | null; telefone: string | null }
+  ) {
+    // Atualiza apenas dados pessoais — qr_token e lab_qr_token NÃO são alterados.
+    const { error } = await supabase
+      .from("inscricoes")
+      .update({
+        nome_participante: dados.nome_participante,
+        email: dados.email,
+        telefone: dados.telefone,
+      })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+    await carregar();
+  }
+
   async function criarCongregacao(e: React.FormEvent) {
     e.preventDefault();
     if (!novaCongregacaoNome.trim()) return;
