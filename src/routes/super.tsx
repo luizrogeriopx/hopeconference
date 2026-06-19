@@ -1148,6 +1148,23 @@ function SuperPage() {
           </div>
         </section>
 
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-xs tracking-widest uppercase text-muted-foreground">Filtrar status:</label>
+          {(["todos", "pendente", "pago", "validado", "cancelado"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatusFiltro(s)}
+              className={`rounded-md border px-3 py-1.5 text-xs tracking-widest uppercase transition ${
+                statusFiltro === s
+                  ? "border-gold bg-gold/10 text-gold"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
         <ListaInscricoes
           inscricoes={filtradas}
           busca={busca}
