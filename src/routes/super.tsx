@@ -25,6 +25,7 @@ type Inscricao = {
   id: string;
   nome_participante: string;
   email: string | null;
+  telefone?: string | null;
   status: "pendente" | "pago" | "cancelado" | "validado";
   valor: number;
   criado_em: string;
