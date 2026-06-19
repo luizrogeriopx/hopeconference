@@ -357,9 +357,9 @@ export function ListaInscricoes({
                         const digits = (i.telefone || "").replace(/\D/g, "");
                         if (!digits) return null;
                         const phone = digits.startsWith("55") ? digits : `55${digits}`;
-                        const msg = i.status === "PAGO"
+                        const msg = i.status === "pago"
                           ? "Obrigado por se inscrever na HOPE CONFERENCE, serão 3 dias extraordinários na sua vida!"
-                          : i.status === "PENDENTE"
+                          : i.status === "pendente"
                           ? "Olá, a Paz do Senhor! vi que tentou se inscrever na HOPE CONFERENCE más não conclui o pagamento da inscrição, você teve alguma dificuldade com a inscrição? Precisa da minha ajuda?"
                           : null;
                         if (!msg) return null;
