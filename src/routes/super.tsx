@@ -1092,6 +1092,7 @@ function SuperPage() {
           setBusca={setBusca}
           onExcluir={excluirInscricao}
           onAlterarLab={alterarLabInscricao}
+          onEditar={editarInscricao}
           labs={labs}
         />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
