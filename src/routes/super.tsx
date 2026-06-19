@@ -603,6 +603,50 @@ function SuperPage() {
           onSelectRegional={setRegionalSelecionada}
         />
 
+        <div className="space-y-2">
+          <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
+            Inscrições Confirmadas por LABs
+          </h3>
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
+            {labs.map((l) => (
+              <div
+                key={l.id}
+                className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start text-left w-full"
+              >
+                <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={l.nome}>{l.nome}</span>
+                <span className="mt-1 font-display text-lg text-primary font-bold">
+                  {stats.labCounts[l.id] ?? 0}
+                </span>
+              </div>
+            ))}
+            {labs.length === 0 && (
+              <p className="text-xs text-muted-foreground col-span-full">Nenhum LAB cadastrado.</p>
+            )}
+          </section>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
+            Inscrições Confirmadas por Ministério
+          </h3>
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
+            {ministerios.filter((m) => m.ativo).map((m) => (
+              <div
+                key={m.id}
+                className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start text-left w-full"
+              >
+                <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={m.nome}>{m.nome}</span>
+                <span className="mt-1 font-display text-lg text-primary font-bold">
+                  {stats.ministerioCounts[m.id] ?? 0}
+                </span>
+              </div>
+            ))}
+            {ministerios.filter((m) => m.ativo).length === 0 && (
+              <p className="text-xs text-muted-foreground col-span-full">Nenhum ministério cadastrado.</p>
+            )}
+          </section>
+        </div>
+
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
