@@ -129,7 +129,7 @@ function SuperPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, lab_qr_token, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
+      .select("id, nome_participante, email, telefone, status, valor, criado_em, validado_em, cpf, lab_id, lab_qr_token, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 
