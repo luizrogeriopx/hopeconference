@@ -568,9 +568,10 @@ function SuperPage() {
         i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
         (i.email ?? "").toLowerCase().includes(busca.toLowerCase());
       const matchesRegional = !regionalSelecionada || i.regional === regionalSelecionada;
-      return matchesBusca && matchesRegional;
+      const matchesStatus = statusFiltro === "todos" || i.status === statusFiltro;
+      return matchesBusca && matchesRegional && matchesStatus;
     });
-  }, [inscricoes, busca, regionalSelecionada]);
+  }, [inscricoes, busca, regionalSelecionada, statusFiltro]);
 
   function copiar(path: string) {
     const url = `${window.location.origin}${path}`;
