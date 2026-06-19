@@ -80,6 +80,7 @@ function SuperPage() {
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
   const [regionalSelecionada, setRegionalSelecionada] = useState<string | null>(null);
+  const [statusFiltro, setStatusFiltro] = useState<"todos" | "pendente" | "pago" | "validado" | "cancelado">("todos");
   const [copiado, setCopiado] = useState<string | null>(null);
   const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
   const [salvandoFlag, setSalvandoFlag] = useState(false);
@@ -567,9 +568,10 @@ function SuperPage() {
         i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
         (i.email ?? "").toLowerCase().includes(busca.toLowerCase());
       const matchesRegional = !regionalSelecionada || i.regional === regionalSelecionada;
-      return matchesBusca && matchesRegional;
+      const matchesStatus = statusFiltro === "todos" || i.status === statusFiltro;
+      return matchesBusca && matchesRegional && matchesStatus;
     });
-  }, [inscricoes, busca, regionalSelecionada]);
+  }, [inscricoes, busca, regionalSelecionada, statusFiltro]);
 
   function copiar(path: string) {
     const url = `${window.location.origin}${path}`;
@@ -1146,6 +1148,23 @@ function SuperPage() {
           </div>
         </section>
 
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-xs tracking-widest uppercase text-muted-foreground">Filtrar status:</label>
+          {(["todos", "pendente", "pago", "validado", "cancelado"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatusFiltro(s)}
+              className={`rounded-md border px-3 py-1.5 text-xs tracking-widest uppercase transition ${
+                statusFiltro === s
+                  ? "border-gold bg-gold/10 text-gold"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
         <ListaInscricoes
           inscricoes={filtradas}
           busca={busca}
