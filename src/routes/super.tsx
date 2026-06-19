@@ -80,6 +80,7 @@ function SuperPage() {
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
   const [regionalSelecionada, setRegionalSelecionada] = useState<string | null>(null);
+  const [statusFiltro, setStatusFiltro] = useState<"todos" | "pendente" | "pago" | "validado" | "cancelado">("todos");
   const [copiado, setCopiado] = useState<string | null>(null);
   const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
   const [salvandoFlag, setSalvandoFlag] = useState(false);
