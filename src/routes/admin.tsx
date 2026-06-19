@@ -349,7 +349,36 @@ export function ListaInscricoes({
                 <td className="p-3 text-primary font-medium">{i.nome_participante}</td>
                 <td className="p-3 text-muted-foreground font-mono">{i.cpf ? i.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "-"}</td>
                 <td className="p-3 text-muted-foreground">{i.email}</td>
-                <td className="p-3 text-muted-foreground">{i.telefone || "-"}</td>
+                <td className="p-3 text-muted-foreground">
+                  {i.telefone ? (
+                    <div className="flex items-center gap-2">
+                      <span>{i.telefone}</span>
+                      {(() => {
+                        const digits = (i.telefone || "").replace(/\D/g, "");
+                        if (!digits) return null;
+                        const phone = digits.startsWith("55") ? digits : `55${digits}`;
+                        const msg = i.status === "pago"
+                          ? "Obrigado por se inscrever na HOPE CONFERENCE, serão 3 dias extraordinários na sua vida!"
+                          : i.status === "pendente"
+                          ? "Olá, a Paz do Senhor! vi que tentou se inscrever na HOPE CONFERENCE más não conclui o pagamento da inscrição, você teve alguma dificuldade com a inscrição? Precisa da minha ajuda?"
+                          : null;
+                        if (!msg) return null;
+                        const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+                        return (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Abrir WhatsApp"
+                            className="inline-flex items-center justify-center rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-green-600 hover:bg-green-500/10"
+                          >
+                            WHATSAPP
+                          </a>
+                        );
+                      })()}
+                    </div>
+                  ) : "-"}
+                </td>
                 <td className="p-3 text-muted-foreground">
                   {onAlterarLab && labs && labs.length > 0 ? (
                     <select
