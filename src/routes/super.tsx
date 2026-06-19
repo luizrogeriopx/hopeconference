@@ -1098,6 +1098,8 @@ function SuperPage() {
           onAlterarLab={alterarLabInscricao}
           onEditar={editarInscricao}
           labs={labs}
+          congregacoes={congregacoes}
+          ministerios={ministerios.filter((m) => m.ativo)}
         />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
 
