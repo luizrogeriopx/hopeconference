@@ -18,6 +18,7 @@ type Inscricao = {
   id: string;
   nome_participante: string;
   email: string | null;
+  telefone?: string | null;
   status: "pendente" | "pago" | "cancelado" | "validado";
   valor: number;
   criado_em: string;
@@ -244,6 +245,7 @@ export function ListaInscricoes({
   setBusca,
   onExcluir,
   onAlterarLab,
+  onEditar,
   labs,
 }: {
   inscricoes: Inscricao[];
@@ -251,8 +253,42 @@ export function ListaInscricoes({
   setBusca: (s: string) => void;
   onExcluir?: (id: string) => void;
   onAlterarLab?: (id: string, labId: string) => Promise<void> | void;
+  onEditar?: (id: string, dados: { nome_participante: string; email: string | null; telefone: string | null }) => Promise<void> | void;
   labs?: { id: string; nome: string; local: string; eh_geral: boolean }[];
 }) {
+  const [editando, setEditando] = useState<Inscricao | null>(null);
+  const [editNome, setEditNome] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editTelefone, setEditTelefone] = useState("");
+  const [salvandoEdit, setSalvandoEdit] = useState(false);
+
+  function abrirEdicao(i: Inscricao) {
+    setEditando(i);
+    setEditNome(i.nome_participante || "");
+    setEditEmail(i.email || "");
+    setEditTelefone(i.telefone || "");
+  }
+
+  async function salvarEdicao() {
+    if (!editando || !onEditar) return;
+    if (!editNome.trim()) { alert("Nome é obrigatório."); return; }
+    setSalvandoEdit(true);
+    try {
+      await onEditar(editando.id, {
+        nome_participante: editNome.trim(),
+        email: editEmail.trim() || null,
+        telefone: editTelefone.trim() || null,
+      });
+      setEditando(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao salvar.");
+    } finally {
+      setSalvandoEdit(false);
+    }
+  }
+
+  const colSpan = 13 + (onEditar ? 1 : 0) + (onExcluir ? 1 : 0);
+
   return (
     <section className="rounded-xl border border-border bg-card shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
@@ -263,12 +299,13 @@ export function ListaInscricoes({
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail" className="w-full max-w-xs rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
       </div>
       <div className="max-h-[70vh] overflow-auto">
-        <table className="w-full min-w-[1100px] text-sm">
+        <table className="w-full min-w-[1200px] text-sm">
           <thead className="sticky top-0 z-10 bg-card text-left text-xs tracking-widest uppercase text-muted-foreground shadow-[0_1px_0_0_var(--color-border)]">
             <tr>
               <th className="p-3 bg-card">Nome</th>
               <th className="p-3 bg-card">CPF</th>
               <th className="p-3 bg-card">E-mail</th>
+              <th className="p-3 bg-card">WhatsApp</th>
               <th className="p-3 bg-card">Categoria</th>
               <th className="p-3 bg-card">Regional</th>
               <th className="p-3 bg-card">Congregação</th>
@@ -278,7 +315,7 @@ export function ListaInscricoes({
               <th className="p-3 bg-card">Forma Pgto.</th>
               <th className="p-3 bg-card">Valor</th>
               <th className="p-3 bg-card">Data</th>
-              {onExcluir && <th className="p-3 bg-card text-right">Ação</th>}
+              {(onEditar || onExcluir) && <th className="p-3 bg-card text-right">Ações</th>}
             </tr>
           </thead>
           <tbody>
@@ -287,6 +324,7 @@ export function ListaInscricoes({
                 <td className="p-3 text-primary font-medium">{i.nome_participante}</td>
                 <td className="p-3 text-muted-foreground font-mono">{i.cpf ? i.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "-"}</td>
                 <td className="p-3 text-muted-foreground">{i.email}</td>
+                <td className="p-3 text-muted-foreground">{i.telefone || "-"}</td>
                 <td className="p-3 text-muted-foreground">
                   {onAlterarLab && labs && labs.length > 0 ? (
                     <select
@@ -318,24 +356,61 @@ export function ListaInscricoes({
                 </td>
                 <td className="p-3 text-muted-foreground">R$ {Number(i.valor).toFixed(2)}</td>
                 <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleDateString("pt-BR")}</td>
-                {onExcluir && (
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => onExcluir(i.id)}
-                      className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10"
-                    >
-                      EXCLUIR
-                    </button>
+                {(onEditar || onExcluir) && (
+                  <td className="p-3 text-right whitespace-nowrap">
+                    {onEditar && (
+                      <button
+                        onClick={() => abrirEdicao(i)}
+                        className="mr-2 rounded-md border border-border px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-primary/10"
+                      >
+                        EDITAR
+                      </button>
+                    )}
+                    {onExcluir && (
+                      <button
+                        onClick={() => onExcluir(i.id)}
+                        className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10"
+                      >
+                        EXCLUIR
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>
             ))}
             {inscricoes.length === 0 && (
-              <tr><td colSpan={onExcluir ? 13 : 12} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
+              <tr><td colSpan={colSpan} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição.</td></tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {editando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => !salvandoEdit && setEditando(null)}>
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-lg text-primary">Editar inscrição</h3>
+            <p className="mt-1 text-xs text-muted-foreground">O QR Code gerado não será alterado.</p>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Nome</label>
+                <input value={editNome} onChange={(e) => setEditNome(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">E-mail</label>
+                <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">WhatsApp</label>
+                <input value={editTelefone} onChange={(e) => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button disabled={salvandoEdit} onClick={() => setEditando(null)} className="rounded-md border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground hover:bg-muted/30 disabled:opacity-50">CANCELAR</button>
+              <button disabled={salvandoEdit} onClick={salvarEdicao} className="rounded-md bg-primary px-4 py-2 text-xs tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50">{salvandoEdit ? "SALVANDO..." : "SALVAR"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -25,6 +25,7 @@ type Inscricao = {
   id: string;
   nome_participante: string;
   email: string | null;
+  telefone?: string | null;
   status: "pendente" | "pago" | "cancelado" | "validado";
   valor: number;
   criado_em: string;
@@ -128,7 +129,7 @@ function SuperPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, lab_qr_token, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
+      .select("id, nome_participante, email, telefone, status, valor, criado_em, validado_em, cpf, lab_id, lab_qr_token, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 
@@ -222,6 +223,23 @@ function SuperPage() {
     const { error } = await supabase.from("inscricoes").delete().eq("id", id);
     if (error) alert(error.message);
     else await carregar();
+  }
+
+  async function editarInscricao(
+    id: string,
+    dados: { nome_participante: string; email: string | null; telefone: string | null }
+  ) {
+    // Atualiza apenas dados pessoais — qr_token e lab_qr_token NÃO são alterados.
+    const { error } = await supabase
+      .from("inscricoes")
+      .update({
+        nome_participante: dados.nome_participante,
+        email: dados.email,
+        telefone: dados.telefone,
+      })
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+    await carregar();
   }
 
   async function criarCongregacao(e: React.FormEvent) {
@@ -1074,6 +1092,7 @@ function SuperPage() {
           setBusca={setBusca}
           onExcluir={excluirInscricao}
           onAlterarLab={alterarLabInscricao}
+          onEditar={editarInscricao}
           labs={labs}
         />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
