@@ -536,6 +536,16 @@ function SuperPage() {
       regionalCounts[r] = pagas.filter((i) => i.regional === r).length;
     });
 
+    const labCounts: Record<string, number> = {};
+    pagas.forEach((i) => {
+      if (i.lab_id) labCounts[i.lab_id] = (labCounts[i.lab_id] ?? 0) + 1;
+    });
+
+    const ministerioCounts: Record<string, number> = {};
+    pagas.forEach((i) => {
+      if (i.ministerio_id) ministerioCounts[i.ministerio_id] = (ministerioCounts[i.ministerio_id] ?? 0) + 1;
+    });
+
     return { 
       total: inscricoes.length, 
       pagas: pagas.length, 
@@ -543,6 +553,8 @@ function SuperPage() {
       canceladas: canceladas.length, 
       receita,
       regionalCounts,
+      labCounts,
+      ministerioCounts,
       totalDinheiro,
     };
   }, [inscricoes, totalDinheiro]);
