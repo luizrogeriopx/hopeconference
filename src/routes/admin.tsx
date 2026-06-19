@@ -428,10 +428,60 @@ export function ListaInscricoes({
                 <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">WhatsApp</label>
                 <input value={editTelefone} onChange={(e) => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
               </div>
-            </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button disabled={salvandoEdit} onClick={() => setEditando(null)} className="rounded-md border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground hover:bg-muted/30 disabled:opacity-50">CANCELAR</button>
-              <button disabled={salvandoEdit} onClick={salvarEdicao} className="rounded-md bg-primary px-4 py-2 text-xs tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50">{salvandoEdit ? "SALVANDO..." : "SALVAR"}</button>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Regional</label>
+                <select
+                  value={editRegional}
+                  onChange={(e) => { setEditRegional(e.target.value); setEditCongregacao(""); }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                >
+                  <option value="">Selecione...</option>
+                  {regionaisDisponiveis.map((r) => (
+                    <option key={r} value={r}>{r === "SEDE" ? "SEDE" : `Regional ${r}`}</option>
+                  ))}
+                </select>
+              </div>
+              {editRegional && editRegional !== "SEDE" && (
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Congregação</label>
+                  {congregacoesDaRegional.length > 0 ? (
+                    <select
+                      value={editCongregacao}
+                      onChange={(e) => setEditCongregacao(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                    >
+                      <option value="">Selecione...</option>
+                      {congregacoesDaRegional.map((c) => (
+                        <option key={c.id} value={c.congregacao}>{c.congregacao}</option>
+                      ))}
+                      {editCongregacao && !congregacoesDaRegional.some((c) => c.congregacao === editCongregacao) && (
+                        <option value={editCongregacao}>{editCongregacao} (atual)</option>
+                      )}
+                    </select>
+                  ) : (
+                    <input
+                      value={editCongregacao}
+                      onChange={(e) => setEditCongregacao(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                    />
+                  )}
+                </div>
+              )}
+              {editRegional === "SEDE" && ministerios && (
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Ministério</label>
+                  <select
+                    value={editMinisterioId}
+                    onChange={(e) => setEditMinisterioId(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                  >
+                    <option value="">— Sem ministério —</option>
+                    {ministerios.map((m) => (
+                      <option key={m.id} value={m.id}>{m.nome}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         </div>
