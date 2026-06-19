@@ -483,6 +483,10 @@ export function ListaInscricoes({
                 </div>
               )}
             </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button disabled={salvandoEdit} onClick={() => setEditando(null)} className="rounded-md border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground hover:bg-muted/30 disabled:opacity-50">CANCELAR</button>
+              <button disabled={salvandoEdit} onClick={salvarEdicao} className="rounded-md bg-primary px-4 py-2 text-xs tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50">{salvandoEdit ? "SALVANDO..." : "SALVAR"}</button>
+            </div>
           </div>
         </div>
       )}
