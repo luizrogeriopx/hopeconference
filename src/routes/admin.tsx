@@ -247,37 +247,62 @@ export function ListaInscricoes({
   onAlterarLab,
   onEditar,
   labs,
+  congregacoes,
+  ministerios,
 }: {
   inscricoes: Inscricao[];
   busca: string;
   setBusca: (s: string) => void;
   onExcluir?: (id: string) => void;
   onAlterarLab?: (id: string, labId: string) => Promise<void> | void;
-  onEditar?: (id: string, dados: { nome_participante: string; email: string | null; telefone: string | null }) => Promise<void> | void;
+  onEditar?: (id: string, dados: { nome_participante: string; email: string | null; telefone: string | null; regional: string; congregacao: string; ministerio_id: string | null }) => Promise<void> | void;
   labs?: { id: string; nome: string; local: string; eh_geral: boolean }[];
+  congregacoes?: { id: string; regional: string; congregacao: string }[];
+  ministerios?: { id: string; nome: string }[];
 }) {
   const [editando, setEditando] = useState<Inscricao | null>(null);
   const [editNome, setEditNome] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editTelefone, setEditTelefone] = useState("");
+  const [editRegional, setEditRegional] = useState("");
+  const [editCongregacao, setEditCongregacao] = useState("");
+  const [editMinisterioId, setEditMinisterioId] = useState<string>("");
   const [salvandoEdit, setSalvandoEdit] = useState(false);
+
+  const regionaisDisponiveis = useMemo(
+    () => [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"],
+    []
+  );
+
+  const congregacoesDaRegional = useMemo(() => {
+    if (!congregacoes || !editRegional || editRegional === "SEDE") return [];
+    return congregacoes.filter((c) => c.regional === editRegional);
+  }, [congregacoes, editRegional]);
 
   function abrirEdicao(i: Inscricao) {
     setEditando(i);
     setEditNome(i.nome_participante || "");
     setEditEmail(i.email || "");
     setEditTelefone(i.telefone || "");
+    setEditRegional(i.regional || "");
+    setEditCongregacao(i.congregacao || "");
+    setEditMinisterioId(i.ministerio_id || "");
   }
 
   async function salvarEdicao() {
     if (!editando || !onEditar) return;
     if (!editNome.trim()) { alert("Nome é obrigatório."); return; }
+    if (!editRegional) { alert("Regional é obrigatória."); return; }
+    if (editRegional !== "SEDE" && !editCongregacao.trim()) { alert("Congregação é obrigatória."); return; }
     setSalvandoEdit(true);
     try {
       await onEditar(editando.id, {
         nome_participante: editNome.trim(),
         email: editEmail.trim() || null,
         telefone: editTelefone.trim() || null,
+        regional: editRegional,
+        congregacao: editRegional === "SEDE" ? "SEDE" : editCongregacao.trim(),
+        ministerio_id: editRegional === "SEDE" ? (editMinisterioId || null) : null,
       });
       setEditando(null);
     } catch (err) {
@@ -403,6 +428,60 @@ export function ListaInscricoes({
                 <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">WhatsApp</label>
                 <input value={editTelefone} onChange={(e) => setEditTelefone(e.target.value)} placeholder="(00) 00000-0000" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
               </div>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Regional</label>
+                <select
+                  value={editRegional}
+                  onChange={(e) => { setEditRegional(e.target.value); setEditCongregacao(""); }}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                >
+                  <option value="">Selecione...</option>
+                  {regionaisDisponiveis.map((r) => (
+                    <option key={r} value={r}>{r === "SEDE" ? "SEDE" : `Regional ${r}`}</option>
+                  ))}
+                </select>
+              </div>
+              {editRegional && editRegional !== "SEDE" && (
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Congregação</label>
+                  {congregacoesDaRegional.length > 0 ? (
+                    <select
+                      value={editCongregacao}
+                      onChange={(e) => setEditCongregacao(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                    >
+                      <option value="">Selecione...</option>
+                      {congregacoesDaRegional.map((c) => (
+                        <option key={c.id} value={c.congregacao}>{c.congregacao}</option>
+                      ))}
+                      {editCongregacao && !congregacoesDaRegional.some((c) => c.congregacao === editCongregacao) && (
+                        <option value={editCongregacao}>{editCongregacao} (atual)</option>
+                      )}
+                    </select>
+                  ) : (
+                    <input
+                      value={editCongregacao}
+                      onChange={(e) => setEditCongregacao(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                    />
+                  )}
+                </div>
+              )}
+              {editRegional === "SEDE" && ministerios && (
+                <div>
+                  <label className="block text-[10px] tracking-widest uppercase text-muted-foreground mb-1">Ministério</label>
+                  <select
+                    value={editMinisterioId}
+                    onChange={(e) => setEditMinisterioId(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                  >
+                    <option value="">— Sem ministério —</option>
+                    {ministerios.map((m) => (
+                      <option key={m.id} value={m.id}>{m.nome}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div className="mt-5 flex justify-end gap-2">
               <button disabled={salvandoEdit} onClick={() => setEditando(null)} className="rounded-md border border-border px-3 py-2 text-xs tracking-widest text-muted-foreground hover:bg-muted/30 disabled:opacity-50">CANCELAR</button>

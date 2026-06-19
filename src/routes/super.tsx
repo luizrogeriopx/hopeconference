@@ -227,15 +227,19 @@ function SuperPage() {
 
   async function editarInscricao(
     id: string,
-    dados: { nome_participante: string; email: string | null; telefone: string | null }
+    dados: { nome_participante: string; email: string | null; telefone: string | null; regional: string; congregacao: string; ministerio_id: string | null }
   ) {
-    // Atualiza apenas dados pessoais — qr_token e lab_qr_token NÃO são alterados.
+    // Atualiza dados pessoais e vínculo (regional/congregação/ministério).
+    // qr_token e lab_qr_token NÃO são alterados — QRs gerados continuam válidos.
     const { error } = await supabase
       .from("inscricoes")
       .update({
         nome_participante: dados.nome_participante,
         email: dados.email,
         telefone: dados.telefone,
+        regional: dados.regional,
+        congregacao: dados.congregacao,
+        ministerio_id: dados.ministerio_id,
       })
       .eq("id", id);
     if (error) throw new Error(error.message);
@@ -1094,6 +1098,8 @@ function SuperPage() {
           onAlterarLab={alterarLabInscricao}
           onEditar={editarInscricao}
           labs={labs}
+          congregacoes={congregacoes}
+          ministerios={ministerios.filter((m) => m.ativo)}
         />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
 
