@@ -649,29 +649,39 @@ function SuperPage() {
           </section>
         </div>
 
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="font-display text-xl text-primary">Inscrições</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {inscricoesAbertas
-                  ? "O botão de inscrição na home está ATIVO e clicável."
-                  : "O botão de inscrição na home aparece, mas está DESABILITADO."}
-              </p>
-            </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-xs tracking-widest uppercase text-muted-foreground">Filtrar status:</label>
+          {(["todos", "pendente", "pago", "validado", "cancelado"] as const).map((s) => (
             <button
-              onClick={toggleInscricoes}
-              disabled={salvandoFlag}
-              className={`rounded-md border px-4 py-2 text-xs tracking-widest ${
-                inscricoesAbertas
-                  ? "border-destructive/40 text-destructive hover:bg-destructive/10"
-                  : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
+              key={s}
+              type="button"
+              onClick={() => setStatusFiltro(s)}
+              className={`rounded-md border px-3 py-1.5 text-xs tracking-widest uppercase transition ${
+                statusFiltro === s
+                  ? "border-gold bg-gold/10 text-gold"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground"
               }`}
             >
-              {salvandoFlag ? "SALVANDO…" : inscricoesAbertas ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
+              {s}
             </button>
-          </div>
-        </section>
+          ))}
+        </div>
+
+        <ListaInscricoes
+          inscricoes={filtradas}
+          busca={busca}
+          setBusca={setBusca}
+          onExcluir={excluirInscricao}
+          onAlterarLab={alterarLabInscricao}
+          onEditar={editarInscricao}
+          labs={labs}
+          congregacoes={congregacoes}
+          ministerios={ministerios.filter((m) => m.ativo)}
+        />
+
+        <ListaPastoresCoordenadores inscricoes={filtradas} />
+
+        <ContasUsuarios />
 
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -705,132 +715,6 @@ function SuperPage() {
               <ValidadorEntrada userId={user.id} />
             </div>
           </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border p-4">
-            <h2 className="font-display text-xl text-primary">Ingressos validados na entrada</h2>
-            <span className="text-xs text-muted-foreground">{validadasList.length} total</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-sm">
-              <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
-                <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Validado em</th><th className="p-3 text-right">Ação</th></tr>
-              </thead>
-              <tbody>
-                {validadasList.map((i) => (
-                  <tr key={i.id} className="border-t border-border">
-                    <td className="p-3 text-primary">{i.nome_participante}</td>
-                    <td className="p-3 text-muted-foreground">{i.email}</td>
-                    <td className="p-3 text-muted-foreground">{i.validado_em ? new Date(i.validado_em).toLocaleString("pt-BR") : "—"}</td>
-                    <td className="p-3 text-right">
-                      <button onClick={() => reverter(i.id, "validado")} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
-                        REVERTER
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {validadasList.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-sm text-muted-foreground">Nenhum ingresso validado ainda.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border p-4">
-            <h2 className="font-display text-xl text-primary">Inscrições canceladas</h2>
-            <span className="text-xs text-muted-foreground">{canceladasList.length} total</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-sm">
-              <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
-                <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Inscrito em</th><th className="p-3 text-right">Ação</th></tr>
-              </thead>
-              <tbody>
-                {canceladasList.map((i) => (
-                  <tr key={i.id} className="border-t border-border">
-                    <td className="p-3 text-primary">{i.nome_participante}</td>
-                    <td className="p-3 text-muted-foreground">{i.email}</td>
-                    <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleString("pt-BR")}</td>
-                    <td className="p-3 text-right">
-                      <button onClick={() => reverter(i.id, "cancelado")} className="rounded-md border border-gold bg-gold/10 px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-gold/20">
-                        REATIVAR
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {canceladasList.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição cancelada.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-
-
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <div>
-              <h2 className="font-display text-xl text-primary">Integração do Mercado Pago</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Habilite o checkout transparente (Cartão e Pix) para cobrar as inscrições automaticamente.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={mpAtivo}
-                  onChange={(e) => setMpAtivo(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
-                <span className="ml-2 text-xs font-semibold text-primary tracking-widest uppercase">
-                  {mpAtivo ? "Ativo" : "Inativo"}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <form onSubmit={salvarMercadoPago} className="space-y-4 max-w-2xl">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
-                  Public Key (Chave Pública)
-                </label>
-                <input
-                  type="text"
-                  required={mpAtivo}
-                  placeholder="APP_USR-..."
-                  value={mpPublicKey}
-                  onChange={(e) => setMpPublicKey(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left flex justify-between">
-                  <span>Access Token (Chave Privada)</span>
-                  {mpConfigurado && <span className="text-gold tracking-normal text-[9px] lowercase font-normal">(configurado)</span>}
-                </label>
-                <input
-                  type="password"
-                  required={mpAtivo && !mpConfigurado}
-                  placeholder={mpConfigurado ? "••••••••••••••••••••••••••••••••" : "TEST-... ou APP_USR-..."}
-                  value={mpAccessToken === "_KEEP_EXISTING_" ? "" : mpAccessToken}
-                  onChange={(e) => setMpAccessToken(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={salvandoMP}
-              className="rounded-md bg-primary px-5 py-2.5 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-            >
-              {salvandoMP ? "SALVANDO..." : "SALVAR CONFIGURAÇÃO"}
-            </button>
-          </form>
         </section>
 
         <section className="rounded-xl border border-border bg-card shadow-sm p-5">
@@ -1148,35 +1032,63 @@ function SuperPage() {
           </div>
         </section>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="text-xs tracking-widest uppercase text-muted-foreground">Filtrar status:</label>
-          {(["todos", "pendente", "pago", "validado", "cancelado"] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatusFiltro(s)}
-              className={`rounded-md border px-3 py-1.5 text-xs tracking-widest uppercase transition ${
-                statusFiltro === s
-                  ? "border-gold bg-gold/10 text-gold"
-                  : "border-border bg-background text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-        <ListaInscricoes
-          inscricoes={filtradas}
-          busca={busca}
-          setBusca={setBusca}
-          onExcluir={excluirInscricao}
-          onAlterarLab={alterarLabInscricao}
-          onEditar={editarInscricao}
-          labs={labs}
-          congregacoes={congregacoes}
-          ministerios={ministerios.filter((m) => m.ativo)}
-        />
-        <ListaPastoresCoordenadores inscricoes={filtradas} />
+        <section className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <h2 className="font-display text-xl text-primary">Ingressos validados na entrada</h2>
+            <span className="text-xs text-muted-foreground">{validadasList.length} total</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
+                <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Validado em</th><th className="p-3 text-right">Ação</th></tr>
+              </thead>
+              <tbody>
+                {validadasList.map((i) => (
+                  <tr key={i.id} className="border-t border-border">
+                    <td className="p-3 text-primary">{i.nome_participante}</td>
+                    <td className="p-3 text-muted-foreground">{i.email}</td>
+                    <td className="p-3 text-muted-foreground">{i.validado_em ? new Date(i.validado_em).toLocaleString("pt-BR") : "—"}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => reverter(i.id, "validado")} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
+                        REVERTER
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {validadasList.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-sm text-muted-foreground">Nenhum ingresso validado ainda.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border p-4">
+            <h2 className="font-display text-xl text-primary">Inscrições canceladas</h2>
+            <span className="text-xs text-muted-foreground">{canceladasList.length} total</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
+                <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Inscrito em</th><th className="p-3 text-right">Ação</th></tr>
+              </thead>
+              <tbody>
+                {canceladasList.map((i) => (
+                  <tr key={i.id} className="border-t border-border">
+                    <td className="p-3 text-primary">{i.nome_participante}</td>
+                    <td className="p-3 text-muted-foreground">{i.email}</td>
+                    <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleString("pt-BR")}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => reverter(i.id, "cancelado")} className="rounded-md border border-gold bg-gold/10 px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-gold/20">
+                        REATIVAR
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {canceladasList.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-sm text-muted-foreground">Nenhuma inscrição cancelada.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <GestaoUsuarios
           usuarios={usuarios}
@@ -1186,7 +1098,95 @@ function SuperPage() {
           onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" | "recepcao" } }); await carregar(); }}
         />
 
-        <ContasUsuarios />
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-xl text-primary">Inscrições</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {inscricoesAbertas
+                  ? "O botão de inscrição na home está ATIVO e clicável."
+                  : "O botão de inscrição na home aparece, mas está DESABILITADO."}
+              </p>
+            </div>
+            <button
+              onClick={toggleInscricoes}
+              disabled={salvandoFlag}
+              className={`rounded-md border px-4 py-2 text-xs tracking-widest ${
+                inscricoesAbertas
+                  ? "border-destructive/40 text-destructive hover:bg-destructive/10"
+                  : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
+              }`}
+            >
+              {salvandoFlag ? "SALVANDO…" : inscricoesAbertas ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
+            </button>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-border pb-3">
+            <div>
+              <h2 className="font-display text-xl text-primary">Integração do Mercado Pago</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Habilite o checkout transparente (Cartão e Pix) para cobrar as inscrições automaticamente.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={mpAtivo}
+                  onChange={(e) => setMpAtivo(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
+                <span className="ml-2 text-xs font-semibold text-primary tracking-widest uppercase">
+                  {mpAtivo ? "Ativo" : "Inativo"}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <form onSubmit={salvarMercadoPago} className="space-y-4 max-w-2xl">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
+                  Public Key (Chave Pública)
+                </label>
+                <input
+                  type="text"
+                  required={mpAtivo}
+                  placeholder="APP_USR-..."
+                  value={mpPublicKey}
+                  onChange={(e) => setMpPublicKey(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left flex justify-between">
+                  <span>Access Token (Chave Privada)</span>
+                  {mpConfigurado && <span className="text-gold tracking-normal text-[9px] lowercase font-normal">(configurado)</span>}
+                </label>
+                <input
+                  type="password"
+                  required={mpAtivo && !mpConfigurado}
+                  placeholder={mpConfigurado ? "••••••••••••••••••••••••••••••••" : "TEST-... ou APP_USR-..."}
+                  value={mpAccessToken === "_KEEP_EXISTING_" ? "" : mpAccessToken}
+                  onChange={(e) => setMpAccessToken(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={salvandoMP}
+              className="rounded-md bg-primary px-5 py-2.5 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {salvandoMP ? "SALVANDO..." : "SALVAR CONFIGURAÇÃO"}
+            </button>
+          </form>
+        </section>
       </div>
     </main>
   );
