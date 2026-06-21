@@ -547,3 +547,117 @@ async function enviarEmailAcesso(email: string, nome: string, senhaProvisoria: s
     console.error("Falha na chamada de envio de e-mail:", err);
   }
 }
+
+// =============== Excluir inscrição pendente (owner) ===============
+
+const excluirSchema = z.object({ inscricaoId: z.string().uuid() });
+
+export const excluirInscricaoPendente = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => excluirSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const ad = admin();
+
+    const { data: insc, error: fetchErr } = await ad
+      .from("inscricoes")
+      .select("id, comprador_user_id, status")
+      .eq("id", data.inscricaoId)
+      .maybeSingle();
+    if (fetchErr || !insc) throw new Error("Inscrição não encontrada.");
+    if (insc.comprador_user_id !== userId) throw new Error("Você não tem permissão para excluir esta inscrição.");
+    if (insc.status !== "pendente") throw new Error("Apenas inscrições pendentes podem ser excluídas.");
+
+    // Remove pagamentos vinculados
+    await ad.from("pagamentos").delete().eq("inscricao_id", data.inscricaoId);
+
+    const { error: delErr } = await ad.from("inscricoes").delete().eq("id", data.inscricaoId);
+    if (delErr) throw new Error("Erro ao excluir inscrição: " + delErr.message);
+    return { ok: true };
+  });
+
+// =============== Atualizar LAB/Ministério/Regional/Congregação (owner) ===============
+
+const atualizarSchema = z.object({
+  inscricaoId: z.string().uuid(),
+  labId: z.string().uuid(),
+  regional: z.enum(regionaisValidas),
+  congregacao: z.string().max(150).optional().or(z.literal("")),
+  ministerioId: z.string().uuid().nullable().optional(),
+});
+
+export const atualizarInscricaoOwner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => atualizarSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const ad = admin();
+
+    const { data: insc, error: fetchErr } = await ad
+      .from("inscricoes")
+      .select("id, comprador_user_id, status, lab_id, lab_qr_token, qr_token")
+      .eq("id", data.inscricaoId)
+      .maybeSingle();
+    if (fetchErr || !insc) throw new Error("Inscrição não encontrada.");
+    if (insc.comprador_user_id !== userId) throw new Error("Você não tem permissão para alterar esta inscrição.");
+    if (insc.status === "validado") throw new Error("Inscrições já validadas não podem ser alteradas.");
+    if (insc.status === "cancelado") throw new Error("Inscrições canceladas não podem ser alteradas.");
+
+    // Buscar novo LAB para validar
+    const { data: novoLab, error: labErr } = await ad
+      .from("labs")
+      .select("id, nome, limite_vagas, ativo, eh_geral")
+      .eq("id", data.labId)
+      .maybeSingle();
+    if (labErr || !novoLab) throw new Error("Categoria selecionada inválida.");
+    if (!novoLab.ativo) throw new Error(`A categoria "${novoLab.nome}" está desativada.`);
+
+    // Se trocou de LAB e o novo não é geral, validar vagas
+    if (insc.lab_id !== data.labId && !novoLab.eh_geral) {
+      const { count: labCount } = await ad
+        .from("inscricoes")
+        .select("id", { count: "exact", head: true })
+        .eq("lab_id", data.labId)
+        .neq("status", "cancelado");
+      if ((labCount ?? 0) + 1 > novoLab.limite_vagas) {
+        throw new Error(`Vagas esgotadas para a categoria "${novoLab.nome}".`);
+      }
+    }
+
+    if (data.regional === "SEDE" && !data.ministerioId) {
+      throw new Error("O Ministério é obrigatório quando a regional for SEDE.");
+    }
+    if (data.regional !== "SEDE" && (!data.congregacao || !data.congregacao.trim())) {
+      throw new Error("A congregação é obrigatória para esta regional.");
+    }
+
+    // Decidir lab_qr_token:
+    // - se mudou para LAB específica e antes não tinha token de LAB, gerar
+    // - se mudou para geral, remover token de LAB
+    // - caso contrário, manter (preserva QR já impresso)
+    let novoLabQrToken: string | null = insc.lab_qr_token;
+    const antigaEraEspecifica = !!insc.lab_id && !!insc.lab_qr_token;
+    if (novoLab.eh_geral) {
+      novoLabQrToken = null;
+    } else if (!antigaEraEspecifica) {
+      novoLabQrToken = globalThis.crypto.randomUUID();
+    } else if (insc.lab_id !== data.labId) {
+      // Trocou para outra LAB específica — mantém o mesmo token para não invalidar QR já impresso
+      novoLabQrToken = insc.lab_qr_token;
+    }
+
+    const updatePayload: any = {
+      lab_id: data.labId,
+      lab_qr_token: novoLabQrToken,
+      regional: data.regional,
+      congregacao: data.regional === "SEDE" ? "SEDE" : data.congregacao,
+      ministerio_id: data.regional === "SEDE" ? data.ministerioId : null,
+    };
+
+    const { error: updErr } = await ad
+      .from("inscricoes")
+      .update(updatePayload)
+      .eq("id", data.inscricaoId);
+    if (updErr) throw new Error("Erro ao atualizar inscrição: " + updErr.message);
+    return { ok: true };
+  });
