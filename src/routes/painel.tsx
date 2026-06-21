@@ -5,7 +5,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { LocalCard } from "@/components/LocalCard";
-import { criarInscricoesPainel } from "@/lib/inscriptions.functions";
+import {
+  criarInscricoesPainel,
+  excluirInscricaoPendente,
+  atualizarInscricaoOwner,
+} from "@/lib/inscriptions.functions";
 import {
   processarPagamentoTransparente,
   verificarStatusPagamento,
@@ -100,6 +104,31 @@ function PainelInscrito() {
   const processarPagamento = useServerFn(processarPagamentoTransparente);
   const verificarPagamento = useServerFn(verificarStatusPagamento);
   const cancelarPendente = useServerFn(cancelarPagamentoPendente);
+  const excluirInscricaoFn = useServerFn(excluirInscricaoPendente);
+  const atualizarInscricaoFn = useServerFn(atualizarInscricaoOwner);
+
+  async function handleExcluirInscricao(id: string) {
+    if (!confirm("Tem certeza que deseja excluir esta inscrição pendente? Esta ação não pode ser desfeita.")) return;
+    try {
+      await excluirInscricaoFn({ data: { inscricaoId: id } });
+      await carregar();
+      await carregarVagas();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao excluir inscrição.");
+    }
+  }
+
+  async function handleAtualizarInscricao(payload: {
+    inscricaoId: string;
+    labId: string;
+    regional: string;
+    congregacao: string;
+    ministerioId: string | null;
+  }) {
+    await atualizarInscricaoFn({ data: payload });
+    await carregar();
+    await carregarVagas();
+  }
 
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
@@ -783,7 +812,15 @@ function PainelInscrito() {
             ) : (
               <ul className="mt-4 grid gap-4 sm:grid-cols-2">
                 {inscricoes.map((i) => (
-                  <InscricaoCard key={i.id} inscricao={i} />
+                  <InscricaoCard
+                    key={i.id}
+                    inscricao={i}
+                    labs={labs}
+                    ministerios={ministerios}
+                    regionaisCongregacoes={regionaisCongregacoes}
+                    onExcluir={handleExcluirInscricao}
+                    onAtualizar={handleAtualizarInscricao}
+                  />
                 ))}
               </ul>
             )}
@@ -876,7 +913,60 @@ function PainelInscrito() {
   );
 }
 
-function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
+function InscricaoCard({
+  inscricao,
+  labs,
+  ministerios,
+  regionaisCongregacoes,
+  onExcluir,
+  onAtualizar,
+}: {
+  inscricao: Inscricao;
+  labs: Lab[];
+  ministerios: Ministerio[];
+  regionaisCongregacoes: Record<string, string[]>;
+  onExcluir: (id: string) => Promise<void>;
+  onAtualizar: (payload: {
+    inscricaoId: string;
+    labId: string;
+    regional: string;
+    congregacao: string;
+    ministerioId: string | null;
+  }) => Promise<void>;
+}) {
+  const [editando, setEditando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [editErro, setEditErro] = useState<string | null>(null);
+  const [editLabId, setEditLabId] = useState(inscricao.lab_id || "");
+  const [editRegional, setEditRegional] = useState(inscricao.regional || "SEDE");
+  const [editCongregacao, setEditCongregacao] = useState(inscricao.congregacao || "");
+  const [editMinisterioId, setEditMinisterioId] = useState<string>("");
+
+  useEffect(() => {
+    setEditLabId(inscricao.lab_id || "");
+    setEditRegional(inscricao.regional || "SEDE");
+    setEditCongregacao(inscricao.congregacao || "");
+  }, [inscricao.id, inscricao.lab_id, inscricao.regional, inscricao.congregacao]);
+
+  async function salvarEdicao() {
+    setEditErro(null);
+    setSalvando(true);
+    try {
+      await onAtualizar({
+        inscricaoId: inscricao.id,
+        labId: editLabId,
+        regional: editRegional,
+        congregacao: editRegional === "SEDE" ? "SEDE" : editCongregacao.trim(),
+        ministerioId: editRegional === "SEDE" ? (editMinisterioId || null) : null,
+      });
+      setEditando(false);
+    } catch (err) {
+      setEditErro(err instanceof Error ? err.message : "Erro ao salvar alterações.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   const canvasGeralRef = useRef<HTMLCanvasElement>(null);
   const canvasLabRef = useRef<HTMLCanvasElement>(null);
   const [dataUrlGeral, setDataUrlGeral] = useState<string>("");
@@ -1095,7 +1185,129 @@ function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
             BAIXAR INGRESSO (PDF)
           </button>
         )}
+        {(inscricao.status === "pendente" || inscricao.status === "pago") && (
+          <button
+            onClick={() => setEditando((v) => !v)}
+            className="flex-1 rounded-md border border-border px-3 py-2 text-center text-xs font-semibold tracking-widest text-primary hover:bg-muted transition-colors"
+          >
+            {editando ? "FECHAR EDIÇÃO" : "EDITAR DADOS"}
+          </button>
+        )}
+        {inscricao.status === "pendente" && (
+          <button
+            onClick={() => onExcluir(inscricao.id)}
+            className="flex-1 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-center text-xs font-semibold tracking-widest text-destructive hover:bg-destructive/20 transition-colors"
+          >
+            EXCLUIR INSCRIÇÃO
+          </button>
+        )}
       </div>
+
+      {editando && (inscricao.status === "pendente" || inscricao.status === "pago") && (
+        <div className="mt-4 space-y-3 rounded-lg border border-border bg-background/50 p-3 text-left">
+          <p className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">
+            Editar LAB / Regional / Congregação / Ministério
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            O QR Code já gerado continuará válido após as alterações.
+          </p>
+
+          <div className="space-y-1">
+            <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CATEGORIA (LAB)</label>
+            <select
+              value={editLabId}
+              onChange={(e) => setEditLabId(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+            >
+              <option value="" disabled>Selecione uma categoria</option>
+              {labs.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.nome} ({l.local})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">REGIONAL</label>
+            <select
+              value={editRegional}
+              onChange={(e) => {
+                setEditRegional(e.target.value);
+                setEditCongregacao("");
+              }}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+            >
+              {["SEDE", ...Array.from({ length: 20 }, (_, idx) => String(idx + 2))].map((r) => (
+                <option key={r} value={r}>
+                  {r === "SEDE" ? "Regional 01 - SEDE" : `Regional ${String(r).padStart(2, "0")}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {editRegional !== "SEDE" && (
+            <div className="space-y-1">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CONGREGAÇÃO</label>
+              {regionaisCongregacoes[editRegional] ? (
+                <select
+                  value={editCongregacao}
+                  onChange={(e) => setEditCongregacao(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                >
+                  <option value="" disabled>Selecione a congregação</option>
+                  {regionaisCongregacoes[editRegional].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  value={editCongregacao}
+                  onChange={(e) => setEditCongregacao(e.target.value)}
+                  placeholder="Nome da congregação"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              )}
+            </div>
+          )}
+
+          {editRegional === "SEDE" && (
+            <div className="space-y-1">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">MINISTÉRIO</label>
+              <select
+                value={editMinisterioId}
+                onChange={(e) => setEditMinisterioId(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+              >
+                <option value="" disabled>Selecione um ministério</option>
+                {ministerios.map((m) => (
+                  <option key={m.id} value={m.id}>{m.nome}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {editErro && (
+            <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">{editErro}</p>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={salvarEdicao}
+              disabled={salvando}
+              className="flex-1 rounded-md bg-gold px-3 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-gold/90 transition-colors disabled:opacity-50"
+            >
+              {salvando ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
+            </button>
+            <button
+              onClick={() => setEditando(false)}
+              className="rounded-md border border-border px-3 py-2 text-xs font-semibold tracking-widest text-primary hover:bg-muted transition-colors"
+            >
+              CANCELAR
+            </button>
+          </div>
+        </div>
+      )}
     </li>
   );
 }
