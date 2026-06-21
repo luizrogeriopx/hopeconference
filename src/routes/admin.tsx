@@ -345,7 +345,7 @@ export function ListaInscricoes({
           </thead>
           <tbody>
             {inscricoes.map((i) => (
-              <tr key={i.id} className="border-t border-border">
+              <tr key={i.id} className={`border-t border-border ${i.status === "pendente" ? "bg-amber-500/10" : ""}`}>
                 <td className="p-3 text-primary font-medium">{i.nome_participante}</td>
                 <td className="p-3 text-muted-foreground font-mono">{i.cpf ? i.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "-"}</td>
                 <td className="p-3 text-muted-foreground">{i.email}</td>
