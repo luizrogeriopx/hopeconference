@@ -1185,7 +1185,129 @@ function InscricaoCard({
             BAIXAR INGRESSO (PDF)
           </button>
         )}
+        {(inscricao.status === "pendente" || inscricao.status === "pago") && (
+          <button
+            onClick={() => setEditando((v) => !v)}
+            className="flex-1 rounded-md border border-border px-3 py-2 text-center text-xs font-semibold tracking-widest text-primary hover:bg-muted transition-colors"
+          >
+            {editando ? "FECHAR EDIÇÃO" : "EDITAR DADOS"}
+          </button>
+        )}
+        {inscricao.status === "pendente" && (
+          <button
+            onClick={() => onExcluir(inscricao.id)}
+            className="flex-1 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-center text-xs font-semibold tracking-widest text-destructive hover:bg-destructive/20 transition-colors"
+          >
+            EXCLUIR INSCRIÇÃO
+          </button>
+        )}
       </div>
+
+      {editando && (inscricao.status === "pendente" || inscricao.status === "pago") && (
+        <div className="mt-4 space-y-3 rounded-lg border border-border bg-background/50 p-3 text-left">
+          <p className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">
+            Editar LAB / Regional / Congregação / Ministério
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            O QR Code já gerado continuará válido após as alterações.
+          </p>
+
+          <div className="space-y-1">
+            <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CATEGORIA (LAB)</label>
+            <select
+              value={editLabId}
+              onChange={(e) => setEditLabId(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+            >
+              <option value="" disabled>Selecione uma categoria</option>
+              {labs.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.nome} ({l.local})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">REGIONAL</label>
+            <select
+              value={editRegional}
+              onChange={(e) => {
+                setEditRegional(e.target.value);
+                setEditCongregacao("");
+              }}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+            >
+              {["SEDE", ...Array.from({ length: 20 }, (_, idx) => String(idx + 2))].map((r) => (
+                <option key={r} value={r}>
+                  {r === "SEDE" ? "Regional 01 - SEDE" : `Regional ${String(r).padStart(2, "0")}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {editRegional !== "SEDE" && (
+            <div className="space-y-1">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">CONGREGAÇÃO</label>
+              {regionaisCongregacoes[editRegional] ? (
+                <select
+                  value={editCongregacao}
+                  onChange={(e) => setEditCongregacao(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                >
+                  <option value="" disabled>Selecione a congregação</option>
+                  {regionaisCongregacoes[editRegional].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  value={editCongregacao}
+                  onChange={(e) => setEditCongregacao(e.target.value)}
+                  placeholder="Nome da congregação"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+              )}
+            </div>
+          )}
+
+          {editRegional === "SEDE" && (
+            <div className="space-y-1">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground">MINISTÉRIO</label>
+              <select
+                value={editMinisterioId}
+                onChange={(e) => setEditMinisterioId(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+              >
+                <option value="" disabled>Selecione um ministério</option>
+                {ministerios.map((m) => (
+                  <option key={m.id} value={m.id}>{m.nome}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {editErro && (
+            <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">{editErro}</p>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={salvarEdicao}
+              disabled={salvando}
+              className="flex-1 rounded-md bg-gold px-3 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-gold/90 transition-colors disabled:opacity-50"
+            >
+              {salvando ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
+            </button>
+            <button
+              onClick={() => setEditando(false)}
+              className="rounded-md border border-border px-3 py-2 text-xs font-semibold tracking-widest text-primary hover:bg-muted transition-colors"
+            >
+              CANCELAR
+            </button>
+          </div>
+        </div>
+      )}
     </li>
   );
 }
