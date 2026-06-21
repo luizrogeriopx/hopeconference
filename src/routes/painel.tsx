@@ -104,6 +104,31 @@ function PainelInscrito() {
   const processarPagamento = useServerFn(processarPagamentoTransparente);
   const verificarPagamento = useServerFn(verificarStatusPagamento);
   const cancelarPendente = useServerFn(cancelarPagamentoPendente);
+  const excluirInscricaoFn = useServerFn(excluirInscricaoPendente);
+  const atualizarInscricaoFn = useServerFn(atualizarInscricaoOwner);
+
+  async function handleExcluirInscricao(id: string) {
+    if (!confirm("Tem certeza que deseja excluir esta inscrição pendente? Esta ação não pode ser desfeita.")) return;
+    try {
+      await excluirInscricaoFn({ data: { inscricaoId: id } });
+      await carregar();
+      await carregarVagas();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao excluir inscrição.");
+    }
+  }
+
+  async function handleAtualizarInscricao(payload: {
+    inscricaoId: string;
+    labId: string;
+    regional: string;
+    congregacao: string;
+    ministerioId: string | null;
+  }) {
+    await atualizarInscricaoFn({ data: payload });
+    await carregar();
+    await carregarVagas();
+  }
 
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
