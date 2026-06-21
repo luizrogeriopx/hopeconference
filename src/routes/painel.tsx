@@ -812,7 +812,15 @@ function PainelInscrito() {
             ) : (
               <ul className="mt-4 grid gap-4 sm:grid-cols-2">
                 {inscricoes.map((i) => (
-                  <InscricaoCard key={i.id} inscricao={i} />
+                  <InscricaoCard
+                    key={i.id}
+                    inscricao={i}
+                    labs={labs}
+                    ministerios={ministerios}
+                    regionaisCongregacoes={regionaisCongregacoes}
+                    onExcluir={handleExcluirInscricao}
+                    onAtualizar={handleAtualizarInscricao}
+                  />
                 ))}
               </ul>
             )}
