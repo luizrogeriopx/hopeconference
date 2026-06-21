@@ -913,7 +913,60 @@ function PainelInscrito() {
   );
 }
 
-function InscricaoCard({ inscricao }: { inscricao: Inscricao }) {
+function InscricaoCard({
+  inscricao,
+  labs,
+  ministerios,
+  regionaisCongregacoes,
+  onExcluir,
+  onAtualizar,
+}: {
+  inscricao: Inscricao;
+  labs: Lab[];
+  ministerios: Ministerio[];
+  regionaisCongregacoes: Record<string, string[]>;
+  onExcluir: (id: string) => Promise<void>;
+  onAtualizar: (payload: {
+    inscricaoId: string;
+    labId: string;
+    regional: string;
+    congregacao: string;
+    ministerioId: string | null;
+  }) => Promise<void>;
+}) {
+  const [editando, setEditando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [editErro, setEditErro] = useState<string | null>(null);
+  const [editLabId, setEditLabId] = useState(inscricao.lab_id || "");
+  const [editRegional, setEditRegional] = useState(inscricao.regional || "SEDE");
+  const [editCongregacao, setEditCongregacao] = useState(inscricao.congregacao || "");
+  const [editMinisterioId, setEditMinisterioId] = useState<string>("");
+
+  useEffect(() => {
+    setEditLabId(inscricao.lab_id || "");
+    setEditRegional(inscricao.regional || "SEDE");
+    setEditCongregacao(inscricao.congregacao || "");
+  }, [inscricao.id, inscricao.lab_id, inscricao.regional, inscricao.congregacao]);
+
+  async function salvarEdicao() {
+    setEditErro(null);
+    setSalvando(true);
+    try {
+      await onAtualizar({
+        inscricaoId: inscricao.id,
+        labId: editLabId,
+        regional: editRegional,
+        congregacao: editRegional === "SEDE" ? "SEDE" : editCongregacao.trim(),
+        ministerioId: editRegional === "SEDE" ? (editMinisterioId || null) : null,
+      });
+      setEditando(false);
+    } catch (err) {
+      setEditErro(err instanceof Error ? err.message : "Erro ao salvar alterações.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   const canvasGeralRef = useRef<HTMLCanvasElement>(null);
   const canvasLabRef = useRef<HTMLCanvasElement>(null);
   const [dataUrlGeral, setDataUrlGeral] = useState<string>("");
