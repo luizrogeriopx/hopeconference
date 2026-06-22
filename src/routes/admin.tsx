@@ -86,6 +86,12 @@ function AdminPage() {
       .order("nome", { ascending: true });
     if (labsData) setLabs(labsData);
 
+    const { data: ministeriosData } = await supabase
+      .from("ministerios")
+      .select("*")
+      .order("nome", { ascending: true });
+    if (ministeriosData) setMinisterios(ministeriosData as Ministerio[]);
+
     try { setUsuarios(await listar()); } catch { /* noop */ }
   }
 
