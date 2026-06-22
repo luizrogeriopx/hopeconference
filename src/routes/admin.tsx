@@ -36,6 +36,13 @@ type Inscricao = {
 };
 type UsuarioPainel = { user_id: string; role: string; nome: string; email: string; criado_em: string; lab_id?: string | null; lab_nome?: string };
 
+type Ministerio = {
+  id: string;
+  nome: string;
+  ativo: boolean;
+  criado_em: string;
+};
+
 function AdminPage() {
   const navigate = useNavigate();
   const { user, isStaff, isSuper, loading, signOut } = useAuth();
