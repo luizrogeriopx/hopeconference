@@ -30,7 +30,7 @@ type Inscricao = {
   lab_qr_token?: string | null;
   regional: string;
   congregacao: string;
-  labs?: { nome: string; local?: string; requer_cpf: boolean } | null;
+  labs?: { nome: string; local?: string; requer_cpf: boolean; eh_geral?: boolean } | null;
   ministerio_id?: string | null;
   ministerios?: { nome: string } | null;
   canal?: string | null;
