@@ -322,6 +322,7 @@ export function ListaInscricoes({
   labs,
   congregacoes,
   ministerios,
+  mostrarBaixarIngresso,
 }: {
   inscricoes: Inscricao[];
   busca: string;
@@ -332,6 +333,7 @@ export function ListaInscricoes({
   labs?: { id: string; nome: string; local: string; eh_geral: boolean }[];
   congregacoes?: { id: string; regional: string; congregacao: string }[];
   ministerios?: { id: string; nome: string }[];
+  mostrarBaixarIngresso?: boolean;
 }) {
   const [editando, setEditando] = useState<Inscricao | null>(null);
   const [editNome, setEditNome] = useState("");
