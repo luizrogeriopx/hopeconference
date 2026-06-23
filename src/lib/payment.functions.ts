@@ -280,11 +280,18 @@ export const verificarStatusPagamento = createServerFn({ method: "POST" })
     const mpStatus = mpData.status;
 
     if (mpStatus === "approved") {
-      // Encontrar pagamentos correspondentes no banco pelo payment_id
-      const { data: dbPayments } = await ad
+      const externalReference = mpData.external_reference;
+      const referencedPaymentIds = externalReference
+        ? String(externalReference).split(",").map((id) => id.trim()).filter(Boolean)
+        : [];
+
+      const query = ad
         .from("pagamentos")
-        .select("id, inscricao_id, status")
-        .eq("payment_id", data.paymentId);
+        .select("id, inscricao_id, status");
+
+      const { data: dbPayments } = referencedPaymentIds.length > 0
+        ? await query.in("id", referencedPaymentIds)
+        : await query.eq("payment_id", data.paymentId);
 
       if (dbPayments && dbPayments.length > 0) {
         const payIds = dbPayments.map((p) => p.id);
@@ -299,7 +306,7 @@ export const verificarStatusPagamento = createServerFn({ method: "POST" })
         // Atualizar pagamentos para pago
         await ad
           .from("pagamentos")
-          .update({ status: "pago" })
+          .update({ status: "pago", payment_id: data.paymentId, metodo: mpData.payment_method_id ?? "pix" })
           .in("id", payIds);
       }
     }
