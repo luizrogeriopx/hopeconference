@@ -678,6 +678,7 @@ function SuperPage() {
           labs={labs}
           congregacoes={congregacoes}
           ministerios={ministerios.filter((m) => m.ativo)}
+          mostrarBaixarIngresso={true}
         />
 
         <ListaPastoresCoordenadores inscricoes={filtradas} />
