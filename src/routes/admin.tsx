@@ -387,7 +387,114 @@ export function ListaInscricoes({
     }
   }
 
-  const colSpan = 13 + (onEditar ? 1 : 0) + (onExcluir ? 1 : 0);
+  async function baixarIngresso(i: Inscricao) {
+    const nome = i.nome_participante;
+    const hasLab = i.lab_id && !i.labs?.eh_geral;
+    const labNome = i.labs?.nome || "";
+    const labLocal = i.labs?.local || "";
+
+    const [imgGeral, imgLab] = await Promise.all([
+      new Promise<string>((resolve) => {
+        if (!i.qr_token || i.status === "cancelado" || i.status === "pendente") {
+          resolve("");
+          return;
+        }
+        QRCode.toDataURL(i.qr_token, { width: 160, margin: 1 }, (err, url) => {
+          resolve(err ? "" : url);
+        });
+      }),
+      new Promise<string>((resolve) => {
+        if (!i.lab_qr_token || !hasLab || i.status === "pendente") {
+          resolve("");
+          return;
+        }
+        QRCode.toDataURL(i.lab_qr_token, { width: 160, margin: 1 }, (err, url) => {
+          resolve(err ? "" : url);
+        });
+      }),
+    ]);
+
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    doc.setDrawColor(209, 213, 219);
+    doc.setLineDashPattern([3, 3], 0);
+    doc.rect(20, 20, 170, 200);
+
+    doc.setTextColor(181, 146, 71);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("HOPE CONFERENCE 2026", 105, 45, { align: "center" });
+
+    doc.setTextColor(107, 114, 128);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text("Comprovante de Inscrição", 105, 53, { align: "center" });
+
+    doc.setLineDashPattern([], 0);
+    doc.setDrawColor(243, 244, 246);
+    doc.line(35, 63, 175, 63);
+
+    doc.setTextColor(156, 163, 175);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("PARTICIPANTE", 105, 73, { align: "center" });
+
+    doc.setTextColor(17, 24, 37);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(nome, 105, 81, { align: "center" });
+
+    if (hasLab) {
+      doc.setTextColor(156, 163, 175);
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("CATEGORIA / LAB", 105, 93, { align: "center" });
+
+      doc.setTextColor(181, 146, 71);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text(labNome, 105, 100, { align: "center" });
+
+      doc.setTextColor(17, 24, 37);
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text(`Local: ${labLocal}`, 105, 107, { align: "center" });
+    }
+
+    doc.setDrawColor(243, 244, 246);
+    doc.line(35, 118, 175, 118);
+
+    if (imgLab) {
+      doc.setTextColor(107, 114, 128);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("ENTRADA GERAL", 65, 132, { align: "center" });
+      doc.addImage(imgGeral, "PNG", 40, 137, 50, 50);
+
+      doc.text("ACESSO LAB", 145, 132, { align: "center" });
+      doc.addImage(imgLab, "PNG", 120, 137, 50, 50);
+    } else {
+      doc.setTextColor(107, 114, 128);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("ENTRADA GERAL", 105, 132, { align: "center" });
+      doc.addImage(imgGeral, "PNG", 80, 137, 50, 50);
+    }
+
+    doc.setTextColor(156, 163, 175);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text("Apresente este comprovante nos pontos de acesso para validar sua entrada.", 105, 205, { align: "center" });
+
+    doc.save(`ingresso-${nome.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+  }
+
+  const colSpan = 13 + (onEditar || onExcluir || mostrarBaixarIngresso ? 1 : 0);
 
   return (
     <section className="rounded-xl border border-border bg-card shadow-sm">
