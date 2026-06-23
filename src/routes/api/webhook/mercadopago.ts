@@ -74,20 +74,36 @@ export const Route = createFileRoute("/api/webhook/mercadopago")({
 
           const mpData = await mpRes.json() as any;
           const status = mpData.status; // approved, pending, etc.
-          const externalReference = mpData.external_reference; // IDs dos pagamentos separados por vírgula
+          const externalReference = mpData.external_reference ? String(mpData.external_reference).trim() : "";
 
           if (status === "approved") {
-            // Se possuir referência externa (grupo de pagamentos IDs)
+            // Se possuir referência externa (lote curto ou IDs antigos separados por vírgula)
             if (externalReference) {
-              const paymentIds = String(externalReference).split(",");
+              const paymentIds = externalReference.includes(",")
+                ? externalReference.split(",").map((id) => id.trim()).filter(Boolean)
+                : [];
               
               // 1. Buscar correspondentes no banco
-              const { data: dbPayments } = await ad
-                .from("pagamentos")
-                .select("id, inscricao_id")
-                .in("id", paymentIds);
+              let { data: dbPayments } = paymentIds.length > 0
+                ? await ad
+                    .from("pagamentos")
+                    .select("id, inscricao_id")
+                    .in("id", paymentIds)
+                : await ad
+                    .from("pagamentos")
+                    .select("id, inscricao_id")
+                    .eq("preference_id", externalReference);
+
+              if ((!dbPayments || dbPayments.length === 0) && paymentIds.length === 0) {
+                const fallback = await ad
+                  .from("pagamentos")
+                  .select("id, inscricao_id")
+                  .eq("id", externalReference);
+                dbPayments = fallback.data;
+              }
 
               if (dbPayments && dbPayments.length > 0) {
+                const payIds = dbPayments.map((p) => p.id);
                 const inscIds = dbPayments.map((p) => p.inscricao_id);
 
                 // 2. Atualizar inscrições para pago
@@ -103,7 +119,7 @@ export const Route = createFileRoute("/api/webhook/mercadopago")({
                     status: "pago",
                     payment_id: paymentId,
                   })
-                  .in("id", paymentIds);
+                  .in("id", payIds);
                 
                 console.log(`Webhook MP: Pagamentos aprovados com sucesso para referência: ${externalReference}`);
               }
