@@ -32,10 +32,11 @@ type Inscricao = {
   validado_em: string | null;
   cpf: string | null;
   lab_id: string | null;
+  qr_token: string;
   lab_qr_token?: string | null;
   regional: string;
   congregacao: string;
-  labs?: { nome: string; requer_cpf: boolean } | null;
+  labs?: { nome: string; local?: string; requer_cpf: boolean } | null;
   ministerio_id?: string | null;
   ministerios?: { nome: string } | null;
   canal?: string | null;
@@ -130,7 +131,7 @@ function SuperPage() {
   async function carregar() {
     const { data } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, email, telefone, status, valor, criado_em, validado_em, cpf, lab_id, lab_qr_token, regional, congregacao, labs(nome, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
+      .select("id, nome_participante, email, telefone, status, valor, criado_em, validado_em, cpf, lab_id, qr_token, lab_qr_token, regional, congregacao, labs(nome, local, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
       .order("criado_em", { ascending: false });
     setInscricoes((data ?? []) as Inscricao[]);
 
@@ -677,6 +678,7 @@ function SuperPage() {
           labs={labs}
           congregacoes={congregacoes}
           ministerios={ministerios.filter((m) => m.ativo)}
+          mostrarBaixarIngresso={true}
         />
 
         <ListaPastoresCoordenadores inscricoes={filtradas} />
