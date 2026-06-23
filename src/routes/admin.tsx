@@ -592,8 +592,16 @@ export function ListaInscricoes({
                 </td>
                 <td className="p-3 text-muted-foreground">R$ {Number(i.valor).toFixed(2)}</td>
                 <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleDateString("pt-BR")}</td>
-                {(onEditar || onExcluir) && (
+                {(onEditar || onExcluir || mostrarBaixarIngresso) && (
                   <td className="p-3 text-right whitespace-nowrap">
+                    {mostrarBaixarIngresso && (i.status === "pago" || i.status === "validado") && (
+                      <button
+                        onClick={() => baixarIngresso(i)}
+                        className="mr-2 rounded-md border border-gold/40 bg-gold/10 px-2 py-1 text-[10px] tracking-widest text-primary hover:bg-gold/20"
+                      >
+                        BAIXAR INGRESSO
+                      </button>
+                    )}
                     {onEditar && (
                       <button
                         onClick={() => abrirEdicao(i)}
