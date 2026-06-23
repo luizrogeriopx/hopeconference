@@ -571,10 +571,12 @@ function SuperPage() {
         i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
         (i.email ?? "").toLowerCase().includes(busca.toLowerCase());
       const matchesRegional = !regionalSelecionada || i.regional === regionalSelecionada;
+      const matchesLab = !labSelecionado || i.lab_id === labSelecionado;
+      const matchesMinisterio = !ministerioSelecionado || i.ministerio_id === ministerioSelecionado;
       const matchesStatus = statusFiltro === "todos" || i.status === statusFiltro;
-      return matchesBusca && matchesRegional && matchesStatus;
+      return matchesBusca && matchesRegional && matchesLab && matchesMinisterio && matchesStatus;
     });
-  }, [inscricoes, busca, regionalSelecionada, statusFiltro]);
+  }, [inscricoes, busca, regionalSelecionada, labSelecionado, ministerioSelecionado, statusFiltro]);
 
   function copiar(path: string) {
     const url = `${window.location.origin}${path}`;
