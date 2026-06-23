@@ -140,9 +140,11 @@ function AdminPage() {
         i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
         (i.email ?? "").toLowerCase().includes(busca.toLowerCase());
       const matchesRegional = !regionalSelecionada || i.regional === regionalSelecionada;
-      return matchesBusca && matchesRegional;
+      const matchesLab = !labSelecionado || i.lab_id === labSelecionado;
+      const matchesMinisterio = !ministerioSelecionado || i.ministerio_id === ministerioSelecionado;
+      return matchesBusca && matchesRegional && matchesLab && matchesMinisterio;
     });
-  }, [inscricoes, busca, regionalSelecionada]);
+  }, [inscricoes, busca, regionalSelecionada, labSelecionado, ministerioSelecionado]);
 
   if (loading || !user) {
     return <main className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Carregando…</main>;
