@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Cards, RegionalCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
+import { Cards, RegionalCards, LabCards, MinisterioCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import { ContasUsuarios } from "@/components/ContasUsuarios";
 import {
@@ -81,6 +81,8 @@ function SuperPage() {
   const [usuarios, setUsuarios] = useState<UsuarioPainel[]>([]);
   const [busca, setBusca] = useState("");
   const [regionalSelecionada, setRegionalSelecionada] = useState<string | null>(null);
+  const [labSelecionado, setLabSelecionado] = useState<string | null>(null);
+  const [ministerioSelecionado, setMinisterioSelecionado] = useState<string | null>(null);
   const [statusFiltro, setStatusFiltro] = useState<"todos" | "pendente" | "pago" | "validado" | "cancelado">("todos");
   const [copiado, setCopiado] = useState<string | null>(null);
   const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
@@ -569,10 +571,12 @@ function SuperPage() {
         i.nome_participante.toLowerCase().includes(busca.toLowerCase()) ||
         (i.email ?? "").toLowerCase().includes(busca.toLowerCase());
       const matchesRegional = !regionalSelecionada || i.regional === regionalSelecionada;
+      const matchesLab = !labSelecionado || i.lab_id === labSelecionado;
+      const matchesMinisterio = !ministerioSelecionado || i.ministerio_id === ministerioSelecionado;
       const matchesStatus = statusFiltro === "todos" || i.status === statusFiltro;
-      return matchesBusca && matchesRegional && matchesStatus;
+      return matchesBusca && matchesRegional && matchesLab && matchesMinisterio && matchesStatus;
     });
-  }, [inscricoes, busca, regionalSelecionada, statusFiltro]);
+  }, [inscricoes, busca, regionalSelecionada, labSelecionado, ministerioSelecionado, statusFiltro]);
 
   function copiar(path: string) {
     const url = `${window.location.origin}${path}`;
@@ -606,49 +610,19 @@ function SuperPage() {
           onSelectRegional={setRegionalSelecionada}
         />
 
-        <div className="space-y-2">
-          <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
-            Inscrições Confirmadas por LABs
-          </h3>
-          <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
-            {labs.map((l) => (
-              <div
-                key={l.id}
-                className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start text-left w-full"
-              >
-                <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={l.nome}>{l.nome}</span>
-                <span className="mt-1 font-display text-lg text-primary font-bold">
-                  {stats.labCounts[l.id] ?? 0}
-                </span>
-              </div>
-            ))}
-            {labs.length === 0 && (
-              <p className="text-xs text-muted-foreground col-span-full">Nenhum LAB cadastrado.</p>
-            )}
-          </section>
-        </div>
+        <LabCards
+          labs={labs}
+          stats={stats}
+          selectedLab={labSelecionado}
+          onSelectLab={setLabSelecionado}
+        />
 
-        <div className="space-y-2">
-          <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
-            Inscrições Confirmadas por Ministério
-          </h3>
-          <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
-            {ministerios.filter((m) => m.ativo).map((m) => (
-              <div
-                key={m.id}
-                className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start text-left w-full"
-              >
-                <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={m.nome}>{m.nome}</span>
-                <span className="mt-1 font-display text-lg text-primary font-bold">
-                  {stats.ministerioCounts[m.id] ?? 0}
-                </span>
-              </div>
-            ))}
-            {ministerios.filter((m) => m.ativo).length === 0 && (
-              <p className="text-xs text-muted-foreground col-span-full">Nenhum ministério cadastrado.</p>
-            )}
-          </section>
-        </div>
+        <MinisterioCards
+          ministerios={ministerios}
+          stats={stats}
+          selectedMinisterio={ministerioSelecionado}
+          onSelectMinisterio={setMinisterioSelecionado}
+        />
 
         <div className="flex flex-wrap items-center gap-3">
           <label className="text-xs tracking-widest uppercase text-muted-foreground">Filtrar status:</label>
