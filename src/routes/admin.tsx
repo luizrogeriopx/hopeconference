@@ -25,10 +25,11 @@ type Inscricao = {
   validado_em: string | null;
   cpf: string | null;
   lab_id: string | null;
+  qr_token: string;
   lab_qr_token?: string | null;
   regional: string;
   congregacao: string;
-  labs?: { nome: string; requer_cpf: boolean } | null;
+  labs?: { nome: string; local?: string; requer_cpf: boolean } | null;
   ministerio_id?: string | null;
   ministerios?: { nome: string } | null;
   canal?: string | null;
