@@ -143,6 +143,18 @@ export const processarPagamentoTransparente = createServerFn({ method: "POST" })
 
     // Montar requisição de pagamento transparente do Mercado Pago
     const idempotencyKey = globalThis.crypto.randomUUID();
+    const batchReference = globalThis.crypto.randomUUID();
+
+    // Guardar uma referência curta para o lote. Enviar todos os UUIDs no
+    // external_reference excede o limite do Mercado Pago quando há muitas inscrições.
+    const { error: batchErr } = await ad
+      .from("pagamentos")
+      .update({ preference_id: batchReference })
+      .in("id", data.pendingPaymentIds);
+
+    if (batchErr) {
+      throw new Error(`Erro ao preparar o lote de pagamento: ${batchErr.message}`);
+    }
     
     // Configurar o payload
     const payload: any = {
@@ -153,7 +165,7 @@ export const processarPagamentoTransparente = createServerFn({ method: "POST" })
         email: data.formData.payer.email,
         identification: data.formData.payer.identification,
       },
-      external_reference: data.pendingPaymentIds.join(","),
+      external_reference: batchReference,
     };
 
     if (webhookUrl) {
@@ -280,18 +292,36 @@ export const verificarStatusPagamento = createServerFn({ method: "POST" })
     const mpStatus = mpData.status;
 
     if (mpStatus === "approved") {
-      const externalReference = mpData.external_reference;
-      const referencedPaymentIds = externalReference
-        ? String(externalReference).split(",").map((id) => id.trim()).filter(Boolean)
+      const externalReference = mpData.external_reference ? String(mpData.external_reference).trim() : "";
+      const referencedPaymentIds = externalReference.includes(",")
+        ? externalReference.split(",").map((id) => id.trim()).filter(Boolean)
         : [];
 
       const query = ad
         .from("pagamentos")
         .select("id, inscricao_id, status");
 
-      const { data: dbPayments } = referencedPaymentIds.length > 0
+      let { data: dbPayments } = referencedPaymentIds.length > 0
         ? await query.in("id", referencedPaymentIds)
-        : await query.eq("payment_id", data.paymentId);
+        : externalReference
+          ? await query.eq("preference_id", externalReference)
+          : await query.eq("payment_id", data.paymentId);
+
+      if ((!dbPayments || dbPayments.length === 0) && externalReference && referencedPaymentIds.length === 0) {
+        const fallback = await ad
+          .from("pagamentos")
+          .select("id, inscricao_id, status")
+          .eq("id", externalReference);
+        dbPayments = fallback.data;
+      }
+
+      if ((!dbPayments || dbPayments.length === 0) && externalReference) {
+        const fallback = await ad
+          .from("pagamentos")
+          .select("id, inscricao_id, status")
+          .eq("payment_id", data.paymentId);
+        dbPayments = fallback.data;
+      }
 
       if (dbPayments && dbPayments.length > 0) {
         const payIds = dbPayments.map((p) => p.id);
