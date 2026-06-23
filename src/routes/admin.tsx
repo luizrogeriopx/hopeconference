@@ -880,3 +880,148 @@ export function ListaPastoresCoordenadores({ inscricoes }: { inscricoes: Inscric
     </section>
   );
 }
+
+export function LabCards({
+  labs,
+  stats,
+  selectedLab,
+  onSelectLab,
+}: {
+  labs: { id: string; nome: string }[];
+  stats: { labCounts: Record<string, number> };
+  selectedLab?: string | null;
+  onSelectLab?: (id: string | null) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between min-h-[20px]">
+        <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
+          Inscrições Confirmadas por LABs
+        </h3>
+        {selectedLab && onSelectLab && (
+          <button
+            type="button"
+            onClick={() => onSelectLab(null)}
+            className="text-[10px] tracking-widest text-gold hover:underline uppercase font-bold"
+          >
+            LIMPAR FILTRO
+          </button>
+        )}
+      </div>
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
+        {labs.map((l) => {
+          const count = stats.labCounts[l.id] ?? 0;
+          const isSelected = selectedLab === l.id;
+
+          if (onSelectLab) {
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => onSelectLab(isSelected ? null : l.id)}
+                className={`rounded-xl border p-3 shadow-sm flex flex-col justify-between items-start transition-all text-left w-full cursor-pointer hover:border-gold hover:bg-gold/5 ${
+                  isSelected
+                    ? "border-gold bg-gold/10 text-primary"
+                    : "border-border bg-card/60 text-foreground"
+                }`}
+              >
+                <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={l.nome}>{l.nome}</span>
+                <span className={`mt-1 font-display text-lg font-bold ${isSelected ? "text-gold" : "text-primary"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          }
+
+          return (
+            <div
+              key={l.id}
+              className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start text-left w-full"
+            >
+              <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={l.nome}>{l.nome}</span>
+              <span className="mt-1 font-display text-lg text-primary font-bold">
+                {count}
+              </span>
+            </div>
+          );
+        })}
+        {labs.length === 0 && (
+          <p className="text-xs text-muted-foreground col-span-full">Nenhum LAB cadastrado.</p>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export function MinisterioCards({
+  ministerios,
+  stats,
+  selectedMinisterio,
+  onSelectMinisterio,
+}: {
+  ministerios: { id: string; nome: string; ativo: boolean }[];
+  stats: { ministerioCounts: Record<string, number> };
+  selectedMinisterio?: string | null;
+  onSelectMinisterio?: (id: string | null) => void;
+}) {
+  const ativos = ministerios.filter((m) => m.ativo);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between min-h-[20px]">
+        <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
+          Inscrições Confirmadas por Ministério
+        </h3>
+        {selectedMinisterio && onSelectMinisterio && (
+          <button
+            type="button"
+            onClick={() => onSelectMinisterio(null)}
+            className="text-[10px] tracking-widest text-gold hover:underline uppercase font-bold"
+          >
+            LIMPAR FILTRO
+          </button>
+        )}
+      </div>
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
+        {ativos.map((m) => {
+          const count = stats.ministerioCounts[m.id] ?? 0;
+          const isSelected = selectedMinisterio === m.id;
+
+          if (onSelectMinisterio) {
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => onSelectMinisterio(isSelected ? null : m.id)}
+                className={`rounded-xl border p-3 shadow-sm flex flex-col justify-between items-start transition-all text-left w-full cursor-pointer hover:border-gold hover:bg-gold/5 ${
+                  isSelected
+                    ? "border-gold bg-gold/10 text-primary"
+                    : "border-border bg-card/60 text-foreground"
+                }`}
+              >
+                <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={m.nome}>{m.nome}</span>
+                <span className={`mt-1 font-display text-lg font-bold ${isSelected ? "text-gold" : "text-primary"}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          }
+
+          return (
+            <div
+              key={m.id}
+              className="rounded-xl border border-border bg-card/60 p-3 shadow-sm flex flex-col justify-between items-start text-left w-full"
+            >
+              <span className="text-[9px] tracking-wider uppercase text-muted-foreground truncate w-full" title={m.nome}>{m.nome}</span>
+              <span className="mt-1 font-display text-lg text-primary font-bold">
+                {count}
+              </span>
+            </div>
+          );
+        })}
+        {ativos.length === 0 && (
+          <p className="text-xs text-muted-foreground col-span-full">Nenhum ministério cadastrado.</p>
+        )}
+      </section>
+    </div>
+  );
+}
