@@ -565,7 +565,7 @@ export function ListaInscricoes({
                     : (i.valor === 0 ? "Isento" : "—")}
                 </td>
                 <td className="p-3 text-muted-foreground">R$ {Number(i.valor).toFixed(2)}</td>
-                <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleDateString("pt-BR")}</td>
+                <td className="p-3 text-muted-foreground">{new Date(i.criado_em).toLocaleString("pt-BR")}</td>
                 {(onEditar || onExcluir || mostrarBaixarIngresso) && (
                   <td className="p-3 text-right whitespace-nowrap">
                     {mostrarBaixarIngresso && (i.status === "pago" || i.status === "validado") && (
