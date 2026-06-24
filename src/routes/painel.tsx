@@ -470,7 +470,18 @@ function PainelInscrito() {
         setCheckoutAberto(true);
       }
     } catch (err) {
-      setErro(err instanceof Error ? err.message : "Erro ao realizar inscrição.");
+      console.error("Erro ao realizar inscrição:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      const isNetworkErr =
+        err instanceof TypeError ||
+        /failed to fetch|networkerror|load failed|network request failed/i.test(msg);
+      if (isNetworkErr) {
+        setErro(
+          "Não foi possível conectar ao servidor. Verifique sua conexão com a internet e tente novamente. Se o problema persistir, atualize a página (puxe para baixo) e tente outra vez."
+        );
+      } else {
+        setErro(msg || "Erro ao realizar inscrição.");
+      }
     } finally {
       setEnviando(false);
     }
