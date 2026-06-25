@@ -314,10 +314,16 @@ function PainelInscrito() {
                   .then(async (res: any) => {
                     if (res.success) {
                       resolve();
-                      alert(res.status === "approved" 
-                        ? "Pagamento confirmado! Seus ingressos foram liberados." 
-                        : "Pagamento Pix gerado com sucesso! Utilize o código QR abaixo para pagar."
-                      );
+                      const isPix = selectedPaymentMethod === "bank_transfer";
+                      let msg: string;
+                      if (res.status === "approved") {
+                        msg = "Pagamento confirmado! Seus ingressos foram liberados.";
+                      } else if (isPix) {
+                        msg = "Pagamento Pix gerado com sucesso! Utilize o código QR abaixo para pagar.";
+                      } else {
+                        msg = "Pagamento em análise. Você receberá uma confirmação assim que for aprovado.";
+                      }
+                      alert(msg);
                       setCheckoutAberto(false);
                       await carregar();
                     } else {
