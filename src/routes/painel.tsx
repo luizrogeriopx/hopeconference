@@ -191,8 +191,37 @@ function PainelInscrito() {
         }
       )
       .subscribe();
+
+    // Canal global (sem filtro) para manter a contagem de vagas em tempo real
+    // mesmo quando outros usuários se inscrevem.
+    const vagasChannel = supabase
+      .channel(`inscricoes-vagas-global`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "inscricoes" },
+        () => {
+          void carregarVagas();
+        }
+      )
+      .subscribe();
+
+    // Backup: atualiza a contagem de vagas a cada 20s caso o realtime falhe.
+    const interval = window.setInterval(() => {
+      void carregarVagas();
+    }, 20000);
+
+    // Atualiza quando a aba volta ao foco
+    const onFocus = () => {
+      void carregarVagas();
+      void carregarLabs();
+    };
+    window.addEventListener("focus", onFocus);
+
     return () => {
       void supabase.removeChannel(channel);
+      void supabase.removeChannel(vagasChannel);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
     };
   }, [user]);
 
