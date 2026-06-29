@@ -191,8 +191,37 @@ function PainelInscrito() {
         }
       )
       .subscribe();
+
+    // Canal global (sem filtro) para manter a contagem de vagas em tempo real
+    // mesmo quando outros usuários se inscrevem.
+    const vagasChannel = supabase
+      .channel(`inscricoes-vagas-global`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "inscricoes" },
+        () => {
+          void carregarVagas();
+        }
+      )
+      .subscribe();
+
+    // Backup: atualiza a contagem de vagas a cada 20s caso o realtime falhe.
+    const interval = window.setInterval(() => {
+      void carregarVagas();
+    }, 20000);
+
+    // Atualiza quando a aba volta ao foco
+    const onFocus = () => {
+      void carregarVagas();
+      void carregarLabs();
+    };
+    window.addEventListener("focus", onFocus);
+
     return () => {
       void supabase.removeChannel(channel);
+      void supabase.removeChannel(vagasChannel);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
     };
   }, [user]);
 
@@ -456,6 +485,49 @@ function PainelInscrito() {
     }
     setEnviando(true);
     try {
+      // Re-checa vagas em tempo real antes de enviar, pois outros usuários
+      // podem ter ocupado a LAB enquanto o formulário estava aberto.
+      await carregarLabs();
+      await carregarVagas();
+
+      const { data: freshLabs } = await supabase
+        .from("labs")
+        .select("id, nome, limite_vagas, ativo, eh_geral")
+        .eq("exclusivo_recepcao", false);
+      const { data: freshCounts } = await supabase
+        .from("inscricoes")
+        .select("lab_id")
+        .neq("status", "cancelado");
+      const counts: Record<string, number> = {};
+      let totalGeral = 0;
+      (freshCounts ?? []).forEach((r: any) => {
+        totalGeral++;
+        if (r.lab_id) counts[r.lab_id] = (counts[r.lab_id] || 0) + 1;
+      });
+
+      const novosPorLab: Record<string, number> = {};
+      for (const p of validos) {
+        if (p.labId) novosPorLab[p.labId] = (novosPorLab[p.labId] || 0) + 1;
+      }
+      for (const [labId, qtd] of Object.entries(novosPorLab)) {
+        const lab = (freshLabs ?? []).find((l: any) => l.id === labId);
+        if (!lab) continue;
+        if (!lab.ativo) {
+          setErro(`A categoria "${lab.nome}" não está mais disponível. Atualize a página e escolha outra.`);
+          setEnviando(false);
+          return;
+        }
+        const ocupadas = lab.eh_geral ? totalGeral : (counts[labId] || 0);
+        const restantes = lab.limite_vagas - ocupadas;
+        if (restantes < qtd) {
+          setErro(
+            `A categoria "${lab.nome}" está esgotada${restantes > 0 ? ` (restam apenas ${restantes} vaga(s))` : ""}. Atualize a página e escolha outra categoria.`
+          );
+          setEnviando(false);
+          return;
+        }
+      }
+
       const payload = {
         participantes: validos.map((p) => ({
           nome: p.nome.trim(),
