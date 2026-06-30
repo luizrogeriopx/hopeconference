@@ -87,6 +87,7 @@ type Ministerio = {
 function PainelInscrito() {
   const navigate = useNavigate();
   const { user, roles, loading, signOut } = useAuth();
+  const isSuper = roles?.includes("super_admin") ?? false;
   const [inscricoes, setInscricoes] = useState<Inscricao[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [labs, setLabs] = useState<Lab[]>([]);
@@ -131,6 +132,7 @@ function PainelInscrito() {
   }
 
   const [pendingPayments, setPendingPayments] = useState<any[]>([]);
+  const [selectedPendingIds, setSelectedPendingIds] = useState<string[]>([]);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
   const [mpPublicKey, setMpPublicKey] = useState("");
   const [mpAtivo, setMpAtivo] = useState(false);
@@ -292,9 +294,12 @@ function PainelInscrito() {
           .select("id, status, metodo, valor, preference_id, payment_id, payment_url, pix_qr_base64, inscricao_id")
           .in("inscricao_id", pendingInscs.map((i: any) => i.id))
           .eq("status", "pendente");
-        setPendingPayments(payData ?? []);
+        const payments = payData ?? [];
+        setPendingPayments(payments);
+        setSelectedPendingIds(payments.map((p) => p.id));
       } else {
         setPendingPayments([]);
+        setSelectedPendingIds([]);
       }
     }
     setCarregando(false);
@@ -302,7 +307,8 @@ function PainelInscrito() {
 
   // Efeito para inicializar o Payment Brick
   useEffect(() => {
-    if (!mpPublicKey || pendingPayments.length === 0 || !checkoutAberto) return;
+    const activePayments = pendingPayments.filter(p => !isSuper || selectedPendingIds.includes(p.id));
+    if (!mpPublicKey || activePayments.length === 0 || !checkoutAberto) return;
 
     let brickController: any = null;
 
@@ -312,7 +318,7 @@ function PainelInscrito() {
         const mp = new (window as any).MercadoPago(mpPublicKey);
         const bricksBuilder = mp.bricks();
 
-        const totalAmount = pendingPayments.reduce((s, p) => s + p.valor, 0);
+        const totalAmount = activePayments.reduce((s, p) => s + p.valor, 0);
 
         const settings = {
           initialization: {
@@ -337,7 +343,7 @@ function PainelInscrito() {
                 processarPagamento({
                   data: {
                     formData,
-                    pendingPaymentIds: pendingPayments.map((p) => p.id),
+                    pendingPaymentIds: activePayments.map((p) => p.id),
                   }
                 })
                   .then(async (res: any) => {
@@ -397,7 +403,7 @@ function PainelInscrito() {
         }
       }
     };
-  }, [mpPublicKey, pendingPayments, checkoutAberto]);
+  }, [mpPublicKey, pendingPayments, checkoutAberto, selectedPendingIds, isSuper]);
 
   async function verificarPix(paymentId: string) {
     setVerificandoPagamentoId(paymentId);
@@ -803,25 +809,57 @@ function PainelInscrito() {
                 <div>
                   <h3 className="font-display text-lg text-primary font-semibold">Pagamento Pendente</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Você possui {pendingPayments.length} inscrição(ões) aguardando pagamento para liberar os ingressos.
+                    {isSuper 
+                      ? `Selecione quais das suas ${pendingPayments.length} inscrição(ões) deseja pagar agora.`
+                      : `Você possui ${pendingPayments.length} inscrição(ões) aguardando pagamento para liberar os ingressos.`
+                    }
                   </p>
                 </div>
                 <div className="text-lg font-bold text-primary">
-                  Total: R$ {pendingPayments.reduce((s, p) => s + p.valor, 0).toFixed(2)}
+                  Total: R$ {pendingPayments
+                    .filter((p) => !isSuper || selectedPendingIds.includes(p.id))
+                    .reduce((s, p) => s + p.valor, 0)
+                    .toFixed(2)}
                 </div>
               </div>
 
               {/* Lista de participantes pendentes */}
               <div className="rounded-lg bg-background/40 p-3 border border-border/50">
                 <p className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground mb-1.5">Participantes Pendentes</p>
-                <ul className="text-xs space-y-1 text-muted-foreground list-disc list-inside">
+                <ul className="text-xs space-y-2 text-muted-foreground">
                   {inscricoes
                     .filter((i) => i.status === "pendente")
-                    .map((i) => (
-                      <li key={i.id}>
-                        <span className="font-semibold text-primary">{i.nome_participante}</span> ({i.labs?.nome || "Entrada Geral"})
-                      </li>
-                    ))}
+                    .map((i) => {
+                      const pay = pendingPayments.find((p) => p.inscricao_id === i.id);
+                      if (!pay) return null;
+                      
+                      if (isSuper) {
+                        const isChecked = selectedPendingIds.includes(pay.id);
+                        return (
+                          <li key={i.id} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedPendingIds([...selectedPendingIds, pay.id]);
+                                } else {
+                                  setSelectedPendingIds(selectedPendingIds.filter((id) => id !== pay.id));
+                                }
+                              }}
+                              className="rounded border-input text-gold focus:ring-gold h-4 w-4 bg-background cursor-pointer"
+                            />
+                            <span className="font-semibold text-primary">{i.nome_participante}</span> ({i.labs?.nome || "Entrada Geral"}) - R$ {i.valor.toFixed(2)}
+                          </li>
+                        );
+                      }
+                      
+                      return (
+                        <li key={i.id} className="list-disc list-inside">
+                          <span className="font-semibold text-primary">{i.nome_participante}</span> ({i.labs?.nome || "Entrada Geral"}) - R$ {i.valor.toFixed(2)}
+                        </li>
+                      );
+                    })}
                 </ul>
               </div>
 

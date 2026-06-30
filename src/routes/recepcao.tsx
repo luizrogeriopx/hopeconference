@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { criarInscricoesRecepcao } from "@/lib/inscriptions.functions";
+import { criarInscricoesRecepcao, confirmarPagamentosRecepcao } from "@/lib/inscriptions.functions";
 import { LocalCard } from "@/components/LocalCard";
 
 
@@ -74,11 +74,16 @@ function RecepcaoPage() {
   const [ultimasInscricoes, setUltimasInscricoes] = useState<UltimaInscricao[]>([]);
   const [regionaisCongregacoes, setRegionaisCongregacoes] = useState<Record<string, string[]>>({});
   
+  const [inscricoesPendentes, setInscricoesPendentes] = useState<any[]>([]);
+  const [selecionadasPendentes, setSelecionadasPendentes] = useState<string[]>([]);
+  const [buscaPendente, setBuscaPendente] = useState("");
+  
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
 
   const inscreverRecepcaoFn = useServerFn(criarInscricoesRecepcao);
+  const confirmarPagamentoFn = useServerFn(confirmarPagamentosRecepcao);
 
   useEffect(() => {
     if (!loading) {
@@ -124,6 +129,7 @@ function RecepcaoPage() {
       void carregarUltimasInscricoes();
       void carregarMinisterios();
       void carregarRegionaisCongregacoes();
+      void carregarPendentesRecepcao();
     }
   }, [user, isStaff]);
 
@@ -167,6 +173,37 @@ function RecepcaoPage() {
       .limit(10);
     if (data) {
       setUltimasInscricoes(data as any[]);
+    }
+  }
+
+  async function carregarPendentesRecepcao() {
+    const { data } = await supabase
+      .from("inscricoes")
+      .select("id, nome_participante, email, valor, criado_em, regional, congregacao, labs(nome)")
+      .eq("status", "pendente")
+      .order("criado_em", { ascending: false });
+    if (data) setInscricoesPendentes(data as any[]);
+  }
+
+  async function confirmarPagamentoPresencial(ids: string[], metodo: "dinheiro" | "isento") {
+    if (ids.length === 0) return;
+    setEnviando(true);
+    try {
+      await confirmarPagamentoFn({
+        data: {
+          inscricaoIds: ids,
+          metodoPagamento: metodo,
+        }
+      });
+      alert("Pagamento presencial confirmado com sucesso!");
+      setSelecionadasPendentes([]);
+      await carregarVagas();
+      await carregarUltimasInscricoes();
+      await carregarPendentesRecepcao();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao confirmar pagamento.");
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -444,6 +481,163 @@ function RecepcaoPage() {
                 </button>
               </div>
             </form>
+          </section>
+
+          {/* Confirmação de Inscrições Pendentes */}
+          <section className="rounded-xl border border-border bg-card p-6 shadow-sm text-left">
+            <h2 className="font-display text-xl text-primary">Confirmar Pagamento de Pendentes</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Marque as inscrições pendentes do sistema que deseja confirmar o pagamento presencialmente.
+            </p>
+
+            <div className="mt-4">
+              <input
+                type="text"
+                placeholder="Buscar por nome ou e-mail..."
+                value={buscaPendente}
+                onChange={(e) => setBuscaPendente(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs outline-none focus:border-gold"
+              />
+            </div>
+
+            <div className="mt-4 overflow-x-auto max-h-[300px] overflow-y-auto border border-border rounded-lg">
+              <table className="w-full min-w-[500px] text-xs">
+                <thead className="sticky top-0 bg-card border-b border-border text-muted-foreground uppercase text-[10px] tracking-wider text-left z-10">
+                  <tr>
+                    <th className="p-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={
+                          inscricoesPendentes.length > 0 &&
+                          inscricoesPendentes
+                            .filter((insc) => {
+                              const b = buscaPendente.toLowerCase().trim();
+                              return (
+                                !b ||
+                                insc.nome_participante.toLowerCase().includes(b) ||
+                                (insc.email && insc.email.toLowerCase().includes(b))
+                              );
+                            })
+                            .every((insc) => selecionadasPendentes.includes(insc.id))
+                        }
+                        onChange={(e) => {
+                          const filtradas = inscricoesPendentes.filter((insc) => {
+                            const b = buscaPendente.toLowerCase().trim();
+                            return (
+                              !b ||
+                              insc.nome_participante.toLowerCase().includes(b) ||
+                              (insc.email && insc.email.toLowerCase().includes(b))
+                            );
+                          });
+                          if (e.target.checked) {
+                            const todosIds = Array.from(new Set([...selecionadasPendentes, ...filtradas.map(f => f.id)]));
+                            setSelecionadasPendentes(todosIds);
+                          } else {
+                            const filtradasIds = filtradas.map(f => f.id);
+                            setSelecionadasPendentes(selecionadasPendentes.filter(id => !filtradasIds.includes(id)));
+                          }
+                        }}
+                        className="rounded border-input text-gold focus:ring-gold h-4 w-4 bg-background cursor-pointer"
+                      />
+                    </th>
+                    <th className="p-3">Participante / E-mail</th>
+                    <th className="p-3">Categoria (LAB)</th>
+                    <th className="p-3">Regional / Congregação</th>
+                    <th className="p-3 text-right">Valor</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {inscricoesPendentes
+                    .filter((insc) => {
+                      const b = buscaPendente.toLowerCase().trim();
+                      return (
+                        !b ||
+                        insc.nome_participante.toLowerCase().includes(b) ||
+                        (insc.email && insc.email.toLowerCase().includes(b))
+                      );
+                    })
+                    .map((insc) => {
+                      const isChecked = selecionadasPendentes.includes(insc.id);
+                      return (
+                        <tr key={insc.id} className="hover:bg-muted/30">
+                          <td className="p-3">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelecionadasPendentes([...selecionadasPendentes, insc.id]);
+                                } else {
+                                  setSelecionadasPendentes(selecionadasPendentes.filter(id => id !== insc.id));
+                                }
+                              }}
+                              className="rounded border-input text-gold focus:ring-gold h-4 w-4 bg-background cursor-pointer"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <div className="font-semibold text-primary">{insc.nome_participante}</div>
+                            <div className="text-muted-foreground text-[10px]">{insc.email || "Sem e-mail"}</div>
+                          </td>
+                          <td className="p-3 text-muted-foreground">
+                            {insc.labs?.nome || "Entrada Geral"}
+                          </td>
+                          <td className="p-3 text-muted-foreground">
+                            Reg. {String(insc.regional).padStart(2, "0")} - {insc.congregacao}
+                          </td>
+                          <td className="p-3 text-right font-medium text-primary">
+                            R$ {insc.valor.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  {inscricoesPendentes.filter((insc) => {
+                    const b = buscaPendente.toLowerCase().trim();
+                    return (
+                      !b ||
+                      insc.nome_participante.toLowerCase().includes(b) ||
+                      (insc.email && insc.email.toLowerCase().includes(b))
+                    );
+                  }).length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                        Nenhuma inscrição pendente encontrada.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {selecionadasPendentes.length > 0 && (
+              <div className="mt-4 p-4 rounded-lg bg-gold/5 border border-gold/20 flex flex-wrap items-center justify-between gap-3 z-10 relative">
+                <div className="text-sm">
+                  <span className="font-semibold text-primary">{selecionadasPendentes.length}</span> selecionada(s) | Total:{" "}
+                  <strong className="text-primary text-base">
+                    R$ {inscricoesPendentes
+                      .filter(i => selecionadasPendentes.includes(i.id))
+                      .reduce((s, i) => s + i.valor, 0)
+                      .toFixed(2)}
+                  </strong>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    disabled={enviando}
+                    onClick={() => confirmarPagamentoPresencial(selecionadasPendentes, "dinheiro")}
+                    className="rounded-md bg-gold px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-gold/90 transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    PAGO EM DINHEIRO
+                  </button>
+                  <button
+                    disabled={enviando}
+                    onClick={() => confirmarPagamentoPresencial(selecionadasPendentes, "isento")}
+                    className="rounded-md border border-border px-4 py-2 text-xs font-semibold tracking-widest text-primary hover:bg-muted transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    ISENTAR (GRÁTIS)
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Últimas Inscrições da Sessão */}

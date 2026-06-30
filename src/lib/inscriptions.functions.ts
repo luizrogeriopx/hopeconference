@@ -661,3 +661,78 @@ export const atualizarInscricaoOwner = createServerFn({ method: "POST" })
     if (updErr) throw new Error("Erro ao atualizar inscrição: " + updErr.message);
     return { ok: true };
   });
+
+const confirmarPagamentosSchema = z.object({
+  inscricaoIds: z.array(z.string()),
+  metodoPagamento: z.enum(["dinheiro", "isento"]),
+});
+
+export const confirmarPagamentosRecepcao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => confirmarPagamentosSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const ad = admin();
+
+    // 1. Validar se o operador tem permissão (super_admin, admin ou recepcao)
+    const { data: userRoles, error: rolesErr } = await ad
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    if (rolesErr || !userRoles) {
+      throw new Error("Erro ao validar permissões do usuário.");
+    }
+    const userRoleTypes = userRoles.map((r) => r.role);
+    const temPermissao =
+      userRoleTypes.includes("super_admin") ||
+      userRoleTypes.includes("admin") ||
+      userRoleTypes.includes("recepcao");
+    if (!temPermissao) {
+      throw new Error("Acesso negado. Apenas operadores autorizados podem confirmar pagamentos.");
+    }
+
+    // 2. Buscar as inscrições selecionadas
+    const { data: inscs, error: inscsErr } = await ad
+      .from("inscricoes")
+      .select("id, status, valor")
+      .in("id", data.inscricaoIds);
+
+    if (inscsErr || !inscs) {
+      throw new Error("Erro ao carregar inscrições.");
+    }
+
+    // 3. Atualizar inscrições para 'pago'
+    const { error: updateErr } = await ad
+      .from("inscricoes")
+      .update({ status: "pago" })
+      .in("id", data.inscricaoIds);
+    if (updateErr) {
+      throw new Error("Erro ao atualizar status das inscrições: " + updateErr.message);
+    }
+
+    // 4. Inserir ou atualizar pagamentos correspondentes
+    const paymentRows = data.inscricaoIds.map((id) => {
+      const insc = inscs.find((i) => i.id === id);
+      const valor = data.metodoPagamento === "isento" ? 0 : (insc?.valor || 50);
+      return {
+        inscricao_id: id,
+        status: "pago",
+        metodo: data.metodoPagamento,
+        valor: valor,
+      };
+    });
+
+    // Remover pagamentos pendentes destas inscrições antes de inserir os pagos
+    await ad
+      .from("pagamentos")
+      .delete()
+      .in("inscricao_id", data.inscricaoIds)
+      .eq("status", "pendente");
+
+    const { error: payErr } = await ad.from("pagamentos").insert(paymentRows);
+    if (payErr) {
+      throw new Error("Erro ao registrar pagamentos das inscrições: " + payErr.message);
+    }
+
+    return { success: true };
+  });
