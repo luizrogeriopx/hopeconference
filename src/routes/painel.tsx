@@ -343,18 +343,22 @@ function PainelInscrito() {
                   .then(async (res: any) => {
                     if (res.success) {
                       resolve();
-                      const isPix = selectedPaymentMethod === "bank_transfer";
-                      let msg: string;
-                      if (res.status === "approved") {
-                        msg = "Pagamento confirmado! Seus ingressos foram liberados.";
-                      } else if (isPix) {
-                        msg = "Pagamento Pix gerado com sucesso! Utilize o código QR abaixo para pagar.";
+                      if (res.redirectUrl) {
+                        window.location.href = res.redirectUrl;
                       } else {
-                        msg = "Pagamento em análise. Você receberá uma confirmação assim que for aprovado.";
+                        const isPix = selectedPaymentMethod === "bank_transfer";
+                        let msg: string;
+                        if (res.status === "approved") {
+                          msg = "Pagamento confirmado! Seus ingressos foram liberados.";
+                        } else if (isPix) {
+                          msg = "Pagamento Pix gerado com sucesso! Utilize o código QR abaixo para pagar.";
+                        } else {
+                          msg = "Pagamento em análise. Você receberá uma confirmação assim que for aprovado.";
+                        }
+                        alert(msg);
+                        setCheckoutAberto(false);
+                        await carregar();
                       }
-                      alert(msg);
-                      setCheckoutAberto(false);
-                      await carregar();
                     } else {
                       reject();
                       alert(`Erro no pagamento: ${res.statusDetail || "Tente novamente"}`);
@@ -821,8 +825,34 @@ function PainelInscrito() {
                 </ul>
               </div>
 
-              {/* Se Pix já gerado, mostrar o Pix diretamente */}
-              {pendingPayments[0]?.payment_url && pendingPayments[0]?.pix_qr_base64 ? (
+              {/* Se Pix já gerado, mostrar o Pix diretamente, se for Débito mostrar botão de autenticação */}
+              {pendingPayments[0]?.payment_url && !pendingPayments[0]?.pix_qr_base64 ? (
+                <div className="flex flex-col items-center gap-4 p-4 rounded-lg bg-background border border-border max-w-sm mx-auto text-center">
+                  <span className="text-xs font-semibold tracking-wider text-gold uppercase">Autenticação Pendente</span>
+                  <p className="text-xs text-muted-foreground">
+                    Seu banco exige autorização para compras no débito online. Clique abaixo para abrir a página de autenticação segura do seu banco e concluir o pagamento.
+                  </p>
+
+                  <div className="w-full space-y-2">
+                    <a
+                      href={pendingPayments[0].payment_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full block rounded-md bg-gold px-3 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-gold/90 transition-colors text-center cursor-pointer"
+                    >
+                      ABRIR AUTENTICAÇÃO DO BANCO
+                    </a>
+                    
+                    <button
+                      disabled={cancelandoPagamento}
+                      onClick={() => refazerCheckout(pendingPayments.map(p => p.id))}
+                      className="w-full rounded-md border border-destructive/20 text-destructive px-3 py-2 text-[10px] tracking-widest uppercase hover:bg-destructive/5 transition-colors cursor-pointer"
+                    >
+                      {cancelandoPagamento ? "REDEFININDO..." : "MUDAR FORMA DE PAGAMENTO"}
+                    </button>
+                  </div>
+                </div>
+              ) : pendingPayments[0]?.payment_url && pendingPayments[0]?.pix_qr_base64 ? (
                 <div className="flex flex-col items-center gap-4 p-4 rounded-lg bg-background border border-border max-w-sm mx-auto text-center">
                   <span className="text-xs font-semibold tracking-wider text-gold uppercase">Pague via Pix</span>
                   

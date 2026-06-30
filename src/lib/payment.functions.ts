@@ -227,7 +227,7 @@ export const processarPagamentoTransparente = createServerFn({ method: "POST" })
       if (payErr) console.error("Error updating payments status:", payErr);
 
     } else if (mpStatus === "pending" || mpStatus === "in_process") {
-      // Pegar dados do Pix (se for Pix)
+      const redirectUrl = mpData.transaction_details?.external_resource_url || null;
       const qrCode = mpData.point_of_interaction?.transaction_data?.qr_code || null;
       const qrCodeBase64 = mpData.point_of_interaction?.transaction_data?.qr_code_base64 || null;
 
@@ -238,7 +238,7 @@ export const processarPagamentoTransparente = createServerFn({ method: "POST" })
           status: "pendente",
           metodo: data.formData.payment_method_id,
           payment_id: mpPaymentId,
-          payment_url: qrCode,
+          payment_url: redirectUrl || qrCode,
           pix_qr_base64: qrCodeBase64,
         })
         .in("id", data.pendingPaymentIds);
@@ -250,6 +250,7 @@ export const processarPagamentoTransparente = createServerFn({ method: "POST" })
       status: mpStatus,
       statusDetail: mpData.status_detail,
       paymentId: mpPaymentId,
+      redirectUrl: mpData.transaction_details?.external_resource_url || null,
       qrCode: mpData.point_of_interaction?.transaction_data?.qr_code || null,
       qrCodeBase64: mpData.point_of_interaction?.transaction_data?.qr_code_base64 || null,
     };
