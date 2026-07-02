@@ -137,6 +137,7 @@ function PainelInscrito() {
   const [checkoutAberto, setCheckoutAberto] = useState(false);
   const [mpPublicKey, setMpPublicKey] = useState("");
   const [mpAtivo, setMpAtivo] = useState(false);
+  const [materialAtivo, setMaterialAtivo] = useState(true);
   const [verificandoPagamentoId, setVerificandoPagamentoId] = useState<string | null>(null);
   const [cancelandoPagamento, setCancelandoPagamento] = useState(false);
 
@@ -155,12 +156,13 @@ function PainelInscrito() {
     async function carregarMPSettings() {
       const { data } = await supabase
         .from("app_settings")
-        .select("mercado_pago_ativo, mercado_pago_public_key")
+        .select("mercado_pago_ativo, mercado_pago_public_key, material_ativo")
         .eq("id", true)
         .maybeSingle();
       if (data) {
         setMpAtivo(data.mercado_pago_ativo);
         setMpPublicKey(data.mercado_pago_public_key || "");
+        setMaterialAtivo(data.material_ativo ?? true);
       }
     }
     void carregarMPSettings();
@@ -1343,7 +1345,7 @@ function InscricaoCard({
             BAIXAR INGRESSO (PDF)
           </button>
         )}
-        {showGeralQr && inscricao.labs?.link_material && (
+        {showGeralQr && materialAtivo && inscricao.labs?.link_material && (
           <a
             href={inscricao.labs.link_material}
             target="_blank"

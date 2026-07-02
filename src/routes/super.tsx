@@ -87,6 +87,7 @@ function SuperPage() {
   const [statusFiltro, setStatusFiltro] = useState<"todos" | "pendente" | "pago" | "validado" | "cancelado">("todos");
   const [copiado, setCopiado] = useState<string | null>(null);
   const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
+  const [materialAtivo, setMaterialAtivo] = useState<boolean>(true);
   const [salvandoFlag, setSalvandoFlag] = useState(false);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [googleSheetPastoresUrl, setGoogleSheetPastoresUrl] = useState("");
@@ -150,12 +151,13 @@ function SuperPage() {
     
     const { data: cfg } = await supabase
       .from("app_settings")
-      .select("inscricoes_abertas, google_sheet_pastores_url")
+      .select("inscricoes_abertas, google_sheet_pastores_url, material_ativo")
       .eq("id", true)
       .maybeSingle();
     if (cfg) {
       setInscricoesAbertas(cfg.inscricoes_abertas);
       setGoogleSheetPastoresUrl(cfg.google_sheet_pastores_url || "");
+      setMaterialAtivo(cfg.material_ativo ?? true);
     }
 
     try {
@@ -203,6 +205,18 @@ function SuperPage() {
     setSalvandoFlag(false);
     if (error) alert(error.message);
     else setInscricoesAbertas(novo);
+  }
+
+  async function toggleMaterial() {
+    const novo = !materialAtivo;
+    setSalvandoFlag(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ material_ativo: novo, atualizado_em: new Date().toISOString() })
+      .eq("id", true);
+    setSalvandoFlag(false);
+    if (error) alert(error.message);
+    else setMaterialAtivo(novo);
   }
 
   async function reverter(id: string, origem: "validado" | "cancelado") {
@@ -1113,13 +1127,37 @@ function SuperPage() {
             <button
               onClick={toggleInscricoes}
               disabled={salvandoFlag}
-              className={`rounded-md border px-4 py-2 text-xs tracking-widest ${
+              className={`rounded-md border px-4 py-2 text-xs tracking-widest cursor-pointer ${
                 inscricoesAbertas
                   ? "border-destructive/40 text-destructive hover:bg-destructive/10"
                   : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
               }`}
             >
               {salvandoFlag ? "SALVANDO…" : inscricoesAbertas ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
+            </button>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-xl text-primary">Downloads de Material</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {materialAtivo
+                  ? "O botão 'BAIXAR MATERIAL' está ativo e visível para inscritos pagos no painel."
+                  : "O botão 'BAIXAR MATERIAL' está desabilitado e oculto para todos os inscritos."}
+              </p>
+            </div>
+            <button
+              onClick={toggleMaterial}
+              disabled={salvandoFlag}
+              className={`rounded-md border px-4 py-2 text-xs tracking-widest cursor-pointer ${
+                materialAtivo
+                  ? "border-destructive/40 text-destructive hover:bg-destructive/10"
+                  : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
+              }`}
+            >
+              {salvandoFlag ? "SALVANDO…" : materialAtivo ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
             </button>
           </div>
         </section>

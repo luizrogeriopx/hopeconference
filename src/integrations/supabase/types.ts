@@ -38,6 +38,7 @@ export type Database = {
           google_sheet_pastores_url: string
           id: boolean
           inscricoes_abertas: boolean
+          material_ativo: boolean
           mercado_pago_ativo: boolean
           mercado_pago_public_key: string
         }
@@ -46,6 +47,7 @@ export type Database = {
           google_sheet_pastores_url?: string
           id?: boolean
           inscricoes_abertas?: boolean
+          material_ativo?: boolean
           mercado_pago_ativo?: boolean
           mercado_pago_public_key?: string
         }
@@ -54,6 +56,7 @@ export type Database = {
           google_sheet_pastores_url?: string
           id?: boolean
           inscricoes_abertas?: boolean
+          material_ativo?: boolean
           mercado_pago_ativo?: boolean
           mercado_pago_public_key?: string
         }
