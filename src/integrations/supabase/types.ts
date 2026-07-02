@@ -151,6 +151,7 @@ export type Database = {
           exclusivo_recepcao: boolean
           id: string
           limite_vagas: number
+          link_material: string | null
           local: string
           nome: string
           requer_cpf: boolean
@@ -162,6 +163,7 @@ export type Database = {
           exclusivo_recepcao?: boolean
           id?: string
           limite_vagas: number
+          link_material?: string | null
           local: string
           nome: string
           requer_cpf?: boolean
@@ -173,6 +175,7 @@ export type Database = {
           exclusivo_recepcao?: boolean
           id?: string
           limite_vagas?: number
+          link_material?: string | null
           local?: string
           nome?: string
           requer_cpf?: boolean

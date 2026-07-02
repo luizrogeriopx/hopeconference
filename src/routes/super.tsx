@@ -60,6 +60,7 @@ type Lab = {
   requer_cpf: boolean;
   eh_geral: boolean;
   criado_em: string;
+  link_material?: string | null;
 };
 
 type RegionalCongregacao = {
@@ -101,12 +102,14 @@ function SuperPage() {
   const [novoLabLocal, setNovoLabLocal] = useState("");
   const [novoLabRequerCpf, setNovoLabRequerCpf] = useState(false);
   const [novoLabEhGeral, setNovoLabEhGeral] = useState(false);
+  const [novoLabLinkMaterial, setNovoLabLinkMaterial] = useState("");
 
   // Edit LAB form state
   const [editingLabId, setEditingLabId] = useState<string | null>(null);
   const [editLabNome, setEditLabNome] = useState("");
   const [editLabLimite, setEditLabLimite] = useState(100);
   const [editLabLocal, setEditLabLocal] = useState("");
+  const [editLabLinkMaterial, setEditLabLinkMaterial] = useState("");
 
   // Mercado Pago config state
   const [mpAtivo, setMpAtivo] = useState(false);
@@ -393,6 +396,7 @@ function SuperPage() {
       local: novoLabLocal.trim(),
       requer_cpf: novoLabRequerCpf,
       eh_geral: novoLabEhGeral,
+      link_material: novoLabLinkMaterial.trim() || null,
       ativo: true,
     });
     if (error) {
@@ -403,6 +407,7 @@ function SuperPage() {
       setNovoLabLimite(100);
       setNovoLabRequerCpf(false);
       setNovoLabEhGeral(false);
+      setNovoLabLinkMaterial("");
       await carregar();
     }
   }
@@ -421,12 +426,14 @@ function SuperPage() {
         nome: editLabNome.trim(),
         limite_vagas: editLabLimite,
         local: editLabLocal.trim(),
+        link_material: editLabLinkMaterial.trim() || null,
       })
       .eq("id", id);
     if (error) {
       alert(error.message);
     } else {
       setEditingLabId(null);
+      setEditLabLinkMaterial("");
       await carregar();
     }
   }
@@ -436,6 +443,7 @@ function SuperPage() {
     setEditLabNome(lab.nome);
     setEditLabLimite(lab.limite_vagas);
     setEditLabLocal(lab.local);
+    setEditLabLinkMaterial(lab.link_material || "");
   }
 
   async function toggleAtivoLab(id: string, ativoAtual: boolean) {
@@ -697,7 +705,7 @@ function SuperPage() {
           <h2 className="font-display text-xl text-primary">Gerenciamento de LABs (Categorias)</h2>
           <p className="mt-1 text-xs text-muted-foreground">Configure os limites de vagas, locais e status de ativação das categorias.</p>
 
-          <form onSubmit={criarLab} className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-5 items-end border-b border-border pb-5">
+          <form onSubmit={criarLab} className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 items-end border-b border-border pb-5">
             <div className="space-y-1">
               <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">NOME DA LAB</label>
               <input required placeholder="Nome" value={novoLabNome} onChange={(e) => setNovoLabNome(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
@@ -710,6 +718,10 @@ function SuperPage() {
               <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">LIMITE DE VAGAS</label>
               <input required type="number" min={1} placeholder="Limite" value={novoLabLimite} onChange={(e) => setNovoLabLimite(Number(e.target.value))} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
             </div>
+            <div className="space-y-1">
+              <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground text-left block">LINK DO MATERIAL</label>
+              <input placeholder="https://..." value={novoLabLinkMaterial} onChange={(e) => setNovoLabLinkMaterial(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold" />
+            </div>
             <div className="flex flex-col gap-2 py-1 text-left justify-center h-full">
               <label className="flex items-center gap-2 text-xs text-muted-foreground select-none cursor-pointer">
                 <input type="checkbox" checked={novoLabRequerCpf} onChange={(e) => setNovoLabRequerCpf(e.target.checked)} />
@@ -720,7 +732,7 @@ function SuperPage() {
                 É Geral (Nenhum)
               </label>
             </div>
-            <button className="rounded-md bg-primary px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 h-[38px]">
+            <button className="rounded-md bg-primary px-4 py-2 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 h-[38px] cursor-pointer">
               ADICIONAR LAB
             </button>
           </form>
@@ -732,6 +744,7 @@ function SuperPage() {
                   <th className="p-3">Nome / Local</th>
                   <th className="p-3">Inscrições</th>
                   <th className="p-3">Limite</th>
+                  <th className="p-3">Link do Material</th>
                   <th className="p-3">CPF Requerido</th>
                   <th className="p-3">Status</th>
                   <th className="p-3 text-right">Ações</th>
@@ -767,6 +780,19 @@ function SuperPage() {
                           <input required type="number" value={editLabLimite} onChange={(e) => setEditLabLimite(Number(e.target.value))} className="rounded border border-input bg-background px-2 py-1 text-xs outline-none focus:border-gold w-20" />
                         ) : (
                           <span className="text-muted-foreground">{l.limite_vagas}</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-left">
+                        {isEditing ? (
+                          <input placeholder="https://..." value={editLabLinkMaterial} onChange={(e) => setEditLabLinkMaterial(e.target.value)} className="rounded border border-input bg-background px-2 py-1 text-xs outline-none focus:border-gold w-full min-w-[150px]" />
+                        ) : (
+                          l.link_material ? (
+                            <a href={l.link_material} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold text-xs">
+                              Link do Material
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground text-xs italic">Nenhum</span>
+                          )
                         )}
                       </td>
                       <td className="p-3 text-left">

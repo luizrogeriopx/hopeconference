@@ -21,6 +21,7 @@ type Lab = {
   requer_cpf: boolean;
   eh_geral: boolean;
   exclusivo_recepcao: boolean;
+  link_material?: string | null;
 };
 
 type ParticipanteForm = {

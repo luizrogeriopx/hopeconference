@@ -58,6 +58,7 @@ type Lab = {
   ativo: boolean;
   requer_cpf: boolean;
   eh_geral: boolean;
+  link_material?: string | null;
 };
 
 type ParticipanteForm = {
@@ -280,7 +281,7 @@ function PainelInscrito() {
     setCarregando(true);
     const { data, error } = await supabase
       .from("inscricoes")
-      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, regional, congregacao, labs(nome, local, eh_geral)")
+      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, regional, congregacao, labs(nome, local, eh_geral, link_material)")
       .eq("comprador_user_id", user!.id)
       .order("criado_em", { ascending: false });
     
@@ -1341,6 +1342,16 @@ function InscricaoCard({
           >
             BAIXAR INGRESSO (PDF)
           </button>
+        )}
+        {showGeralQr && inscricao.labs?.link_material && (
+          <a
+            href={inscricao.labs.link_material}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 rounded-md bg-gold px-3 py-2 text-center text-xs font-semibold tracking-widest text-primary hover:bg-gold/90 transition-colors flex items-center justify-center decoration-none no-underline cursor-pointer"
+          >
+            BAIXAR MATERIAL
+          </a>
         )}
         {(inscricao.status === "pendente" || inscricao.status === "pago") && (
           <button
