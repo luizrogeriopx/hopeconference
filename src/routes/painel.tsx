@@ -47,7 +47,7 @@ type Inscricao = {
   lab_validado_em?: string | null;
   regional: string;
   congregacao: string;
-  labs?: { nome: string; local: string; eh_geral: boolean } | null;
+  labs?: { nome: string; local: string; eh_geral: boolean; link_material?: string | null } | null;
 };
 
 type Lab = {
