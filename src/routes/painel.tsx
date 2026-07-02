@@ -980,6 +980,7 @@ function PainelInscrito() {
                     regionaisCongregacoes={regionaisCongregacoes}
                     onExcluir={handleExcluirInscricao}
                     onAtualizar={handleAtualizarInscricao}
+                    materialAtivo={materialAtivo}
                   />
                 ))}
               </ul>
@@ -1080,6 +1081,7 @@ function InscricaoCard({
   regionaisCongregacoes,
   onExcluir,
   onAtualizar,
+  materialAtivo,
 }: {
   inscricao: Inscricao;
   labs: Lab[];
@@ -1093,6 +1095,7 @@ function InscricaoCard({
     congregacao: string;
     ministerioId: string | null;
   }) => Promise<void>;
+  materialAtivo: boolean;
 }) {
   const [editando, setEditando] = useState(false);
   const [salvando, setSalvando] = useState(false);
