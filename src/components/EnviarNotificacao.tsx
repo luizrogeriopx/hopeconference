@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { enviarNotificacaoMassa } from "@/lib/notificacoes.functions";
-import { REGIONAIS } from "@/lib/regionais";
+import { regionaisCongregacoes } from "@/lib/regionais";
+
+const REGIONAIS = Object.keys(regionaisCongregacoes);
 
 type Lab = { id: string; nome: string };
 type Ministerio = { id: string; nome: string; ativo: boolean };
