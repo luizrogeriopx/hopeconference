@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+import { useServerFn, createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Cards, RegionalCards, LabCards, MinisterioCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
@@ -16,6 +18,72 @@ import {
   carregarConfiguracaoMercadoPago,
   salvarConfiguracaoMercadoPago,
 } from "@/lib/payment.functions";
+
+export const corrigirInscricoesWestFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const ad = createClient<Database>(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } }
+    );
+
+    // Verificar se o usuário solicitante é super_admin
+    const { data: meusRoles } = await ad
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    const roles = (meusRoles ?? []).map((r) => r.role);
+    if (!roles.includes("super_admin")) {
+      throw new Error("Sem permissão. Apenas super admin.");
+    }
+
+    const emailWest = "westsantos21@gmail.com";
+
+    // 1. Buscar inscrições
+    const { data: inscs, error: fetchErr } = await ad
+      .from("inscricoes")
+      .select("id, status, valor, nome_participante")
+      .eq("email", emailWest);
+
+    if (fetchErr) throw new Error("Erro ao carregar inscrições: " + fetchErr.message);
+    if (!inscs || inscs.length === 0) {
+      return { ok: false, message: "Nenhuma inscrição encontrada para o e-mail " + emailWest };
+    }
+
+    const inscIds = inscs.map((i) => i.id);
+
+    // 2. Atualizar inscrições para 'pago'
+    const { error: updateErr } = await ad
+      .from("inscricoes")
+      .update({ status: "pago" })
+      .in("id", inscIds);
+    if (updateErr) throw new Error("Erro ao atualizar inscrições: " + updateErr.message);
+
+    // 3. Remover pagamentos pendentes e inserir pago
+    await ad
+      .from("pagamentos")
+      .delete()
+      .in("inscricao_id", inscIds)
+      .eq("status", "pendente");
+
+    const paymentRows = inscs.map((insc) => ({
+      inscricao_id: insc.id,
+      status: "pago",
+      metodo: "pix",
+      valor: insc.valor || 50,
+    }));
+
+    const { error: payErr } = await ad.from("pagamentos").insert(paymentRows);
+    if (payErr) throw new Error("Erro ao salvar pagamentos: " + payErr.message);
+
+    return {
+      ok: true,
+      message: `Sucesso! ${inscs.length} inscrições do e-mail ${emailWest} foram marcadas como PAGAS e seus pagamentos registrados como PIX.`,
+      detalhes: inscs.map((i) => `${i.nome_participante} (Status anterior: ${i.status})`).join(", "),
+    };
+  });
 
 export const Route = createFileRoute("/super")({
   component: SuperPage,
@@ -127,6 +195,25 @@ function SuperPage() {
   const [editingCongregacaoId, setEditingCongregacaoId] = useState<string | null>(null);
   const [editCongregacaoNome, setEditCongregacaoNome] = useState("");
   const [selecionadosValidados, setSelecionadosValidados] = useState<string[]>([]);
+
+  const [rodandoFix, setRodandoFix] = useState(false);
+  const [resultadoFix, setResultadoFix] = useState<string | null>(null);
+  const corrigirWest = useServerFn(corrigirInscricoesWestFn);
+
+  async function handleCorrigirWest() {
+    if (!confirm("Confirmar a baixa de pagamento por PIX das inscrições de westsantos21@gmail.com?")) return;
+    setRodandoFix(true);
+    setResultadoFix(null);
+    try {
+      const res = await corrigirWest();
+      setResultadoFix(res.message);
+      await carregar(); // Recarrega inscrições
+    } catch (err: any) {
+      setResultadoFix("Erro ao executar correção: " + err.message);
+    } finally {
+      setRodandoFix(false);
+    }
+  }
 
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
@@ -1353,14 +1440,27 @@ function SuperPage() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={salvandoMP}
-                className="rounded-md bg-primary px-5 py-2.5 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              >
-                {salvandoMP ? "SALVANDO..." : "SALVAR CONFIGURAÇÃO"}
-              </button>
             </form>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+            <h2 className="font-display text-xl text-primary">Ferramentas de Suporte</h2>
+            <p className="text-xs text-muted-foreground">Executar ações de emergência ou correções de banco de dados diretamente.</p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleCorrigirWest}
+                disabled={rodandoFix}
+                className="rounded-md border border-gold bg-gold/10 px-4 py-2 text-xs font-semibold tracking-widest text-primary hover:bg-gold/20 disabled:opacity-50 cursor-pointer"
+              >
+                {rodandoFix ? "EXECUTANDO..." : "BAIXAR INSCRIÇÕES DE WESTSANTOS21@GMAIL.COM"}
+              </button>
+            </div>
+            {resultadoFix && (
+              <div className="rounded-md bg-muted p-3 text-xs font-mono text-muted-foreground whitespace-pre-wrap">
+                {resultadoFix}
+              </div>
+            )}
           </section>
         </div>
       </div>
