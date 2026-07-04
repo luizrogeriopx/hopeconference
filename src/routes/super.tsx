@@ -636,6 +636,18 @@ function SuperPage() {
     setTimeout(() => setCopiado(null), 1500);
   }
 
+  function scrollToSection(id: string) {
+    const el = document.getElementById(id);
+    if (el) {
+      const offset = 110; // Compensação para o cabeçalho fixo (main + sub-header)
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = el.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    }
+  }
+
   if (loading || !user) {
     return <main className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Carregando…</main>;
   }
@@ -653,67 +665,98 @@ function SuperPage() {
         </div>
       </header>
 
+      {/* Sub-Header Fixo para Navegação pelas Seções */}
+      <div className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur-md">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <nav className="flex space-x-5 overflow-x-auto py-3 text-[10px] tracking-widest scrollbar-none whitespace-nowrap uppercase font-semibold text-muted-foreground">
+            <button onClick={() => scrollToSection("dashboard")} className="hover:text-primary transition-colors cursor-pointer">Resumo</button>
+            <button onClick={() => scrollToSection("inscritos")} className="hover:text-primary transition-colors cursor-pointer">Inscritos</button>
+            <button onClick={() => scrollToSection("coordenadores")} className="hover:text-primary transition-colors cursor-pointer">Pastores/Coord.</button>
+            <button onClick={() => scrollToSection("contas")} className="hover:text-primary transition-colors cursor-pointer">Contas</button>
+            <button onClick={() => scrollToSection("notificacoes")} className="hover:text-primary transition-colors cursor-pointer">Notificar</button>
+            <button onClick={() => scrollToSection("validar")} className="hover:text-primary transition-colors cursor-pointer">Validar</button>
+            <button onClick={() => scrollToSection("labs")} className="hover:text-primary transition-colors cursor-pointer">LABs</button>
+            <button onClick={() => scrollToSection("ministerios")} className="hover:text-primary transition-colors cursor-pointer">Ministérios</button>
+            <button onClick={() => scrollToSection("congregacoes")} className="hover:text-primary transition-colors cursor-pointer">Congregações</button>
+            <button onClick={() => scrollToSection("validados")} className="hover:text-primary transition-colors cursor-pointer">Validados</button>
+            <button onClick={() => scrollToSection("canceladas")} className="hover:text-primary transition-colors cursor-pointer">Cancelados</button>
+            <button onClick={() => scrollToSection("usuarios")} className="hover:text-primary transition-colors cursor-pointer">Equipe</button>
+            <button onClick={() => scrollToSection("configuracoes")} className="hover:text-primary transition-colors cursor-pointer">Configurações</button>
+          </nav>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
-        <Cards stats={stats} />
-        <RegionalCards
-          stats={stats}
-          selectedRegional={regionalSelecionada}
-          onSelectRegional={setRegionalSelecionada}
-        />
+        <div id="dashboard" className="space-y-8">
+          <Cards stats={stats} />
+          <RegionalCards
+            stats={stats}
+            selectedRegional={regionalSelecionada}
+            onSelectRegional={setRegionalSelecionada}
+          />
 
-        <LabCards
-          labs={labs}
-          stats={stats}
-          selectedLab={labSelecionado}
-          onSelectLab={setLabSelecionado}
-        />
+          <LabCards
+            labs={labs}
+            stats={stats}
+            selectedLab={labSelecionado}
+            onSelectLab={setLabSelecionado}
+          />
 
-        <MinisterioCards
-          ministerios={ministerios}
-          stats={stats}
-          selectedMinisterio={ministerioSelecionado}
-          onSelectMinisterio={setMinisterioSelecionado}
-        />
-
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="text-xs tracking-widest uppercase text-muted-foreground">Filtrar status:</label>
-          {(["todos", "pendente", "pago", "validado", "cancelado"] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatusFiltro(s)}
-              className={`rounded-md border px-3 py-1.5 text-xs tracking-widest uppercase transition ${
-                statusFiltro === s
-                  ? "border-gold bg-gold/10 text-gold"
-                  : "border-border bg-background text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+          <MinisterioCards
+            ministerios={ministerios}
+            stats={stats}
+            selectedMinisterio={ministerioSelecionado}
+            onSelectMinisterio={setMinisterioSelecionado}
+          />
         </div>
 
-        <ListaInscricoes
-          inscricoes={filtradas}
-          busca={busca}
-          setBusca={setBusca}
-          onExcluir={excluirInscricao}
-          onAlterarLab={alterarLabInscricao}
-          onEditar={editarInscricao}
-          labs={labs}
-          congregacoes={congregacoes}
-          ministerios={ministerios.filter((m) => m.ativo)}
-          mostrarBaixarIngresso={true}
-        />
+        <div id="inscritos" className="space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-xs tracking-widest uppercase text-muted-foreground">Filtrar status:</label>
+            {(["todos", "pendente", "pago", "validado", "cancelado"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStatusFiltro(s)}
+                className={`rounded-md border px-3 py-1.5 text-xs tracking-widest uppercase transition ${
+                  statusFiltro === s
+                    ? "border-gold bg-gold/10 text-gold"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
 
-        <ListaPastoresCoordenadores inscricoes={filtradas} />
+          <ListaInscricoes
+            inscricoes={filtradas}
+            busca={busca}
+            setBusca={setBusca}
+            onExcluir={excluirInscricao}
+            onAlterarLab={alterarLabInscricao}
+            onEditar={editarInscricao}
+            labs={labs}
+            congregacoes={congregacoes}
+            ministerios={ministerios.filter((m) => m.ativo)}
+            mostrarBaixarIngresso={true}
+          />
+        </div>
 
-        <ContasUsuarios />
+        <div id="coordenadores">
+          <ListaPastoresCoordenadores inscricoes={filtradas} />
+        </div>
 
-        <EnviarNotificacao labs={labs} ministerios={ministerios} />
+        <div id="contas">
+          <ContasUsuarios />
+        </div>
+
+        <div id="notificacoes">
+          <EnviarNotificacao labs={labs} ministerios={ministerios} />
+        </div>
 
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section id="validar" className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <h2 className="font-display text-xl text-primary">Links dos painéis</h2>
             <p className="mt-1 text-xs text-muted-foreground">Compartilhe somente com os usuários autorizados.</p>
@@ -747,7 +790,7 @@ function SuperPage() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-card shadow-sm p-5">
+        <section id="labs" className="rounded-xl border border-border bg-card shadow-sm p-5">
           <h2 className="font-display text-xl text-primary">Gerenciamento de LABs (Categorias)</h2>
           <p className="mt-1 text-xs text-muted-foreground">Configure os limites de vagas, locais e status de ativação das categorias.</p>
 
@@ -882,7 +925,7 @@ function SuperPage() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-card shadow-sm p-5">
+        <section id="ministerios" className="rounded-xl border border-border bg-card shadow-sm p-5">
           <h2 className="font-display text-xl text-primary">Gerenciamento de Ministérios</h2>
           <p className="mt-1 text-xs text-muted-foreground">Adicione e edite os ministérios cadastrados na regional SEDE.</p>
 
@@ -955,7 +998,7 @@ function SuperPage() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-card shadow-sm p-5">
+        <section id="congregacoes" className="rounded-xl border border-border bg-card shadow-sm p-5">
           <h2 className="font-display text-xl text-primary">Gerenciamento de Congregações</h2>
           <p className="mt-1 text-xs text-muted-foreground">Adicione, edite ou remova as congregações vinculadas às regionais (02 a 21).</p>
 
@@ -1080,7 +1123,7 @@ function SuperPage() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-card shadow-sm">
+        <section id="validados" className="rounded-xl border border-border bg-card shadow-sm">
           <div className="flex flex-wrap items-center justify-between border-b border-border p-4 gap-3">
             <div>
               <h2 className="font-display text-xl text-primary">Ingressos validados na entrada</h2>
@@ -1166,7 +1209,7 @@ function SuperPage() {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-card shadow-sm">
+        <section id="canceladas" className="rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border p-4">
             <h2 className="font-display text-xl text-primary">Inscrições canceladas</h2>
             <span className="text-xs text-muted-foreground">{canceladasList.length} total</span>
@@ -1195,127 +1238,131 @@ function SuperPage() {
           </div>
         </section>
 
-        <GestaoUsuarios
-          usuarios={usuarios}
-          podeCriarAdmin={true}
-          labs={labs}
-          onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
-          onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" | "recepcao" } }); await carregar(); }}
-        />
+        <div id="usuarios">
+          <GestaoUsuarios
+            usuarios={usuarios}
+            podeCriarAdmin={true}
+            labs={labs}
+            onCriar={async (payload) => { await criar({ data: payload }); await carregar(); }}
+            onRemover={async (u) => { await remover({ data: { user_id: u.user_id, role: u.role as "admin" | "gate" | "recepcao" } }); await carregar(); }}
+          />
+        </div>
 
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="font-display text-xl text-primary">Inscrições</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {inscricoesAbertas
-                  ? "O botão de inscrição na home está ATIVO e clicável."
-                  : "O botão de inscrição na home aparece, mas está DESABILITADO."}
-              </p>
-            </div>
-            <button
-              onClick={toggleInscricoes}
-              disabled={salvandoFlag}
-              className={`rounded-md border px-4 py-2 text-xs tracking-widest cursor-pointer ${
-                inscricoesAbertas
-                  ? "border-destructive/40 text-destructive hover:bg-destructive/10"
-                  : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
-              }`}
-            >
-              {salvandoFlag ? "SALVANDO…" : inscricoesAbertas ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
-            </button>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="font-display text-xl text-primary">Downloads de Material</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {materialAtivo
-                  ? "O botão 'BAIXAR MATERIAL' está ativo e visível para inscritos pagos no painel."
-                  : "O botão 'BAIXAR MATERIAL' está desabilitado e oculto para todos os inscritos."}
-              </p>
-            </div>
-            <button
-              onClick={toggleMaterial}
-              disabled={salvandoFlag}
-              className={`rounded-md border px-4 py-2 text-xs tracking-widest cursor-pointer ${
-                materialAtivo
-                  ? "border-destructive/40 text-destructive hover:bg-destructive/10"
-                  : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
-              }`}
-            >
-              {salvandoFlag ? "SALVANDO…" : materialAtivo ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
-            </button>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <div>
-              <h2 className="font-display text-xl text-primary">Integração do Mercado Pago</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Habilite o checkout transparente (Cartão e Pix) para cobrar as inscrições automaticamente.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={mpAtivo}
-                  onChange={(e) => setMpAtivo(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
-                <span className="ml-2 text-xs font-semibold text-primary tracking-widest uppercase">
-                  {mpAtivo ? "Ativo" : "Inativo"}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <form onSubmit={salvarMercadoPago} className="space-y-4 max-w-2xl">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
-                  Public Key (Chave Pública)
-                </label>
-                <input
-                  type="text"
-                  required={mpAtivo}
-                  placeholder="APP_USR-..."
-                  value={mpPublicKey}
-                  onChange={(e) => setMpPublicKey(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                />
+        <div id="configuracoes" className="space-y-8">
+          <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="font-display text-xl text-primary">Inscrições</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {inscricoesAbertas
+                    ? "O botão de inscrição na home está ATIVO e clicável."
+                    : "O botão de inscrição na home aparece, mas está DESABILITADO."}
+                </p>
               </div>
+              <button
+                onClick={toggleInscricoes}
+                disabled={salvandoFlag}
+                className={`rounded-md border px-4 py-2 text-xs tracking-widest cursor-pointer ${
+                  inscricoesAbertas
+                    ? "border-destructive/40 text-destructive hover:bg-destructive/10"
+                    : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
+                }`}
+              >
+                {salvandoFlag ? "SALVANDO…" : inscricoesAbertas ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
+              </button>
+            </div>
+          </section>
 
-              <div className="space-y-1">
-                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left flex justify-between">
-                  <span>Access Token (Chave Privada)</span>
-                  {mpConfigurado && <span className="text-gold tracking-normal text-[9px] lowercase font-normal">(configurado)</span>}
+          <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="font-display text-xl text-primary">Downloads de Material</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {materialAtivo
+                    ? "O botão 'BAIXAR MATERIAL' está ativo e visível para inscritos pagos no painel."
+                    : "O botão 'BAIXAR MATERIAL' está desabilitado e oculto para todos os inscritos."}
+                </p>
+              </div>
+              <button
+                onClick={toggleMaterial}
+                disabled={salvandoFlag}
+                className={`rounded-md border px-4 py-2 text-xs tracking-widest cursor-pointer ${
+                  materialAtivo
+                    ? "border-destructive/40 text-destructive hover:bg-destructive/10"
+                    : "border-gold bg-gold/10 text-primary hover:bg-gold/20"
+                }`}
+              >
+                {salvandoFlag ? "SALVANDO…" : materialAtivo ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
+              </button>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h2 className="font-display text-xl text-primary">Integração do Mercado Pago</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Habilite o checkout transparente (Cartão e Pix) para cobrar as inscrições automaticamente.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={mpAtivo}
+                    onChange={(e) => setMpAtivo(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
+                  <span className="ml-2 text-xs font-semibold text-primary tracking-widest uppercase">
+                    {mpAtivo ? "Ativo" : "Inativo"}
+                  </span>
                 </label>
-                <input
-                  type="password"
-                  required={mpAtivo && !mpConfigurado}
-                  placeholder={mpConfigurado ? "••••••••••••••••••••••••••••••••" : "TEST-... ou APP_USR-..."}
-                  value={mpAccessToken === "_KEEP_EXISTING_" ? "" : mpAccessToken}
-                  onChange={(e) => setMpAccessToken(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
-                />
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={salvandoMP}
-              className="rounded-md bg-primary px-5 py-2.5 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-            >
-              {salvandoMP ? "SALVANDO..." : "SALVAR CONFIGURAÇÃO"}
-            </button>
-          </form>
-        </section>
+            <form onSubmit={salvarMercadoPago} className="space-y-4 max-w-2xl">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
+                    Public Key (Chave Pública)
+                  </label>
+                  <input
+                    type="text"
+                    required={mpAtivo}
+                    placeholder="APP_USR-..."
+                    value={mpPublicKey}
+                    onChange={(e) => setMpPublicKey(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left flex justify-between">
+                    <span>Access Token (Chave Privada)</span>
+                    {mpConfigurado && <span className="text-gold tracking-normal text-[9px] lowercase font-normal">(configurado)</span>}
+                  </label>
+                  <input
+                    type="password"
+                    required={mpAtivo && !mpConfigurado}
+                    placeholder={mpConfigurado ? "••••••••••••••••••••••••••••••••" : "TEST-... ou APP_USR-..."}
+                    value={mpAccessToken === "_KEEP_EXISTING_" ? "" : mpAccessToken}
+                    onChange={(e) => setMpAccessToken(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-gold"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={salvandoMP}
+                className="rounded-md bg-primary px-5 py-2.5 text-xs font-semibold tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {salvandoMP ? "SALVANDO..." : "SALVAR CONFIGURAÇÃO"}
+              </button>
+            </form>
+          </section>
+        </div>
       </div>
     </main>
   );
