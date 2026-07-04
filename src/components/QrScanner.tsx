@@ -29,7 +29,8 @@ export function QrScanner({ onResult, paused }: Props) {
           await inst.start(
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 } },
-            (text) => {
+            async (text) => {
+              await stop();
               void onResult(text);
             },
             () => { /* ignore per-frame errors */ }
