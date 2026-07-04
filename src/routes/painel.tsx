@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { LocalCard } from "@/components/LocalCard";
+import { NotificacoesSino } from "@/components/NotificacoesSino";
 import {
   criarInscricoesPainel,
   excluirInscricaoPendente,
