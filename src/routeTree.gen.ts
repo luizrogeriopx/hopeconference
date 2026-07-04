@@ -17,7 +17,6 @@ import { Route as GateRouteImport } from './routes/gate'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiTempFixRouteImport } from './routes/api/temp-fix'
 import { Route as ApiWebhookMercadopagoRouteImport } from './routes/api/webhook/mercadopago'
 
 const SuperRoute = SuperRouteImport.update({
@@ -60,11 +59,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTempFixRoute = ApiTempFixRouteImport.update({
-  id: '/api/temp-fix',
-  path: '/api/temp-fix',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiWebhookMercadopagoRoute = ApiWebhookMercadopagoRouteImport.update({
   id: '/api/webhook/mercadopago',
   path: '/api/webhook/mercadopago',
@@ -80,7 +74,6 @@ export interface FileRoutesByFullPath {
   '/recepcao': typeof RecepcaoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
-  '/api/temp-fix': typeof ApiTempFixRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
 export interface FileRoutesByTo {
@@ -92,7 +85,6 @@ export interface FileRoutesByTo {
   '/recepcao': typeof RecepcaoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
-  '/api/temp-fix': typeof ApiTempFixRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
 export interface FileRoutesById {
@@ -105,7 +97,6 @@ export interface FileRoutesById {
   '/recepcao': typeof RecepcaoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
-  '/api/temp-fix': typeof ApiTempFixRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
 export interface FileRouteTypes {
@@ -119,7 +110,6 @@ export interface FileRouteTypes {
     | '/recepcao'
     | '/reset-password'
     | '/super'
-    | '/api/temp-fix'
     | '/api/webhook/mercadopago'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -131,7 +121,6 @@ export interface FileRouteTypes {
     | '/recepcao'
     | '/reset-password'
     | '/super'
-    | '/api/temp-fix'
     | '/api/webhook/mercadopago'
   id:
     | '__root__'
@@ -143,7 +132,6 @@ export interface FileRouteTypes {
     | '/recepcao'
     | '/reset-password'
     | '/super'
-    | '/api/temp-fix'
     | '/api/webhook/mercadopago'
   fileRoutesById: FileRoutesById
 }
@@ -156,7 +144,6 @@ export interface RootRouteChildren {
   RecepcaoRoute: typeof RecepcaoRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SuperRoute: typeof SuperRoute
-  ApiTempFixRoute: typeof ApiTempFixRoute
   ApiWebhookMercadopagoRoute: typeof ApiWebhookMercadopagoRoute
 }
 
@@ -218,13 +205,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/temp-fix': {
-      id: '/api/temp-fix'
-      path: '/api/temp-fix'
-      fullPath: '/api/temp-fix'
-      preLoaderRoute: typeof ApiTempFixRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/webhook/mercadopago': {
       id: '/api/webhook/mercadopago'
       path: '/api/webhook/mercadopago'
@@ -244,7 +224,6 @@ const rootRouteChildren: RootRouteChildren = {
   RecepcaoRoute: RecepcaoRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SuperRoute: SuperRoute,
-  ApiTempFixRoute: ApiTempFixRoute,
   ApiWebhookMercadopagoRoute: ApiWebhookMercadopagoRoute,
 }
 export const routeTree = rootRouteImport
