@@ -70,7 +70,7 @@ export function NotificacoesSino({ userId }: { userId: string }) {
       {aberto && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setAberto(false)} />
-          <div className="absolute right-0 z-50 mt-2 w-80 sm:w-96 max-h-[70vh] overflow-hidden rounded-lg border border-border bg-card shadow-lg">
+          <div className="fixed inset-x-4 top-16 sm:absolute sm:right-0 sm:left-auto sm:inset-x-auto sm:top-full sm:mt-2 z-50 w-auto sm:w-96 max-h-[70vh] overflow-hidden rounded-lg border border-border bg-card shadow-lg">
             <div className="flex items-center justify-between border-b border-border px-4 py-2">
               <span className="text-sm font-semibold text-primary">Notificações</span>
               <div className="flex items-center gap-2">
