@@ -591,6 +591,7 @@ function PainelInscrito() {
           <Link to="/" className="font-display text-xl text-primary">Hope Conference 2026</Link>
           <div className="flex items-center gap-3 text-xs">
             <span className="hidden sm:inline text-muted-foreground">{user.email}</span>
+            <NotificacoesSino userId={user.id} />
             {roles.includes("super_admin") && (
               <Link to="/super" className="rounded-md border border-gold bg-gold/10 px-3 py-2 tracking-widest text-primary hover:bg-gold/20">SUPER ADMIN</Link>
             )}
