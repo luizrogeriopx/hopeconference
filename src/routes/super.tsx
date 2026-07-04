@@ -125,6 +125,7 @@ function SuperPage() {
   const [novaCongregacaoNome, setNovaCongregacaoNome] = useState("");
   const [editingCongregacaoId, setEditingCongregacaoId] = useState<string | null>(null);
   const [editCongregacaoNome, setEditCongregacaoNome] = useState("");
+  const [selecionadosValidados, setSelecionadosValidados] = useState<string[]>([]);
 
   const listar = useServerFn(listarUsuariosPainel);
   const criar = useServerFn(criarUsuarioPainel);
@@ -237,6 +238,33 @@ function SuperPage() {
       .eq("id", id);
     if (error) alert(error.message);
     else await carregar();
+  }
+
+  async function reverterEmMassa(ids: string[]) {
+    if (ids.length === 0) return;
+    if (!confirm(`Deseja reverter a validação de ${ids.length} inscrições selecionadas? Os QR Codes voltarão a funcionar.`)) return;
+    setSalvandoFlag(true);
+    try {
+      const { error } = await supabase
+        .from("inscricoes")
+        .update({ 
+          status: "pago", 
+          validado_em: null, 
+          validado_por: null,
+          lab_qr_token: null,
+          lab_validado_em: null,
+          lab_validado_por: null
+        })
+        .in("id", ids);
+      if (error) throw error;
+      alert(`${ids.length} inscrições revertidas com sucesso!`);
+      setSelecionadosValidados([]);
+      await carregar();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erro ao reverter em massa.");
+    } finally {
+      setSalvandoFlag(false);
+    }
   }
 
   async function excluirInscricao(id: string) {
@@ -1049,29 +1077,86 @@ function SuperPage() {
         </section>
 
         <section className="rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border p-4">
-            <h2 className="font-display text-xl text-primary">Ingressos validados na entrada</h2>
-            <span className="text-xs text-muted-foreground">{validadasList.length} total</span>
+          <div className="flex flex-wrap items-center justify-between border-b border-border p-4 gap-3">
+            <div>
+              <h2 className="font-display text-xl text-primary">Ingressos validados na entrada</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">{validadasList.length} total</p>
+            </div>
+            {selecionadosValidados.length > 0 && (
+              <button
+                onClick={() => reverterEmMassa(selecionadosValidados)}
+                className="rounded-md bg-destructive text-white px-3 py-1.5 text-xs font-semibold tracking-widest hover:bg-destructive/90 transition-colors cursor-pointer"
+              >
+                REVERTER EM MASSA ({selecionadosValidados.length})
+              </button>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] text-sm">
               <thead className="text-left text-xs tracking-widest uppercase text-muted-foreground">
-                <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Validado em</th><th className="p-3 text-right">Ação</th></tr>
+                <tr>
+                  <th className="p-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={
+                        validadasList.length > 0 &&
+                        validadasList.every((i) => selecionadosValidados.includes(i.id))
+                      }
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelecionadosValidados(validadasList.map((i) => i.id));
+                        } else {
+                          setSelecionadosValidados([]);
+                        }
+                      }}
+                      className="rounded border-input text-gold focus:ring-gold h-4 w-4 bg-background cursor-pointer"
+                    />
+                  </th>
+                  <th className="p-3">Nome</th>
+                  <th className="p-3">E-mail</th>
+                  <th className="p-3">Validado em</th>
+                  <th className="p-3 text-right">Ação</th>
+                </tr>
               </thead>
               <tbody>
-                {validadasList.map((i) => (
-                  <tr key={i.id} className="border-t border-border">
-                    <td className="p-3 text-primary">{i.nome_participante}</td>
-                    <td className="p-3 text-muted-foreground">{i.email}</td>
-                    <td className="p-3 text-muted-foreground">{i.validado_em ? new Date(i.validado_em).toLocaleString("pt-BR") : "—"}</td>
-                    <td className="p-3 text-right">
-                      <button onClick={() => reverter(i.id, "validado")} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10">
-                        REVERTER
-                      </button>
+                {validadasList.map((i) => {
+                  const isChecked = selecionadosValidados.includes(i.id);
+                  return (
+                    <tr key={i.id} className="border-t border-border hover:bg-muted/30">
+                      <td className="p-3">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelecionadosValidados([...selecionadosValidados, i.id]);
+                            } else {
+                              setSelecionadosValidados(
+                                selecionadosValidados.filter((id) => id !== i.id)
+                              );
+                            }
+                          }}
+                          className="rounded border-input text-gold focus:ring-gold h-4 w-4 bg-background cursor-pointer"
+                        />
+                      </td>
+                      <td className="p-3 text-primary">{i.nome_participante}</td>
+                      <td className="p-3 text-muted-foreground">{i.email}</td>
+                      <td className="p-3 text-muted-foreground">{i.validado_em ? new Date(i.validado_em).toLocaleString("pt-BR") : "—"}</td>
+                      <td className="p-3 text-right">
+                        <button onClick={() => reverter(i.id, "validado")} className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] tracking-widest text-destructive hover:bg-destructive/10 cursor-pointer">
+                          REVERTER
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {validadasList.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-6 text-center text-sm text-muted-foreground">
+                      Nenhum ingresso validado ainda.
                     </td>
                   </tr>
-                ))}
-                {validadasList.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-sm text-muted-foreground">Nenhum ingresso validado ainda.</td></tr>}
+                )}
               </tbody>
             </table>
           </div>
