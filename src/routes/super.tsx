@@ -710,6 +710,9 @@ function SuperPage() {
 
         <ContasUsuarios />
 
+        <EnviarNotificacao labs={labs} ministerios={ministerios} />
+
+
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <h2 className="font-display text-xl text-primary">Links dos painéis</h2>
