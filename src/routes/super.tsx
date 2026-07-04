@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Cards, RegionalCards, LabCards, MinisterioCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import { ContasUsuarios } from "@/components/ContasUsuarios";
+import { EnviarNotificacao } from "@/components/EnviarNotificacao";
 import {
   criarUsuarioPainel,
   listarUsuariosPainel,
@@ -708,6 +709,9 @@ function SuperPage() {
         <ListaPastoresCoordenadores inscricoes={filtradas} />
 
         <ContasUsuarios />
+
+        <EnviarNotificacao labs={labs} ministerios={ministerios} />
+
 
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
