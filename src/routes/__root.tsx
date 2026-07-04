@@ -135,8 +135,11 @@ function RootComponent() {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       const registerSW = () => {
         navigator.serviceWorker
-          .register("/sw.js")
-          .then((reg) => console.log("Service Worker registrado:", reg.scope))
+          .register("/sw.js", { updateViaCache: "none" })
+          .then((reg) => {
+            console.log("Service Worker registrado:", reg.scope);
+            reg.update();
+          })
           .catch((err) => console.error("Erro ao registrar Service Worker:", err));
       };
 

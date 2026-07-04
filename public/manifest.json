@@ -3,6 +3,7 @@
   "short_name": "HopeConf",
   "description": "Painel de inscrição e controle da Hope Conference 2026",
   "start_url": "/painel",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#b59247",
