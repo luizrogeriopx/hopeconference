@@ -176,7 +176,7 @@ function Index() {
               Aguarde!!
             </p>
             <p className="mt-4 text-xs text-muted-foreground/60 max-w-xs mx-auto leading-relaxed">
-              Estamos preparando algo extraordinário. Nos vemos em breve.
+              Estamos preparando algo extraordinário. <br /> Nos vemos em breve!
             </p>
           </div>
         </div>
