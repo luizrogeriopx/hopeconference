@@ -42,6 +42,8 @@ export type Database = {
           mercado_pago_ativo: boolean
           mercado_pago_public_key: string
           mostrar_segunda_homepage: boolean
+          whatsapp_suporte_ativo: boolean
+          whatsapp_suporte_numero: string
         }
         Insert: {
           atualizado_em?: string
@@ -52,6 +54,8 @@ export type Database = {
           mercado_pago_ativo?: boolean
           mercado_pago_public_key?: string
           mostrar_segunda_homepage?: boolean
+          whatsapp_suporte_ativo?: boolean
+          whatsapp_suporte_numero?: string
         }
         Update: {
           atualizado_em?: string
@@ -62,6 +66,8 @@ export type Database = {
           mercado_pago_ativo?: boolean
           mercado_pago_public_key?: string
           mostrar_segunda_homepage?: boolean
+          whatsapp_suporte_ativo?: boolean
+          whatsapp_suporte_numero?: string
         }
         Relationships: []
       }

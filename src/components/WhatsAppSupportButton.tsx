@@ -1,5 +1,51 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 export function WhatsAppSupportButton() {
-  const phone = "5562996897483";
+  const [ativo, setAtivo] = useState(true);
+  const [phone, setPhone] = useState("5562996897483");
+
+  useEffect(() => {
+    supabase
+      .from("app_settings")
+      .select("whatsapp_suporte_ativo, whatsapp_suporte_numero")
+      .eq("id", true)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          if (typeof data.whatsapp_suporte_ativo === "boolean") {
+            setAtivo(data.whatsapp_suporte_ativo);
+          }
+          if (data.whatsapp_suporte_numero) {
+            setPhone(data.whatsapp_suporte_numero);
+          }
+        }
+      });
+
+    const ch = supabase
+      .channel("app_settings_wa")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "app_settings" },
+        (payload) => {
+          const row = payload.new as { whatsapp_suporte_ativo?: boolean; whatsapp_suporte_numero?: string };
+          if (typeof row.whatsapp_suporte_ativo === "boolean") {
+            setAtivo(row.whatsapp_suporte_ativo);
+          }
+          if (row.whatsapp_suporte_numero) {
+            setPhone(row.whatsapp_suporte_numero);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(ch);
+    };
+  }, []);
+
+  if (!ativo) return null;
+
   const message = encodeURIComponent("Olá! Preciso de suporte com minha inscrição na Hope Conference.");
   const href = `https://wa.me/${phone}?text=${message}`;
 

@@ -158,6 +158,8 @@ function SuperPage() {
   const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
   const [materialAtivo, setMaterialAtivo] = useState<boolean>(true);
   const [mostrarSegundaHomepage, setMostrarSegundaHomepage] = useState<boolean>(false);
+  const [whatsappSuporteAtivo, setWhatsappSuporteAtivo] = useState<boolean>(true);
+  const [whatsappSuporteNumero, setWhatsappSuporteNumero] = useState<string>("5562996897483");
   const [salvandoFlag, setSalvandoFlag] = useState(false);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [googleSheetPastoresUrl, setGoogleSheetPastoresUrl] = useState("");
@@ -241,7 +243,7 @@ function SuperPage() {
     
     const { data: cfg } = await supabase
       .from("app_settings")
-      .select("inscricoes_abertas, google_sheet_pastores_url, material_ativo, mostrar_segunda_homepage")
+      .select("inscricoes_abertas, google_sheet_pastores_url, material_ativo, mostrar_segunda_homepage, whatsapp_suporte_ativo, whatsapp_suporte_numero")
       .eq("id", true)
       .maybeSingle();
     if (cfg) {
@@ -249,6 +251,8 @@ function SuperPage() {
       setGoogleSheetPastoresUrl(cfg.google_sheet_pastores_url || "");
       setMaterialAtivo(cfg.material_ativo ?? true);
       setMostrarSegundaHomepage(!!cfg.mostrar_segunda_homepage);
+      setWhatsappSuporteAtivo(cfg.whatsapp_suporte_ativo ?? true);
+      setWhatsappSuporteNumero(cfg.whatsapp_suporte_numero || "5562996897483");
     }
 
     try {
@@ -319,6 +323,32 @@ function SuperPage() {
     setSalvandoFlag(false);
     if (error) alert(error.message);
     else setMostrarSegundaHomepage(mostrarSegunda);
+  }
+
+  async function toggleWhatsappSuporte() {
+    const novo = !whatsappSuporteAtivo;
+    setSalvandoFlag(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ whatsapp_suporte_ativo: novo, atualizado_em: new Date().toISOString() })
+      .eq("id", true);
+    setSalvandoFlag(false);
+    if (error) alert(error.message);
+    else setWhatsappSuporteAtivo(novo);
+  }
+
+  async function salvarWhatsappNumero(numero: string) {
+    setSalvandoFlag(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ whatsapp_suporte_numero: numero, atualizado_em: new Date().toISOString() })
+      .eq("id", true);
+    setSalvandoFlag(false);
+    if (error) alert(error.message);
+    else {
+      setWhatsappSuporteNumero(numero);
+      alert("Número do WhatsApp de suporte atualizado!");
+    }
   }
 
   async function reverter(id: string, origem: "validado" | "cancelado") {
@@ -1429,6 +1459,59 @@ function SuperPage() {
                   }`}
                 >
                   SEGUNDA (2027)
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-3">
+              <div>
+                <h2 className="font-display text-xl text-primary">WhatsApp de Suporte Flutuante</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {whatsappSuporteAtivo
+                    ? "O botão flutuante do WhatsApp de suporte está ATIVO nas páginas."
+                    : "O botão flutuante do WhatsApp de suporte está OCULTO em todo o site."}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={whatsappSuporteAtivo}
+                    onChange={toggleWhatsappSuporte}
+                    disabled={salvandoFlag}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
+                  <span className="ml-2 text-xs font-semibold text-primary tracking-widest uppercase">
+                    {whatsappSuporteAtivo ? "Ativo" : "Oculto"}
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 max-w-2xl pt-1">
+              <div className="space-y-1">
+                <label className="text-[10px] tracking-widest uppercase font-semibold text-muted-foreground block text-left">
+                  Número do WhatsApp (com código do país - ex: 5562996897483)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={whatsappSuporteNumero}
+                  onChange={(e) => setWhatsappSuporteNumero(e.target.value)}
+                  placeholder="5562996897483"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs outline-none focus:border-gold focus:ring-1 focus:ring-gold"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => salvarWhatsappNumero(whatsappSuporteNumero)}
+                  disabled={salvandoFlag || !whatsappSuporteNumero}
+                  className="rounded-md border border-gold bg-gold/10 px-4 py-2 text-xs tracking-widest text-primary hover:bg-gold/20 cursor-pointer disabled:opacity-50"
+                >
+                  {salvandoFlag ? "SALVANDO…" : "SALVAR NÚMERO"}
                 </button>
               </div>
             </div>
