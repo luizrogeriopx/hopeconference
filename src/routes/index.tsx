@@ -56,14 +56,19 @@ const bands: { name: string; photo: string; position?: string }[] = [
 
 function Index() {
   const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
+  const [mostrarSegundaHomepage, setMostrarSegundaHomepage] = useState(false);
+
   useEffect(() => {
     supabase
       .from("app_settings")
-      .select("inscricoes_abertas")
+      .select("inscricoes_abertas, mostrar_segunda_homepage")
       .eq("id", true)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setInscricoesAbertas(data.inscricoes_abertas);
+        if (data) {
+          setInscricoesAbertas(data.inscricoes_abertas);
+          setMostrarSegundaHomepage(!!data.mostrar_segunda_homepage);
+        }
       });
     const ch = supabase
       .channel("app_settings")
@@ -71,15 +76,113 @@ function Index() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "app_settings" },
         (payload) => {
-          const row = payload.new as { inscricoes_abertas?: boolean };
+          const row = payload.new as { inscricoes_abertas?: boolean; mostrar_segunda_homepage?: boolean };
           if (typeof row.inscricoes_abertas === "boolean") {
             setInscricoesAbertas(row.inscricoes_abertas);
+          }
+          if (typeof row.mostrar_segunda_homepage === "boolean") {
+            setMostrarSegundaHomepage(row.mostrar_segunda_homepage);
           }
         }
       )
       .subscribe();
     return () => { void supabase.removeChannel(ch); };
   }, []);
+
+  useEffect(() => {
+    if (mostrarSegundaHomepage) {
+      document.title = "HOPE CONFERENCE 2027 — Aguarde!!";
+    } else {
+      document.title = "Hope Conference 2026 — Inscrições | Igreja Esperança";
+    }
+  }, [mostrarSegundaHomepage]);
+
+  if (mostrarSegundaHomepage) {
+    return (
+      <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col items-center justify-center px-4">
+        {/* CSS Animations */}
+        <style>{`
+          @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          @keyframes spin-reverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+          }
+          @keyframes glow-pulse {
+            0%, 100% { opacity: 0.15; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.08); }
+          }
+        `}</style>
+
+        {/* Ambient stained glass background with low opacity */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.06] select-none pointer-events-none"
+          style={{
+            backgroundImage: `url(${stainedGlass})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+        
+        {/* Soft gold ambient glow overlay */}
+        <div 
+          aria-hidden
+          className="absolute w-[500px] h-[500px] rounded-full bg-gold/15 blur-[120px] pointer-events-none select-none"
+          style={{ animation: "glow-pulse 6s ease-in-out infinite" }}
+        />
+
+        <div className="relative z-10 text-center flex flex-col items-center max-w-lg select-none">
+          {/* Animated Header */}
+          <div className="space-y-1 animate-in fade-in slide-in-from-top-6 duration-1000">
+            <h1 className="font-display font-medium leading-[1.05] tracking-[0.08em] text-white">
+              <span className="block text-6xl sm:text-7xl md:text-8xl font-black drop-shadow-[0_2px_10px_rgba(255,255,255,0.05)]">HOPE</span>
+              <span className="block text-2xl sm:text-3xl md:text-[2.2rem] tracking-[0.25em] text-gold font-bold mt-1">
+                CONFERENCE
+              </span>
+              <span className="block text-xl sm:text-2xl md:text-3xl tracking-[0.45em] text-white/50 font-light mt-3">
+                2 0 2 7
+              </span>
+            </h1>
+          </div>
+
+          {/* Premium Loader Circle */}
+          <div className="relative w-28 h-28 mt-14 flex items-center justify-center animate-in fade-in zoom-in-75 duration-1000 delay-200">
+            {/* Outer dotted gold ring */}
+            <div 
+              className="absolute inset-0 rounded-full border-2 border-dashed border-gold/30"
+              style={{ animation: "spin-slow 25s linear infinite" }}
+            />
+            {/* Middle glowing gold ring */}
+            <div 
+              className="absolute w-22 h-22 rounded-full border-t-2 border-b-2 border-gold shadow-[0_0_15px_rgba(181,146,71,0.2)]"
+              style={{ animation: "spin-slow 2.5s linear infinite" }}
+            />
+            {/* Inner reverse-spinning white/gold ring */}
+            <div 
+              className="absolute w-16 h-16 rounded-full border-l border-r border-white/40"
+              style={{ animation: "spin-reverse 1.8s linear infinite" }}
+            />
+            {/* Glowing core dot */}
+            <div className="w-4 h-4 rounded-full bg-gold shadow-[0_0_15px_rgba(181,146,71,0.8)] animate-pulse" />
+          </div>
+
+          {/* Status Subtitle */}
+          <div className="mt-12 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300">
+            <p className="text-gold tracking-[0.3em] font-medium text-xs sm:text-sm uppercase animate-pulse">
+              Aguarde!!
+            </p>
+            <p className="mt-4 text-xs text-muted-foreground/60 max-w-xs mx-auto leading-relaxed">
+              Estamos preparando algo extraordinário. Nos vemos em breve.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const ctaClasses =
     "inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium tracking-wider text-primary-foreground transition hover:bg-primary/90";

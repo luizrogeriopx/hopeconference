@@ -41,6 +41,7 @@ export type Database = {
           material_ativo: boolean
           mercado_pago_ativo: boolean
           mercado_pago_public_key: string
+          mostrar_segunda_homepage: boolean
         }
         Insert: {
           atualizado_em?: string
@@ -50,6 +51,7 @@ export type Database = {
           material_ativo?: boolean
           mercado_pago_ativo?: boolean
           mercado_pago_public_key?: string
+          mostrar_segunda_homepage?: boolean
         }
         Update: {
           atualizado_em?: string
@@ -59,6 +61,7 @@ export type Database = {
           material_ativo?: boolean
           mercado_pago_ativo?: boolean
           mercado_pago_public_key?: string
+          mostrar_segunda_homepage?: boolean
         }
         Relationships: []
       }

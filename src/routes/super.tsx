@@ -157,6 +157,7 @@ function SuperPage() {
   const [copiado, setCopiado] = useState<string | null>(null);
   const [inscricoesAbertas, setInscricoesAbertas] = useState<boolean>(true);
   const [materialAtivo, setMaterialAtivo] = useState<boolean>(true);
+  const [mostrarSegundaHomepage, setMostrarSegundaHomepage] = useState<boolean>(false);
   const [salvandoFlag, setSalvandoFlag] = useState(false);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [googleSheetPastoresUrl, setGoogleSheetPastoresUrl] = useState("");
@@ -240,13 +241,14 @@ function SuperPage() {
     
     const { data: cfg } = await supabase
       .from("app_settings")
-      .select("inscricoes_abertas, google_sheet_pastores_url, material_ativo")
+      .select("inscricoes_abertas, google_sheet_pastores_url, material_ativo, mostrar_segunda_homepage")
       .eq("id", true)
       .maybeSingle();
     if (cfg) {
       setInscricoesAbertas(cfg.inscricoes_abertas);
       setGoogleSheetPastoresUrl(cfg.google_sheet_pastores_url || "");
       setMaterialAtivo(cfg.material_ativo ?? true);
+      setMostrarSegundaHomepage(!!cfg.mostrar_segunda_homepage);
     }
 
     try {
@@ -306,6 +308,17 @@ function SuperPage() {
     setSalvandoFlag(false);
     if (error) alert(error.message);
     else setMaterialAtivo(novo);
+  }
+
+  async function setHomepageVersion(mostrarSegunda: boolean) {
+    setSalvandoFlag(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ mostrar_segunda_homepage: mostrarSegunda, atualizado_em: new Date().toISOString() })
+      .eq("id", true);
+    setSalvandoFlag(false);
+    if (error) alert(error.message);
+    else setMostrarSegundaHomepage(mostrarSegunda);
   }
 
   async function reverter(id: string, origem: "validado" | "cancelado") {
@@ -1381,6 +1394,43 @@ function SuperPage() {
               >
                 {salvandoFlag ? "SALVANDO…" : materialAtivo ? "DESABILITAR BOTÃO" : "REATIVAR BOTÃO"}
               </button>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="font-display text-xl text-primary">Página Inicial Ativa</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Escolha qual versão da página inicial exibir para os visitantes.
+                </p>
+              </div>
+              <div className="flex items-center rounded-md border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setHomepageVersion(false)}
+                  disabled={salvandoFlag}
+                  className={`px-4 py-2 text-xs tracking-widest font-medium cursor-pointer transition-colors duration-150 ${
+                    !mostrarSegundaHomepage
+                      ? "bg-gold/10 text-primary border-r border-border"
+                      : "bg-transparent text-muted-foreground hover:bg-muted border-r border-border"
+                  }`}
+                >
+                  ATUAL (2026)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHomepageVersion(true)}
+                  disabled={salvandoFlag}
+                  className={`px-4 py-2 text-xs tracking-widest font-medium cursor-pointer transition-colors duration-150 ${
+                    mostrarSegundaHomepage
+                      ? "bg-gold/10 text-primary"
+                      : "bg-transparent text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  SEGUNDA (2027)
+                </button>
+              </div>
             </div>
           </section>
 
