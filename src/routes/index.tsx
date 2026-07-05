@@ -56,7 +56,13 @@ const bands: { name: string; photo: string; position?: string }[] = [
 
 function Index() {
   const [inscricoesAbertas, setInscricoesAbertas] = useState(true);
-  const [mostrarSegundaHomepage, setMostrarSegundaHomepage] = useState(false);
+  const [mostrarSegundaHomepage, setMostrarSegundaHomepage] = useState<boolean | null>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("mostrar_segunda_homepage");
+      return cached !== null ? cached === "true" : null;
+    }
+    return null;
+  });
 
   useEffect(() => {
     supabase
@@ -67,7 +73,9 @@ function Index() {
       .then(({ data }) => {
         if (data) {
           setInscricoesAbertas(data.inscricoes_abertas);
-          setMostrarSegundaHomepage(!!data.mostrar_segunda_homepage);
+          const showSecond = !!data.mostrar_segunda_homepage;
+          setMostrarSegundaHomepage(showSecond);
+          localStorage.setItem("mostrar_segunda_homepage", String(showSecond));
         }
       });
     const ch = supabase
@@ -82,6 +90,7 @@ function Index() {
           }
           if (typeof row.mostrar_segunda_homepage === "boolean") {
             setMostrarSegundaHomepage(row.mostrar_segunda_homepage);
+            localStorage.setItem("mostrar_segunda_homepage", String(row.mostrar_segunda_homepage));
           }
         }
       )
@@ -90,12 +99,32 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    if (mostrarSegundaHomepage) {
+    if (mostrarSegundaHomepage === true) {
       document.title = "HOPE CONFERENCE 2027 — Aguarde!!";
-    } else {
+    } else if (mostrarSegundaHomepage === false) {
       document.title = "Hope Conference 2026 — Inscrições | Igreja Esperança";
     }
   }, [mostrarSegundaHomepage]);
+
+  if (mostrarSegundaHomepage === null) {
+    return (
+      <main className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center">
+        {/* Ambient stained glass background with low opacity */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.04] select-none pointer-events-none"
+          style={{
+            backgroundImage: `url(${stainedGlass})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+        <div className="absolute w-64 h-64 rounded-full bg-gold/10 blur-[80px] pointer-events-none" />
+        <div className="relative w-10 h-10 rounded-full border-2 border-t-gold border-r-transparent border-b-gold/25 border-l-transparent animate-spin" />
+      </main>
+    );
+  }
 
   if (mostrarSegundaHomepage) {
     return (
