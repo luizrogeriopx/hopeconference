@@ -2,8 +2,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function WhatsAppSupportButton() {
-  const [ativo, setAtivo] = useState(true);
-  const [phone, setPhone] = useState("5562996897483");
+  const [ativo, setAtivo] = useState<boolean | null>(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("whatsapp_suporte_ativo");
+      return cached !== null ? cached === "true" : null;
+    }
+    return null;
+  });
+  const [phone, setPhone] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("whatsapp_suporte_numero") || "5562996897483";
+    }
+    return "5562996897483";
+  });
 
   useEffect(() => {
     supabase
@@ -13,11 +24,12 @@ export function WhatsAppSupportButton() {
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          if (typeof data.whatsapp_suporte_ativo === "boolean") {
-            setAtivo(data.whatsapp_suporte_ativo);
-          }
+          const isAtivo = typeof data.whatsapp_suporte_ativo === "boolean" ? data.whatsapp_suporte_ativo : true;
+          setAtivo(isAtivo);
+          localStorage.setItem("whatsapp_suporte_ativo", String(isAtivo));
           if (data.whatsapp_suporte_numero) {
             setPhone(data.whatsapp_suporte_numero);
+            localStorage.setItem("whatsapp_suporte_numero", data.whatsapp_suporte_numero);
           }
         }
       });
@@ -31,9 +43,11 @@ export function WhatsAppSupportButton() {
           const row = payload.new as { whatsapp_suporte_ativo?: boolean; whatsapp_suporte_numero?: string };
           if (typeof row.whatsapp_suporte_ativo === "boolean") {
             setAtivo(row.whatsapp_suporte_ativo);
+            localStorage.setItem("whatsapp_suporte_ativo", String(row.whatsapp_suporte_ativo));
           }
           if (row.whatsapp_suporte_numero) {
             setPhone(row.whatsapp_suporte_numero);
+            localStorage.setItem("whatsapp_suporte_numero", row.whatsapp_suporte_numero);
           }
         }
       )
