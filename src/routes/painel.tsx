@@ -592,6 +592,7 @@ function PainelInscrito() {
           <div className="flex items-center gap-3 text-xs">
             <span className="hidden sm:inline text-muted-foreground">{user.email}</span>
             <NotificacoesSino userId={user.id} />
+            <Link to="/fotos" className="rounded-md border border-border px-3 py-2 tracking-widest text-primary hover:bg-muted">FOTOS</Link>
             {roles.includes("super_admin") && (
               <Link to="/super" className="rounded-md border border-gold bg-gold/10 px-3 py-2 tracking-widest text-primary hover:bg-gold/20">SUPER ADMIN</Link>
             )}
