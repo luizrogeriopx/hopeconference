@@ -13,7 +13,12 @@ import {
   type GaleriaPublica,
   type FotoPublica,
 } from "@/lib/galerias.functions";
-import { extrairEmbeddingDeArquivo, loadFaceApi } from "@/lib/face-api.client";
+type FaceApiModule = typeof import("@/lib/face-api.client");
+let faceApiPromise: Promise<FaceApiModule> | null = null;
+function getFaceApi(): Promise<FaceApiModule> {
+  if (!faceApiPromise) faceApiPromise = import("@/lib/face-api.client");
+  return faceApiPromise;
+}
 
 export function GerenciarGalerias() {
   const listar = useServerFn(listarGalerias);
