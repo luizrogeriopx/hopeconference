@@ -13,7 +13,7 @@ import {
   type GaleriaPublica,
   type FotoPublica,
 } from "@/lib/galerias.functions";
-import { extrairEmbeddingDeArquivo, loadFaceApi } from "@/lib/face-api.client";
+import { extrairEmbeddingDeArquivo, loadFaceApi } from "@/lib/face-api-browser";
 
 export function GerenciarGalerias() {
   const listar = useServerFn(listarGalerias);

@@ -7,7 +7,7 @@ import {
   extrairEmbeddingsDeImagem,
   distanciaEuclidiana,
   MATCH_THRESHOLD,
-} from "@/lib/face-api.client";
+} from "@/lib/face-api-browser";
 
 export const Route = createFileRoute("/fotos/$id")({
   component: GaleriaDetalhe,
