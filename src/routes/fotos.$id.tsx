@@ -217,6 +217,7 @@ function ModalSelfie({
     setProcessando(true);
     setStatus("Analisando seu rosto…");
     try {
+      const { extrairEmbeddingsDeImagem, distanciaEuclidiana, MATCH_THRESHOLD } = await getFaceApi();
       const emb = await extrairEmbeddingsDeImagem(videoRef.current);
       if (emb.length === 0) {
         setStatus("Nenhum rosto detectado. Ajuste a iluminação e tente novamente.");
