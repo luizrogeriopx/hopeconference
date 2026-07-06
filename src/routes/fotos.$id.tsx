@@ -183,7 +183,7 @@ function ModalSelfie({
     (async () => {
       try {
         setStatus("Carregando modelos de reconhecimento facial…");
-        await loadFaceApi();
+        await (await getFaceApi()).loadFaceApi();
         if (cancelled) return;
         setCarregandoModelos(false);
         setStatus("Solicitando acesso à câmera…");
