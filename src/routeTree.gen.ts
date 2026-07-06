@@ -14,9 +14,11 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RecepcaoRouteImport } from './routes/recepcao'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as GateRouteImport } from './routes/gate'
+import { Route as FotosRouteImport } from './routes/fotos'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FotosIdRouteImport } from './routes/fotos.$id'
 import { Route as ApiWebhookMercadopagoRouteImport } from './routes/api/webhook/mercadopago'
 
 const SuperRoute = SuperRouteImport.update({
@@ -44,6 +46,11 @@ const GateRoute = GateRouteImport.update({
   path: '/gate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FotosRoute = FotosRouteImport.update({
+  id: '/fotos',
+  path: '/fotos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -59,6 +66,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FotosIdRoute = FotosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => FotosRoute,
+} as any)
 const ApiWebhookMercadopagoRoute = ApiWebhookMercadopagoRouteImport.update({
   id: '/api/webhook/mercadopago',
   path: '/api/webhook/mercadopago',
@@ -69,22 +81,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/fotos': typeof FotosRouteWithChildren
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
   '/recepcao': typeof RecepcaoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
+  '/fotos/$id': typeof FotosIdRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/fotos': typeof FotosRouteWithChildren
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
   '/recepcao': typeof RecepcaoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
+  '/fotos/$id': typeof FotosIdRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
 export interface FileRoutesById {
@@ -92,11 +108,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/fotos': typeof FotosRouteWithChildren
   '/gate': typeof GateRoute
   '/painel': typeof PainelRoute
   '/recepcao': typeof RecepcaoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/super': typeof SuperRoute
+  '/fotos/$id': typeof FotosIdRoute
   '/api/webhook/mercadopago': typeof ApiWebhookMercadopagoRoute
 }
 export interface FileRouteTypes {
@@ -105,33 +123,39 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/fotos'
     | '/gate'
     | '/painel'
     | '/recepcao'
     | '/reset-password'
     | '/super'
+    | '/fotos/$id'
     | '/api/webhook/mercadopago'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/auth'
+    | '/fotos'
     | '/gate'
     | '/painel'
     | '/recepcao'
     | '/reset-password'
     | '/super'
+    | '/fotos/$id'
     | '/api/webhook/mercadopago'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/auth'
+    | '/fotos'
     | '/gate'
     | '/painel'
     | '/recepcao'
     | '/reset-password'
     | '/super'
+    | '/fotos/$id'
     | '/api/webhook/mercadopago'
   fileRoutesById: FileRoutesById
 }
@@ -139,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  FotosRoute: typeof FotosRouteWithChildren
   GateRoute: typeof GateRoute
   PainelRoute: typeof PainelRoute
   RecepcaoRoute: typeof RecepcaoRoute
@@ -184,6 +209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fotos': {
+      id: '/fotos'
+      path: '/fotos'
+      fullPath: '/fotos'
+      preLoaderRoute: typeof FotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -205,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fotos/$id': {
+      id: '/fotos/$id'
+      path: '/$id'
+      fullPath: '/fotos/$id'
+      preLoaderRoute: typeof FotosIdRouteImport
+      parentRoute: typeof FotosRoute
+    }
     '/api/webhook/mercadopago': {
       id: '/api/webhook/mercadopago'
       path: '/api/webhook/mercadopago'
@@ -215,10 +254,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface FotosRouteChildren {
+  FotosIdRoute: typeof FotosIdRoute
+}
+
+const FotosRouteChildren: FotosRouteChildren = {
+  FotosIdRoute: FotosIdRoute,
+}
+
+const FotosRouteWithChildren = FotosRoute._addFileChildren(FotosRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  FotosRoute: FotosRouteWithChildren,
   GateRoute: GateRoute,
   PainelRoute: PainelRoute,
   RecepcaoRoute: RecepcaoRoute,
