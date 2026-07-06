@@ -71,6 +71,77 @@ export type Database = {
         }
         Relationships: []
       }
+      galeria_fotos: {
+        Row: {
+          altura: number | null
+          criado_em: string
+          face_embeddings: Json | null
+          galeria_id: string
+          id: string
+          largura: number | null
+          storage_path: string
+          url: string
+        }
+        Insert: {
+          altura?: number | null
+          criado_em?: string
+          face_embeddings?: Json | null
+          galeria_id: string
+          id?: string
+          largura?: number | null
+          storage_path: string
+          url: string
+        }
+        Update: {
+          altura?: number | null
+          criado_em?: string
+          face_embeddings?: Json | null
+          galeria_id?: string
+          id?: string
+          largura?: number | null
+          storage_path?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "galeria_fotos_galeria_id_fkey"
+            columns: ["galeria_id"]
+            isOneToOne: false
+            referencedRelation: "galerias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      galerias: {
+        Row: {
+          capa_url: string | null
+          criado_em: string
+          criado_por: string | null
+          data_evento: string | null
+          descricao: string | null
+          id: string
+          titulo: string
+        }
+        Insert: {
+          capa_url?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_evento?: string | null
+          descricao?: string | null
+          id?: string
+          titulo: string
+        }
+        Update: {
+          capa_url?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_evento?: string | null
+          descricao?: string | null
+          id?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       inscricoes: {
         Row: {
           canal: string

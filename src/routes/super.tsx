@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn, createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,6 +10,7 @@ import { Cards, RegionalCards, LabCards, MinisterioCards, ListaInscricoes, Gesta
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import { ContasUsuarios } from "@/components/ContasUsuarios";
 import { EnviarNotificacao } from "@/components/EnviarNotificacao";
+import { GerenciarGalerias } from "@/components/GerenciarGalerias";
 import {
   criarUsuarioPainel,
   listarUsuariosPainel,
@@ -884,6 +886,12 @@ function SuperPage() {
         <div id="notificacoes">
           <EnviarNotificacao labs={labs} ministerios={ministerios} />
         </div>
+
+        <div id="galerias">
+          <GerenciarGalerias />
+        </div>
+
+
 
 
         <section id="validar" className="grid gap-6 lg:grid-cols-2">
