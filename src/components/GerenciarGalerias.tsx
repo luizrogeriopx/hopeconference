@@ -178,7 +178,7 @@ function GerenciarFotos({ galeriaId, onChange }: { galeriaId: string; onChange: 
         let embeddings: number[][] = [];
         let largura = 0, altura = 0;
         try {
-          const r = await extrairEmbeddingDeArquivo(file);
+          const r = await faceApi.extrairEmbeddingDeArquivo(file);
           embeddings = r.embeddings;
           largura = r.largura;
           altura = r.altura;
