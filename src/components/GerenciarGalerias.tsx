@@ -167,7 +167,8 @@ function GerenciarFotos({ galeriaId, onChange }: { galeriaId: string; onChange: 
     setEnviando(true);
     setProgresso({ atual: 0, total: lista.length, msg: "Preparando modelos de reconhecimento…" });
     try {
-      await loadFaceApi();
+      const faceApi = await getFaceApi();
+      await faceApi.loadFaceApi();
       let temCapa = fotos.length > 0;
       for (let i = 0; i < lista.length; i++) {
         const file = lista[i];
