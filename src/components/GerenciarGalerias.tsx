@@ -162,8 +162,7 @@ function GerenciarFotos({ galeriaId, onChange }: { galeriaId: string; onChange: 
     setEnviando(true);
     setProgresso({ atual: 0, total: lista.length, msg: "Preparando modelos de reconhecimento…" });
     try {
-      const faceApi = await getFaceApi();
-      await faceApi.loadFaceApi();
+      await loadFaceApi();
       let temCapa = fotos.length > 0;
       for (let i = 0; i < lista.length; i++) {
         const file = lista[i];
@@ -173,7 +172,7 @@ function GerenciarFotos({ galeriaId, onChange }: { galeriaId: string; onChange: 
         let embeddings: number[][] = [];
         let largura = 0, altura = 0;
         try {
-          const r = await faceApi.extrairEmbeddingDeArquivo(file);
+          const r = await extrairEmbeddingDeArquivo(file);
           embeddings = r.embeddings;
           largura = r.largura;
           altura = r.altura;
