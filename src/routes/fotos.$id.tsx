@@ -10,7 +10,10 @@ type FaceApiModule = {
 };
 let faceApiPromise: Promise<FaceApiModule> | null = null;
 function getFaceApi(): Promise<FaceApiModule> {
-  if (!faceApiPromise) faceApiPromise = import("@/lib/face-api.client") as Promise<FaceApiModule>;
+  if (!faceApiPromise) {
+    const spec = "@/lib/face-api.client";
+    faceApiPromise = import(/* @vite-ignore */ spec) as Promise<FaceApiModule>;
+  }
   return faceApiPromise;
 }
 
