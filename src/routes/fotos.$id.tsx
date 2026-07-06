@@ -2,12 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { obterGaleria, type FotoPublica } from "@/lib/galerias.functions";
-import {
-  loadFaceApi,
-  extrairEmbeddingsDeImagem,
-  distanciaEuclidiana,
-  MATCH_THRESHOLD,
-} from "@/lib/face-api.client";
+type FaceApiModule = typeof import("@/lib/face-api.client");
+let faceApiPromise: Promise<FaceApiModule> | null = null;
+function getFaceApi(): Promise<FaceApiModule> {
+  if (!faceApiPromise) faceApiPromise = import("@/lib/face-api.client");
+  return faceApiPromise;
+}
 
 export const Route = createFileRoute("/fotos/$id")({
   component: GaleriaDetalhe,
