@@ -2,10 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { obterGaleria, type FotoPublica } from "@/lib/galerias.functions";
-type FaceApiModule = typeof import("@/lib/face-api.client");
+type FaceApiModule = {
+  loadFaceApi: () => Promise<unknown>;
+  extrairEmbeddingsDeImagem: (input: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement) => Promise<number[][]>;
+  distanciaEuclidiana: (a: number[], b: number[]) => number;
+  MATCH_THRESHOLD: number;
+};
 let faceApiPromise: Promise<FaceApiModule> | null = null;
 function getFaceApi(): Promise<FaceApiModule> {
-  if (!faceApiPromise) faceApiPromise = import("@/lib/face-api.client");
+  if (!faceApiPromise) faceApiPromise = import("@/lib/face-api.client") as Promise<FaceApiModule>;
   return faceApiPromise;
 }
 
