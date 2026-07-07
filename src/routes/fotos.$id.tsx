@@ -118,18 +118,23 @@ function GaleriaDetalhe() {
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {fotosVisiveis.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFotoAberta(f)}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-muted"
-            >
-              <img
-                src={f.url}
-                alt=""
-                loading="lazy"
-                className="h-full w-full object-cover transition group-hover:scale-105"
-              />
-            </button>
+            <div key={f.id} className="group relative aspect-square overflow-hidden rounded-lg bg-muted">
+              <button onClick={() => setFotoAberta(f)} className="block h-full w-full">
+                <img
+                  src={f.url}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); baixarFoto(f); }}
+                title="Baixar"
+                className="absolute right-1 top-1 rounded-full bg-black/60 px-2 py-1 text-xs text-white opacity-90 hover:opacity-100"
+              >
+                ⬇
+              </button>
+            </div>
           ))}
         </div>
       </main>
