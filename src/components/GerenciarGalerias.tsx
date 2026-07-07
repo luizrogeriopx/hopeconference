@@ -161,50 +161,79 @@ function GerenciarFotos({ galeriaId, onChange }: { galeriaId: string; onChange: 
     const lista = Array.from(files);
     setEnviando(true);
     setProgresso({ atual: 0, total: lista.length, msg: "Preparando modelos de reconhecimento…" });
+    const falhas: { nome: string; motivo: string }[] = [];
+    let sucesso = 0;
     try {
       await loadFaceApi();
       let temCapa = fotos.length > 0;
       for (let i = 0; i < lista.length; i++) {
         const file = lista[i];
         setProgresso({ atual: i + 1, total: lista.length, msg: `Processando ${file.name}…` });
-
-        // 1) extrai embeddings no browser
-        let embeddings: number[][] = [];
-        let largura = 0, altura = 0;
         try {
-          const r = await extrairEmbeddingDeArquivo(file);
-          embeddings = r.embeddings;
-          largura = r.largura;
-          altura = r.altura;
+          // Valida tipo (HEIC do iPhone e outros não-imagem não são aceitos pelo bucket)
+          const tipo = (file.type || "").toLowerCase();
+          const nomeLower = file.name.toLowerCase();
+          const ehImagemSuportada =
+            tipo.startsWith("image/") &&
+            !tipo.includes("heic") &&
+            !tipo.includes("heif") &&
+            !nomeLower.endsWith(".heic") &&
+            !nomeLower.endsWith(".heif");
+          if (!ehImagemSuportada) {
+            throw new Error("formato não suportado (converta para JPG ou PNG)");
+          }
+          if (file.size > 25 * 1024 * 1024) {
+            throw new Error("arquivo maior que 25MB");
+          }
+
+          // 1) extrai embeddings no browser
+          let embeddings: number[][] = [];
+          let largura = 0, altura = 0;
+          try {
+            const r = await extrairEmbeddingDeArquivo(file);
+            embeddings = r.embeddings;
+            largura = r.largura;
+            altura = r.altura;
+          } catch (err) {
+            console.warn("Falha ao extrair embeddings de", file.name, err);
+          }
+
+          // 2) pede URL de upload assinada
+          const up = await criarUpload({ data: { galeria_id: galeriaId, filename: file.name } });
+
+          // 3) faz upload direto ao storage
+          const { error: upErr } = await supabase.storage.from("galerias").uploadToSignedUrl(up.path, up.token, file, {
+            contentType: file.type || "image/jpeg",
+          });
+          if (upErr) throw upErr;
+
+          // 4) registra a foto (define capa se ainda não houver)
+          await registrar({
+            data: {
+              galeria_id: galeriaId,
+              storage_path: up.path,
+              face_embeddings: embeddings.length > 0 ? embeddings : null,
+              largura: largura || null,
+              altura: altura || null,
+              set_como_capa: !temCapa,
+            },
+          });
+          temCapa = true;
+          sucesso++;
         } catch (err) {
-          console.warn("Falha ao extrair embeddings de", file.name, err);
+          const motivo = err instanceof Error ? err.message : String(err);
+          console.error("Falha no upload de", file.name, err);
+          falhas.push({ nome: file.name, motivo });
         }
-
-        // 2) pede URL de upload assinada
-        const up = await criarUpload({ data: { galeria_id: galeriaId, filename: file.name } });
-
-        // 3) faz upload direto ao storage
-        const { error: upErr } = await supabase.storage.from("galerias").uploadToSignedUrl(up.path, up.token, file, {
-          contentType: file.type || "image/jpeg",
-        });
-        if (upErr) throw upErr;
-
-        // 4) registra a foto (define capa se ainda não houver)
-        await registrar({
-          data: {
-            galeria_id: galeriaId,
-            storage_path: up.path,
-            face_embeddings: embeddings.length > 0 ? embeddings : null,
-            largura: largura || null,
-            altura: altura || null,
-            set_como_capa: !temCapa,
-          },
-        });
-        temCapa = true;
       }
       setProgresso({ atual: lista.length, total: lista.length, msg: "Concluído!" });
       await recarregar();
       onChange();
+      if (falhas.length > 0) {
+        const resumo = falhas.slice(0, 8).map((f) => `• ${f.nome}: ${f.motivo}`).join("\n");
+        const extra = falhas.length > 8 ? `\n…e mais ${falhas.length - 8}` : "";
+        alert(`${sucesso} enviada(s), ${falhas.length} com erro:\n\n${resumo}${extra}`);
+      }
     } catch (e) {
       alert("Erro no upload: " + (e instanceof Error ? e.message : String(e)));
     } finally {
