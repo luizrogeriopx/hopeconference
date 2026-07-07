@@ -157,6 +157,12 @@ function GaleriaDetalhe() {
         >
           <img src={fotoAberta.url} alt="" className="max-h-full max-w-full object-contain" />
           <button
+            onClick={(e) => { e.stopPropagation(); baixarFoto(fotoAberta); }}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/20 px-4 py-2 text-sm text-white hover:bg-white/30"
+          >
+            ⬇ Baixar foto
+          </button>
+          <button
             onClick={(e) => { e.stopPropagation(); setFotoAberta(null); }}
             className="absolute right-4 top-4 rounded-full bg-white/20 px-3 py-1 text-white"
           >
