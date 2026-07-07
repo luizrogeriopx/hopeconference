@@ -71,6 +71,24 @@ function GaleriaDetalhe() {
     setFiltroAtivo(null);
   }
 
+  async function baixarFoto(f: FotoPublica) {
+    try {
+      const resp = await fetch(f.url);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
+      a.download = `foto-${f.id}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      window.open(f.url, "_blank");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
