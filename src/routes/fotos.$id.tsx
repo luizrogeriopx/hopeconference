@@ -71,6 +71,24 @@ function GaleriaDetalhe() {
     setFiltroAtivo(null);
   }
 
+  async function baixarFoto(f: FotoPublica) {
+    try {
+      const resp = await fetch(f.url);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ext = (blob.type.split("/")[1] || "jpg").split(";")[0];
+      a.download = `foto-${f.id}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      window.open(f.url, "_blank");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -118,18 +136,23 @@ function GaleriaDetalhe() {
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {fotosVisiveis.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFotoAberta(f)}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-muted"
-            >
-              <img
-                src={f.url}
-                alt=""
-                loading="lazy"
-                className="h-full w-full object-cover transition group-hover:scale-105"
-              />
-            </button>
+            <div key={f.id} className="group relative aspect-square overflow-hidden rounded-lg bg-muted">
+              <button onClick={() => setFotoAberta(f)} className="block h-full w-full">
+                <img
+                  src={f.url}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); baixarFoto(f); }}
+                title="Baixar"
+                className="absolute right-1 top-1 rounded-full bg-black/60 px-2 py-1 text-xs text-white opacity-90 hover:opacity-100"
+              >
+                ⬇
+              </button>
+            </div>
           ))}
         </div>
       </main>
@@ -151,6 +174,12 @@ function GaleriaDetalhe() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
         >
           <img src={fotoAberta.url} alt="" className="max-h-full max-w-full object-contain" />
+          <button
+            onClick={(e) => { e.stopPropagation(); baixarFoto(fotoAberta); }}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/20 px-4 py-2 text-sm text-white hover:bg-white/30"
+          >
+            ⬇ Baixar foto
+          </button>
           <button
             onClick={(e) => { e.stopPropagation(); setFotoAberta(null); }}
             className="absolute right-4 top-4 rounded-full bg-white/20 px-3 py-1 text-white"
