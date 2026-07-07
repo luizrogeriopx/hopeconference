@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listarGalerias, type GaleriaPublica } from "@/lib/galerias.functions";
 
-export const Route = createFileRoute("/fotos")({
+export const Route = createFileRoute("/fotos/")({
   component: FotosIndex,
   head: () => ({
     meta: [
