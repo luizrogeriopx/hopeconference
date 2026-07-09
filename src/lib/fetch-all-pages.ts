@@ -1,7 +1,7 @@
 const DEFAULT_PAGE_SIZE = 1000;
 
 type PagedQuery<T> = {
-  range: (from: number, to: number) => Promise<{ data: T[] | null; error: { message?: string } | null }>;
+  range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message?: string } | null }>;
 };
 
 export async function fetchAllPages<T>(buildQuery: () => PagedQuery<T>, pageSize = DEFAULT_PAGE_SIZE): Promise<T[]> {
