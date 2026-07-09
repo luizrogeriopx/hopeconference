@@ -819,7 +819,9 @@ function SuperPage() {
             <button onClick={() => scrollToSection("validados")} className="hover:text-primary transition-colors cursor-pointer">Validados</button>
             <button onClick={() => scrollToSection("canceladas")} className="hover:text-primary transition-colors cursor-pointer">Cancelados</button>
             <button onClick={() => scrollToSection("usuarios")} className="hover:text-primary transition-colors cursor-pointer">Equipe</button>
+            <button onClick={() => scrollToSection("relatorios")} className="hover:text-primary transition-colors cursor-pointer">Relatórios</button>
             <button onClick={() => scrollToSection("configuracoes")} className="hover:text-primary transition-colors cursor-pointer">Configurações</button>
+
           </nav>
         </div>
       </div>
