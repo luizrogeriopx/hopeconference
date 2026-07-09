@@ -11,6 +11,8 @@ import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import { ContasUsuarios } from "@/components/ContasUsuarios";
 import { EnviarNotificacao } from "@/components/EnviarNotificacao";
 import { GerenciarGalerias } from "@/components/GerenciarGalerias";
+import { Relatorios } from "@/components/Relatorios";
+
 import {
   criarUsuarioPainel,
   listarUsuariosPainel,
@@ -712,32 +714,35 @@ function SuperPage() {
   }, [inscricoes]);
 
   const stats = useMemo(() => {
-    const pagas = inscricoes.filter((i) => i.status === "pago" || i.status === "validado");
+    const confirmadas = inscricoes.filter((i) => i.status === "pago" || i.status === "validado");
+    const isentas = confirmadas.filter((i) => (i.pagamentos ?? []).some((p) => p.metodo === "isento") || Number(i.valor) === 0);
+    const pagas = confirmadas.filter((i) => !isentas.includes(i));
     const validadas = inscricoes.filter((i) => i.status === "validado");
     const canceladas = inscricoes.filter((i) => i.status === "cancelado");
     const receita = pagas.reduce((s, i) => s + Number(i.valor), 0);
-    
+
     const regionais = [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"];
     const regionalCounts: Record<string, number> = {};
     regionais.forEach((r) => {
-      regionalCounts[r] = pagas.filter((i) => i.regional === r).length;
+      regionalCounts[r] = confirmadas.filter((i) => i.regional === r).length;
     });
 
     const labCounts: Record<string, number> = {};
-    pagas.forEach((i) => {
+    confirmadas.forEach((i) => {
       if (i.lab_id) labCounts[i.lab_id] = (labCounts[i.lab_id] ?? 0) + 1;
     });
 
     const ministerioCounts: Record<string, number> = {};
-    pagas.forEach((i) => {
+    confirmadas.forEach((i) => {
       if (i.ministerio_id) ministerioCounts[i.ministerio_id] = (ministerioCounts[i.ministerio_id] ?? 0) + 1;
     });
 
-    return { 
-      total: inscricoes.length, 
-      pagas: pagas.length, 
-      validadas: validadas.length, 
-      canceladas: canceladas.length, 
+    return {
+      total: inscricoes.length,
+      pagas: pagas.length,
+      isentas: isentas.length,
+      validadas: validadas.length,
+      canceladas: canceladas.length,
       receita,
       regionalCounts,
       labCounts,
@@ -745,6 +750,7 @@ function SuperPage() {
       totalDinheiro,
     };
   }, [inscricoes, totalDinheiro]);
+
 
   const validadasList = inscricoes.filter((i) => i.status === "validado");
   const canceladasList = inscricoes.filter((i) => i.status === "cancelado");
@@ -813,7 +819,9 @@ function SuperPage() {
             <button onClick={() => scrollToSection("validados")} className="hover:text-primary transition-colors cursor-pointer">Validados</button>
             <button onClick={() => scrollToSection("canceladas")} className="hover:text-primary transition-colors cursor-pointer">Cancelados</button>
             <button onClick={() => scrollToSection("usuarios")} className="hover:text-primary transition-colors cursor-pointer">Equipe</button>
+            <button onClick={() => scrollToSection("relatorios")} className="hover:text-primary transition-colors cursor-pointer">Relatórios</button>
             <button onClick={() => scrollToSection("configuracoes")} className="hover:text-primary transition-colors cursor-pointer">Configurações</button>
+
           </nav>
         </div>
       </div>
@@ -890,6 +898,9 @@ function SuperPage() {
         <div id="galerias">
           <GerenciarGalerias />
         </div>
+
+        <Relatorios inscricoes={inscricoes as any} labs={labs} ministerios={ministerios} />
+
 
 
 

@@ -9,6 +9,8 @@ import {
   listarUsuariosPainel,
   removerUsuarioPainel,
 } from "@/lib/users.functions";
+import { Relatorios } from "@/components/Relatorios";
+
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -100,32 +102,35 @@ function AdminPage() {
   }
 
   const stats = useMemo(() => {
-    const pagas = inscricoes.filter((i) => i.status === "pago" || i.status === "validado");
+    const confirmadas = inscricoes.filter((i) => i.status === "pago" || i.status === "validado");
+    const isentas = confirmadas.filter((i) => (i.pagamentos ?? []).some((p) => p.metodo === "isento") || Number(i.valor) === 0);
+    const pagas = confirmadas.filter((i) => !isentas.includes(i));
     const validadas = inscricoes.filter((i) => i.status === "validado");
     const canceladas = inscricoes.filter((i) => i.status === "cancelado");
     const receita = pagas.reduce((s, i) => s + Number(i.valor), 0);
-    
+
     const regionais = [...Array.from({ length: 20 }, (_, idx) => String(idx + 2)), "SEDE"];
     const regionalCounts: Record<string, number> = {};
     regionais.forEach((r) => {
-      regionalCounts[r] = pagas.filter((i) => i.regional === r).length;
+      regionalCounts[r] = confirmadas.filter((i) => i.regional === r).length;
     });
 
     const labCounts: Record<string, number> = {};
-    pagas.forEach((i) => {
+    confirmadas.forEach((i) => {
       if (i.lab_id) labCounts[i.lab_id] = (labCounts[i.lab_id] ?? 0) + 1;
     });
 
     const ministerioCounts: Record<string, number> = {};
-    pagas.forEach((i) => {
+    confirmadas.forEach((i) => {
       if (i.ministerio_id) ministerioCounts[i.ministerio_id] = (ministerioCounts[i.ministerio_id] ?? 0) + 1;
     });
 
-    return { 
-      total: inscricoes.length, 
-      pagas: pagas.length, 
-      validadas: validadas.length, 
-      canceladas: canceladas.length, 
+    return {
+      total: inscricoes.length,
+      pagas: pagas.length,
+      isentas: isentas.length,
+      validadas: validadas.length,
+      canceladas: canceladas.length,
       receita,
       regionalCounts,
       labCounts,
@@ -133,6 +138,7 @@ function AdminPage() {
       totalDinheiro,
     };
   }, [inscricoes, totalDinheiro]);
+
 
   const filtradas = useMemo(() => {
     return inscricoes.filter((i) => {
@@ -188,22 +194,24 @@ function AdminPage() {
 
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
+        <Relatorios inscricoes={inscricoes as any} labs={labs} ministerios={ministerios} />
 
       </div>
     </main>
   );
 }
 
-export function Cards({ stats }: { stats: { total: number; pagas: number; validadas: number; canceladas: number; receita: number; totalDinheiro: number } }) {
+export function Cards({ stats }: { stats: { total: number; pagas: number; isentas?: number; validadas: number; canceladas: number; receita: number; totalDinheiro: number } }) {
   const items = [
     { label: "Inscrições", v: stats.total },
     { label: "Pagas / Ativas", v: stats.pagas },
+    { label: "Isentas", v: stats.isentas ?? 0 },
     { label: "Validadas", v: stats.validadas },
     { label: "Receita Geral", v: `R$ ${stats.receita.toFixed(2)}` },
     { label: "Caixa Dinheiro (Recepção)", v: `R$ ${(stats.totalDinheiro ?? 0).toFixed(2)}` },
   ];
   return (
-    <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+    <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {items.map((i) => (
         <div key={i.label} className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="text-[10px] tracking-widest uppercase text-muted-foreground">{i.label}</p>
@@ -212,6 +220,7 @@ export function Cards({ stats }: { stats: { total: number; pagas: number; valida
       ))}
     </section>
   );
+
 }
 
 export function RegionalCards({
