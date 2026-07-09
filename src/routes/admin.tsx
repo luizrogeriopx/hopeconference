@@ -9,6 +9,8 @@ import {
   listarUsuariosPainel,
   removerUsuarioPainel,
 } from "@/lib/users.functions";
+import { Relatorios } from "@/components/Relatorios";
+
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
