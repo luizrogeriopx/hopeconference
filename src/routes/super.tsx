@@ -47,12 +47,13 @@ export const corrigirInscricoesWestFn = createServerFn({ method: "POST" })
     const emailWest = "westsantos21@gmail.com";
 
     // 1. Buscar inscrições
-    const { data: inscs, error: fetchErr } = await ad
-      .from("inscricoes")
-      .select("id, status, valor, nome_participante")
-      .eq("email", emailWest);
+    const inscs = await fetchAllPages<any>(() =>
+      ad
+        .from("inscricoes")
+        .select("id, status, valor, nome_participante")
+        .eq("email", emailWest)
+    );
 
-    if (fetchErr) throw new Error("Erro ao carregar inscrições: " + fetchErr.message);
     if (!inscs || inscs.length === 0) {
       return { ok: false, message: "Nenhuma inscrição encontrada para o e-mail " + emailWest };
     }

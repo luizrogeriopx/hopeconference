@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import { fetchAllPages } from "@/lib/fetch-all-pages";
 
 function admin() {
   return createClient<Database>(
@@ -692,12 +693,14 @@ export const confirmarPagamentosRecepcao = createServerFn({ method: "POST" })
     }
 
     // 2. Buscar as inscrições selecionadas
-    const { data: inscs, error: inscsErr } = await ad
-      .from("inscricoes")
-      .select("id, status, valor")
-      .in("id", data.inscricaoIds);
+    const inscs = await fetchAllPages<any>(() =>
+      ad
+        .from("inscricoes")
+        .select("id, status, valor")
+        .in("id", data.inscricaoIds)
+    );
 
-    if (inscsErr || !inscs) {
+    if (!inscs) {
       throw new Error("Erro ao carregar inscrições.");
     }
 

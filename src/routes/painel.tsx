@@ -514,10 +514,12 @@ function PainelInscrito() {
         .from("labs")
         .select("id, nome, limite_vagas, ativo, eh_geral")
         .eq("exclusivo_recepcao", false);
-      const { data: freshCounts } = await supabase
-        .from("inscricoes")
-        .select("lab_id")
-        .neq("status", "cancelado");
+      const freshCounts = await fetchAllPages<any>(() =>
+        supabase
+          .from("inscricoes")
+          .select("lab_id")
+          .neq("status", "cancelado")
+      );
       const counts: Record<string, number> = {};
       let totalGeral = 0;
       (freshCounts ?? []).forEach((r: any) => {
