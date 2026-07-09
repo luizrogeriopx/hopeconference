@@ -71,11 +71,19 @@ function AdminPage() {
   useEffect(() => { if (user && isStaff) void carregar(); }, [user, isStaff]);
 
   async function carregar() {
-    const { data } = await supabase
-      .from("inscricoes")
-      .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, qr_token, lab_qr_token, regional, congregacao, labs(nome, local, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
-      .order("criado_em", { ascending: false });
-    setInscricoes((data ?? []) as Inscricao[]);
+    const PAGE = 1000;
+    const todas: any[] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from("inscricoes")
+        .select("id, nome_participante, email, status, valor, criado_em, validado_em, cpf, lab_id, qr_token, lab_qr_token, regional, congregacao, labs(nome, local, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
+        .order("criado_em", { ascending: false })
+        .range(from, from + PAGE - 1);
+      if (error || !data || data.length === 0) break;
+      todas.push(...data);
+      if (data.length < PAGE) break;
+    }
+    setInscricoes(todas as Inscricao[]);
 
     const { data: pgDinheiro } = await supabase
       .from("pagamentos")
