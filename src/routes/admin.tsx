@@ -194,22 +194,24 @@ function AdminPage() {
 
         <ListaInscricoes inscricoes={filtradas} busca={busca} setBusca={setBusca} />
         <ListaPastoresCoordenadores inscricoes={filtradas} />
+        <Relatorios inscricoes={inscricoes as any} labs={labs} ministerios={ministerios} />
 
       </div>
     </main>
   );
 }
 
-export function Cards({ stats }: { stats: { total: number; pagas: number; validadas: number; canceladas: number; receita: number; totalDinheiro: number } }) {
+export function Cards({ stats }: { stats: { total: number; pagas: number; isentas?: number; validadas: number; canceladas: number; receita: number; totalDinheiro: number } }) {
   const items = [
     { label: "Inscrições", v: stats.total },
     { label: "Pagas / Ativas", v: stats.pagas },
+    { label: "Isentas", v: stats.isentas ?? 0 },
     { label: "Validadas", v: stats.validadas },
     { label: "Receita Geral", v: `R$ ${stats.receita.toFixed(2)}` },
     { label: "Caixa Dinheiro (Recepção)", v: `R$ ${(stats.totalDinheiro ?? 0).toFixed(2)}` },
   ];
   return (
-    <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+    <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {items.map((i) => (
         <div key={i.label} className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <p className="text-[10px] tracking-widest uppercase text-muted-foreground">{i.label}</p>
@@ -218,6 +220,7 @@ export function Cards({ stats }: { stats: { total: number; pagas: number; valida
       ))}
     </section>
   );
+
 }
 
 export function RegionalCards({
