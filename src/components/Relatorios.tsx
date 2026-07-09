@@ -21,7 +21,8 @@ export type InscricaoRel = {
 type Lab = { id: string; nome: string; local?: string; eh_geral?: boolean };
 type Ministerio = { id: string; nome: string };
 
-const REGIONAIS = [...Array.from({ length: 20 }, (_, i) => String(i + 2)), "SEDE"];
+const REGIONAIS = ["SEDE", ...Array.from({ length: 20 }, (_, i) => String(i + 2))];
+const labelRegional = (r: string) => (r === "SEDE" ? "Regional 01 (SEDE)" : `Regional ${r}`);
 
 function formaPagamentoDe(i: InscricaoRel): string {
   const p = i.pagamentos?.[0]?.metodo;
