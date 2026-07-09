@@ -897,6 +897,9 @@ function SuperPage() {
           <GerenciarGalerias />
         </div>
 
+        <Relatorios inscricoes={inscricoes as any} labs={labs} ministerios={ministerios} />
+
+
 
 
 
