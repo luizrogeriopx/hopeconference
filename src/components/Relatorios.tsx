@@ -21,7 +21,8 @@ export type InscricaoRel = {
 type Lab = { id: string; nome: string; local?: string; eh_geral?: boolean };
 type Ministerio = { id: string; nome: string };
 
-const REGIONAIS = [...Array.from({ length: 20 }, (_, i) => String(i + 2)), "SEDE"];
+const REGIONAIS = ["SEDE", ...Array.from({ length: 20 }, (_, i) => String(i + 2))];
+const labelRegional = (r: string) => (r === "SEDE" ? "Regional 01 (SEDE)" : `Regional ${r}`);
 
 function formaPagamentoDe(i: InscricaoRel): string {
   const p = i.pagamentos?.[0]?.metodo;
@@ -122,7 +123,7 @@ export function Relatorios({
       const sub = lista.filter((i) => (i.congregacao || "—") === cong);
       return `<h3>${esc(cong)} <span class="badge">${sub.length}</span></h3>${tabelaInscricoes(sub)}`;
     }).join("");
-    const titulo = regional === "SEDE" ? "Relatório — Sede" : `Relatório — Regional ${regional}`;
+    const titulo = `Relatório — ${labelRegional(regional)}`;
     const cabec = `<div class="meta"><b>${lista.length}</b> inscrição(ões) confirmada(s) em <b>${congregs.length}</b> congregação(ões).</div>`;
     abrirRelatorio(titulo, cabec + (secoes || "<p>Sem dados.</p>"));
   }
@@ -136,7 +137,7 @@ export function Relatorios({
         const s = lista.filter((i) => (i.congregacao || "—") === cong);
         return `<h3>${esc(cong)} <span class="badge">${s.length}</span></h3>${tabelaInscricoes(s)}`;
       }).join("");
-      const label = r === "SEDE" ? "Sede" : `Regional ${r}`;
+      const label = labelRegional(r);
       return `<h2>${label} — ${lista.length} inscrição(ões)</h2>${sub}`;
     }).join("");
     abrirRelatorio("Relatório — Todas as Regionais", secoes || "<p>Sem dados.</p>");
@@ -209,7 +210,7 @@ export function Relatorios({
           <div className="flex flex-wrap items-center gap-2">
             <select value={regionalSel} onChange={(e) => setRegionalSel(e.target.value)} className={select}>
               {REGIONAIS.map((r) => (
-                <option key={r} value={r}>{r === "SEDE" ? "Sede" : `Regional ${r}`}</option>
+                <option key={r} value={r}>{labelRegional(r)}</option>
               ))}
             </select>
             <button type="button" className={btn} onClick={() => relatorioRegional(regionalSel)}>Gerar regional</button>
