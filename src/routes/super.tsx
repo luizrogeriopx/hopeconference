@@ -11,6 +11,8 @@ import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import { ContasUsuarios } from "@/components/ContasUsuarios";
 import { EnviarNotificacao } from "@/components/EnviarNotificacao";
 import { GerenciarGalerias } from "@/components/GerenciarGalerias";
+import { Relatorios } from "@/components/Relatorios";
+
 import {
   criarUsuarioPainel,
   listarUsuariosPainel,
