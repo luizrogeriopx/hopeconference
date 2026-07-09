@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import { fetchAllPages } from "@/lib/fetch-all-pages";
 
 function admin() {
   return createClient<Database>(
@@ -24,13 +25,14 @@ export const listarTodasContas = createServerFn({ method: "GET" })
     const ad = admin();
     await assertSuper(ad, context.userId);
 
-    const { data: profiles, error: pErr } = await ad
-      .from("profiles")
-      .select("id, email, nome, criado_em")
-      .order("criado_em", { ascending: false });
-    if (pErr) throw new Error(pErr.message);
+    const profiles = await fetchAllPages<any>(() =>
+      ad
+        .from("profiles")
+        .select("id, email, nome, criado_em")
+        .order("criado_em", { ascending: false })
+    );
 
-    const { data: rolesData } = await ad.from("user_roles").select("user_id, role");
+    const rolesData = await fetchAllPages<any>(() => ad.from("user_roles").select("user_id, role"));
     const rolesByUser = new Map<string, string[]>();
     (rolesData ?? []).forEach((r) => {
       const arr = rolesByUser.get(r.user_id) ?? [];
@@ -38,9 +40,11 @@ export const listarTodasContas = createServerFn({ method: "GET" })
       rolesByUser.set(r.user_id, arr);
     });
 
-    const { data: inscData } = await ad
-      .from("inscricoes")
-      .select("comprador_user_id, status");
+    const inscData = await fetchAllPages<any>(() =>
+      ad
+        .from("inscricoes")
+        .select("comprador_user_id, status")
+    );
     const countsByUser = new Map<string, number>();
     (inscData ?? []).forEach((i) => {
       countsByUser.set(i.comprador_user_id, (countsByUser.get(i.comprador_user_id) ?? 0) + 1);
@@ -133,14 +137,15 @@ export const listarInscricoesDaConta = createServerFn({ method: "POST" })
     const ad = admin();
     await assertSuper(ad, context.userId);
 
-    const { data: inscs, error } = await ad
-      .from("inscricoes")
-      .select(
-        "id, nome_participante, email, status, valor, criado_em, qr_token, lab_qr_token, lab_id, regional, congregacao, cpf, validado_em, lab_validado_em, labs(nome, local, eh_geral)",
-      )
-      .eq("comprador_user_id", data.user_id)
-      .order("criado_em", { ascending: false });
-    if (error) throw new Error(error.message);
+    const inscs = await fetchAllPages<any>(() =>
+      ad
+        .from("inscricoes")
+        .select(
+          "id, nome_participante, email, status, valor, criado_em, qr_token, lab_qr_token, lab_id, regional, congregacao, cpf, validado_em, lab_validado_em, labs(nome, local, eh_geral)",
+        )
+        .eq("comprador_user_id", data.user_id)
+        .order("criado_em", { ascending: false })
+    );
     return inscs ?? [];
   });
 

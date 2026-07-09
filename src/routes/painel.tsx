@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { LocalCard } from "@/components/LocalCard";
 import { NotificacoesSino } from "@/components/NotificacoesSino";
+import { fetchAllPages } from "@/lib/fetch-all-pages";
 import {
   criarInscricoesPainel,
   excluirInscricaoPendente,
@@ -263,10 +264,12 @@ function PainelInscrito() {
   }
 
   async function carregarVagas() {
-    const { data: countsData } = await supabase
-      .from("inscricoes")
-      .select("lab_id")
-      .neq("status", "cancelado");
+    const countsData = await fetchAllPages<any>(() =>
+      supabase
+        .from("inscricoes")
+        .select("lab_id")
+        .neq("status", "cancelado")
+    );
 
     const counts: Record<string, number> = {};
     let total = 0;
@@ -282,13 +285,14 @@ function PainelInscrito() {
 
   async function carregar() {
     setCarregando(true);
-    const { data, error } = await supabase
-      .from("inscricoes")
-      .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, regional, congregacao, labs(nome, local, eh_geral, link_material)")
-      .eq("comprador_user_id", user!.id)
-      .order("criado_em", { ascending: false });
-    
-    if (!error && data) {
+    try {
+      const data = await fetchAllPages<any>(() =>
+        supabase
+          .from("inscricoes")
+          .select("id, nome_participante, status, qr_token, valor, criado_em, lab_id, lab_qr_token, lab_validado_em, regional, congregacao, labs(nome, local, eh_geral, link_material)")
+          .eq("comprador_user_id", user!.id)
+          .order("criado_em", { ascending: false })
+      );
       setInscricoes(data as any[]);
       
       const pendingInscs = (data ?? []).filter((i: any) => i.status === "pendente");
@@ -305,6 +309,8 @@ function PainelInscrito() {
         setPendingPayments([]);
         setSelectedPendingIds([]);
       }
+    } catch (error) {
+      console.error("Erro ao carregar inscrições:", error);
     }
     setCarregando(false);
   }
@@ -508,10 +514,12 @@ function PainelInscrito() {
         .from("labs")
         .select("id, nome, limite_vagas, ativo, eh_geral")
         .eq("exclusivo_recepcao", false);
-      const { data: freshCounts } = await supabase
-        .from("inscricoes")
-        .select("lab_id")
-        .neq("status", "cancelado");
+      const freshCounts = await fetchAllPages<any>(() =>
+        supabase
+          .from("inscricoes")
+          .select("lab_id")
+          .neq("status", "cancelado")
+      );
       const counts: Record<string, number> = {};
       let totalGeral = 0;
       (freshCounts ?? []).forEach((r: any) => {

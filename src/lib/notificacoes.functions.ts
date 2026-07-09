@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import { fetchAllPages } from "@/lib/fetch-all-pages";
 
 function admin() {
   return createClient<Database>(
@@ -39,18 +40,18 @@ export const enviarNotificacaoMassa = createServerFn({ method: "POST" })
     let userIds: string[] = [];
 
     if (data.alvo === "todos") {
-      const { data: profs, error } = await ad.from("profiles").select("id");
-      if (error) throw new Error(error.message);
+      const profs = await fetchAllPages<any>(() => ad.from("profiles").select("id"));
       userIds = (profs ?? []).map((p) => p.id);
     } else {
       // Filtrar via inscrições
-      let q = ad.from("inscricoes").select("comprador_user_id");
-      if (data.alvo === "regional" && data.regional) q = q.eq("regional", data.regional);
-      if (data.alvo === "lab" && data.labId) q = q.eq("lab_id", data.labId);
-      if (data.alvo === "ministerio" && data.ministerioId) q = q.eq("ministerio_id", data.ministerioId);
-      if (data.alvo === "status" && data.status) q = q.eq("status", data.status);
-      const { data: inscs, error } = await q;
-      if (error) throw new Error(error.message);
+      const inscs = await fetchAllPages<any>(() => {
+        let q = ad.from("inscricoes").select("comprador_user_id");
+        if (data.alvo === "regional" && data.regional) q = q.eq("regional", data.regional);
+        if (data.alvo === "lab" && data.labId) q = q.eq("lab_id", data.labId);
+        if (data.alvo === "ministerio" && data.ministerioId) q = q.eq("ministerio_id", data.ministerioId);
+        if (data.alvo === "status" && data.status) q = q.eq("status", data.status);
+        return q;
+      });
       userIds = Array.from(new Set((inscs ?? []).map((i) => i.comprador_user_id).filter(Boolean)));
     }
 

@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { criarInscricoesRecepcao, confirmarPagamentosRecepcao } from "@/lib/inscriptions.functions";
+import { fetchAllPages } from "@/lib/fetch-all-pages";
 import { LocalCard } from "@/components/LocalCard";
 
 
@@ -147,10 +148,12 @@ function RecepcaoPage() {
   }
 
   async function carregarVagas() {
-    const { data: countsData } = await supabase
-      .from("inscricoes")
-      .select("lab_id")
-      .neq("status", "cancelado");
+    const countsData = await fetchAllPages<any>(() =>
+      supabase
+        .from("inscricoes")
+        .select("lab_id")
+        .neq("status", "cancelado")
+    );
 
     const counts: Record<string, number> = {};
     let total = 0;
@@ -178,11 +181,13 @@ function RecepcaoPage() {
   }
 
   async function carregarPendentesRecepcao() {
-    const { data } = await supabase
-      .from("inscricoes")
-      .select("id, nome_participante, email, valor, criado_em, regional, congregacao, labs(nome)")
-      .eq("status", "pendente")
-      .order("criado_em", { ascending: false });
+    const data = await fetchAllPages<any>(() =>
+      supabase
+        .from("inscricoes")
+        .select("id, nome_participante, email, valor, criado_em, regional, congregacao, labs(nome)")
+        .eq("status", "pendente")
+        .order("criado_em", { ascending: false })
+    );
     if (data) setInscricoesPendentes(data as any[]);
   }
 

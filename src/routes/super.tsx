@@ -6,6 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { fetchAllPages } from "@/lib/fetch-all-pages";
 import { Cards, RegionalCards, LabCards, MinisterioCards, ListaInscricoes, GestaoUsuarios, ListaPastoresCoordenadores } from "./admin";
 import { ValidadorEntrada } from "@/components/ValidadorEntrada";
 import { ContasUsuarios } from "@/components/ContasUsuarios";
@@ -46,12 +47,13 @@ export const corrigirInscricoesWestFn = createServerFn({ method: "POST" })
     const emailWest = "westsantos21@gmail.com";
 
     // 1. Buscar inscrições
-    const { data: inscs, error: fetchErr } = await ad
-      .from("inscricoes")
-      .select("id, status, valor, nome_participante")
-      .eq("email", emailWest);
+    const inscs = await fetchAllPages<any>(() =>
+      ad
+        .from("inscricoes")
+        .select("id, status, valor, nome_participante")
+        .eq("email", emailWest)
+    );
 
-    if (fetchErr) throw new Error("Erro ao carregar inscrições: " + fetchErr.message);
     if (!inscs || inscs.length === 0) {
       return { ok: false, message: "Nenhuma inscrição encontrada para o e-mail " + emailWest };
     }
@@ -231,25 +233,21 @@ function SuperPage() {
   useEffect(() => { if (user && isSuper) void carregar(); }, [user, isSuper]);
 
   async function carregar() {
-    const PAGE = 1000;
-    const todas: any[] = [];
-    for (let from = 0; ; from += PAGE) {
-      const { data, error } = await supabase
+    const todas = await fetchAllPages<any>(() =>
+      supabase
         .from("inscricoes")
         .select("id, nome_participante, email, telefone, status, valor, criado_em, validado_em, cpf, lab_id, qr_token, lab_qr_token, regional, congregacao, labs(nome, local, requer_cpf), ministerio_id, ministerios(nome), canal, pagamentos(metodo)")
         .order("criado_em", { ascending: false })
-        .range(from, from + PAGE - 1);
-      if (error || !data || data.length === 0) break;
-      todas.push(...data);
-      if (data.length < PAGE) break;
-    }
+    );
     setInscricoes(todas as Inscricao[]);
 
-    const { data: pgDinheiro } = await supabase
-      .from("pagamentos")
-      .select("valor")
-      .eq("metodo", "dinheiro")
-      .eq("status", "pago");
+    const pgDinheiro = await fetchAllPages<any>(() =>
+      supabase
+        .from("pagamentos")
+        .select("valor")
+        .eq("metodo", "dinheiro")
+        .eq("status", "pago")
+    );
     const totalD = (pgDinheiro ?? []).reduce((s, p) => s + Number(p.valor), 0);
     setTotalDinheiro(totalD);
     
